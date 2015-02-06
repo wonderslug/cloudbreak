@@ -366,6 +366,7 @@ You can do this on the management console, or - if you have aws-cli configured -
 <p>Once this is configured, Cloudbreak is ready to launch Hadoop clusters on your behalf. The only thing Cloudbreak requires is the <code>Role ARN</code> (Role for Cross-Account access).</p>
 <h3 id="configuring-the-microsoft-azure-account">Configuring the Microsoft Azure account</h3>
 <p>In order to launch Hadoop clusters on the  Microsoft Azure cloud platform you'll need to link your Azure account with Cloudbreak. This can be achieved by creating a new <code>Azure Credential</code> in Cloudbreak.</p>
+<p>You have to create network manually first in Azure before you start provisoning with Cloudbreak that is a known issue on Azure side.</p>
 <p>You'll need an X509 certificate with a 2048-bit RSA keypair.</p>
 <p>Generate these artifacts with <code>openssl</code> by running the following command, and answering the questions in the command prompt:</p>
 <pre class="prettyprint well"><code>openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout my_azure_private.key -out my_azure_cert.pem
