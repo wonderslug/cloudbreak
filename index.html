@@ -445,7 +445,7 @@ You can do this on the management console, or - if you have aws-cli configured -
 
 <h2 id="cloudbreak-ui">Cloudbreak UI</h2>
 <p>When we have started to work on Cloudbreak, our main goal was to create an easy to use, cloud and Hadoop distribution agnostic Hadoop as a Service API. Though we always like to automate everything and approach things with a very DevOps mindset, as a side project we have created a UI for Cloudbreak as well.
-The goal of the UI is to ease to process and allow you to create a Hadoop cluster on your favourite cloud provider in <code>one-click</code>.</p>
+The goal of the UI is to ease to process and allow you to create a Hadoop cluster on your favorite cloud provider in <code>one-click</code>.</p>
 <p><img alt="" src="https://raw.githubusercontent.com/sequenceiq/cloudbreak/master/docs/images/UI-screenshot.png" /></p>
 <p>The UI is built on the foundation of the Cloudbreak REST API. You can access the UI <a href="https://cloudbreak.sequenceiq.com/">here</a>.</p>
 <h3 id="user-registration">User registration</h3>
@@ -708,7 +708,7 @@ The sequence diagram below shows the flow.</p>
 <h2 id="quickstart-and-installation">QuickStart and installation</h2>
 <p>We provide you two different ways to start using Cloudbreak. The simplest and easiest solution is hosted by SequenceIQ, however we encourage you to get Cloudbreak and deployed it on-premise or on your favorite cloud provider.</p>
 <h3 id="hosted-cloudbreak-ui-and-api">Hosted - Cloudbreak UI and API</h3>
-<p>The easiest way to start your own Hadoop cluster in your favourite cloud provider is to use our hosted solution. We host, maintain and support <a href="https://cloudbreak.sequenceiq.com/">Cloudbreak</a> for you.</p>
+<p>The easiest way to start your own Hadoop cluster in your favorite cloud provider is to use our hosted solution. We host, maintain and support <a href="https://cloudbreak.sequenceiq.com/">Cloudbreak</a> for you.</p>
 <p>Please note that Cloudbreak is launching Hadoop clusters on the user's behalf - on different cloud providers. We do not store your cloud provider account details (such as username, password, keys, private SSL certificates, etc), but work around the concept that Identity and Access Management is fully controlled by you - the end user.</p>
 <p>Though Cloudbreak controls your Hadoop cluster lifecycle (start, stop, pause), we <strong>do not</strong> have access to the launched instances. The Hadoop clusters created by Cloudbreak are private to you.</p>
 <h3 id="diy-deploying-cloudbreak-ui-and-api">DIY - Deploying Cloudbreak UI and API</h3>
@@ -758,8 +758,15 @@ Consul - 0.4.1</p>
 <p>There is an effort by the community and SequenceIQ to bring <a href="http://bigtop.apache.org/">Apache Bigtop</a> - the Apache Hadoop distribution - under the umbrella of Ambari. Once this effort is finished, Cloudbreak will support Apache Bigtop as a Hadoop distribution as well.</p>
 <p>Apache Ambari allows you to create your own <a href="https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=38571133">custom Hadoop stack</a> - and you can use Cloudbreak to provision a cluster based on that.</p>
 <h4 id="cloud-providers">Cloud providers</h4>
-<p>While we have just released the first public beta version of Cloudbreak, we have already started working on other cloud providers - namely Rackspace and HP Helion Public Cloud.
-We have received many requests from people to integrate Cloudbreak with 3d party hypervisors and cloud providers - as IBM's SoftLayer. In case you'd like to have your favourite cloud provider listed don't hesitate to contact us or use our SDK and process to add yours. You can fill the following <a href="https://docs.google.com/forms/d/129RVh6VfjRsuuHOcS3VPbFYTdM2SEjANDsGCR5Pul0I/viewform">questionnaire</a> and request your favourite cloud provider.</p>
+<p>Supported cloud providers:</p>
+<ul>
+<li>Amazon AWS</li>
+<li>Microsoft Azure</li>
+<li>Google Cloud Platform</li>
+<li>OpenStack</li>
+</ul>
+<p>While we have just released the first public beta version of Cloudbreak, we have already started working on other cloud providers - namely <em>Rackspace</em> and <em>HP Helion Public Cloud</em>.
+We have received many requests from people to integrate Cloudbreak with 3d party hypervisors and cloud providers - as IBM's SoftLayer. In case you'd like to have your favorite cloud provider listed don't hesitate to contact us or use our SDK and process to add yours. You can fill the following <a href="https://docs.google.com/forms/d/129RVh6VfjRsuuHOcS3VPbFYTdM2SEjANDsGCR5Pul0I/viewform">questionnaire</a> and request your favorite cloud provider. In case you'd like to integrate your favorite provider we are happy to support you and merge your contribution.</p>
 <p>Enjoy Cloudbreak - the Hadoop as a Service API which brings you a Hadoop ecosystem in minutes. You are literaly one click or REST call away from a fully functional, distributed Hadoop cluster.</p>
 <!--releases.md-->
 
@@ -841,7 +848,7 @@ United States and other governments.<br />
 It is your responsibility to ensure that your use and/or transfer does not
 violate applicable laws.</p>
 <h3 id="licensing">Licensing</h3>
-<p>Cloudbreak is licensed under the Apache License, Version 2.0. See <a href="http://www.apache.org/licenses/LICENSE-2.0.html">LICENSE</a> for full license text.</p>
+<p>Cloudbreak is licensed under the Apache License, Version 2.0. See <a href="https://raw.githubusercontent.com/sequenceiq/cloudbreak/master/LICENSE">LICENSE</a> for the full license text.</p>
 </div>
         </div>
 
