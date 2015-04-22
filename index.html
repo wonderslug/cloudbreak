@@ -108,7 +108,7 @@
 <h1 id="cloudbreak">Cloudbreak</h1>
 <p><em>Cloudbreak is a powerful left surf that breaks over a coral reef, a mile off southwest the island of Tavarua, Fiji.</em></p>
 <p><em>Cloudbreak is a cloud agnostic Hadoop as a Service API. Abstracts the provisioning and ease management and monitoring of on-demand clusters.</em></p>
-<p>Cloudbreak <a href="https://cloudbreak-api.sequenceiq.com/docs/index.html">API documentation</a>.</p>
+<p>Cloudbreak <a href="https://cloudbreak-api.sequenceiq.com/api/index.html">API documentation</a>.</p>
 <!--main.md-->
 
 <!--overview.md-->
@@ -142,18 +142,18 @@ Templates are cloud specific - and on top of the infrastructural setup they coll
 <p>A template can be used repeatedly to create identical copies of the same stack (or to use as a foundation to start a new stack).</p>
 <p>The infrastructure specific configuration is available under the Cloudbreak <a href="https://github.com/sequenceiq/cloudbreak/blob/master/src/main/resources/templates">resources</a>.
 As an example for Amazon EC2, we use <a href="http://aws.amazon.com/cloudformation/">AWS Cloudformation</a> to define the cloud infrastructure .</p>
-<p>For further information please visit our <a href="https://cloudbreak-api.sequenceiq.com/docs/index.html#/templates">API documentation</a>.</p>
+<p>For further information please visit our <a href="https://cloudbreak-api.sequenceiq.com/api/index.html#/templates">API documentation</a>.</p>
 <h3 id="stacks">Stacks</h3>
 <p>Stacks are template <code>instances</code> - a running cloud infrastructure created based on a template. Stacks are always launched on behalf of a cloud user account. Stacks support a wide range of resources, allowing you to build a highly available, reliable, and scalable infrastructure for your application needs.</p>
-<p>For further information please visit our <a href="https://cloudbreak-api.sequenceiq.com/docs/index.html#/stack">API documentation</a>.</p>
+<p>For further information please visit our <a href="https://cloudbreak-api.sequenceiq.com/api/index.html#/stack">API documentation</a>.</p>
 <h3 id="blueprints">Blueprints</h3>
 <p>Ambari Blueprints are a declarative definition of a Hadoop cluster. With a Blueprint, you specify a stack, the component layout and the configurations to materialize a Hadoop cluster instance. Hostgroups defined in blueprints can be associated to different templates, thus you can spin up a highly available cluster running on different instance types. This will give you the option to group your Hadoop services based on resource needs (e.g. high I/O, CPU or memory) and create an infrastructure which fits your workload best.</p>
 <p>We have a few default blueprints available from multi node blueprints to lambda architectures.</p>
-<p>For further information please visit our <a href="https://cloudbreak-api.sequenceiq.com/docs/index.html#/blueprints">API documentation</a>.</p>
+<p>For further information please visit our <a href="https://cloudbreak-api.sequenceiq.com/api/index.html#/blueprints">API documentation</a>.</p>
 <h3 id="cluster">Cluster</h3>
 <p>Clusters are materialised Hadoop services on a given infrastructure. They are built based on a Blueprint (running the components and services specified) and on a configured infrastructure Stack.
 Once a cluster is created and launched, it can be used the usual way as any Hadoop cluster. We suggest to start with the Cluster's Ambari UI for an overview of your cluster.</p>
-<p>For further information please visit our <a href="https://cloudbreak-api.sequenceiq.com/docs/index.html#/cluster">API documentation</a>.</p>
+<p>For further information please visit our <a href="https://cloudbreak-api.sequenceiq.com/api/index.html#/cluster">API documentation</a>.</p>
 <!--howitworks.md-->
 
 <!--technologies.md-->
@@ -814,7 +814,7 @@ Cloudbreak consist of the following main projects:</p>
 <h3 id="cloudbreak-documentation">Cloudbreak documentation</h3>
 <p>Product documentation: <a href=http://sequenceiq.com/cloudbreak>http://sequenceiq.com/cloudbreak</a></p>
 <p>GitHub: <a href=https://github.com/sequenceiq/cloudbreak/blob/master/docs/index.md>https://github.com/sequenceiq/cloudbreak/blob/master/docs/index.md</a></p>
-<p>API documentation: <a href=https://cloudbreak-api.sequenceiq.com/docs/index.html>https://cloudbreak.sequenceiq.com/docs</a></p>
+<p>API documentation: <a href=https://cloudbreak-api.sequenceiq.com/api/index.html>https://cloudbreak.sequenceiq.com/api</a></p>
 <h3 id="ways-to-contribute">Ways to contribute</h3>
 <ul>
 <li>Use Cloudbreak</li>
