@@ -411,22 +411,22 @@ You can do this on the management console, or - if you have aws-cli configured -
 <p>Once this is configured, Cloudbreak is ready to launch Hadoop clusters on your behalf. The only thing Cloudbreak requires is the <code>Role ARN</code> (Role for Cross-Account access).</p>
 <h3 id="configuring-the-microsoft-azure-account">Configuring the Microsoft Azure account</h3>
 <p>In order to launch Hadoop clusters on the  Microsoft Azure cloud platform you'll need to link your Azure account with Cloudbreak. This can be achieved by creating a new <code>Azure Credential</code> in Cloudbreak.</p>
-<p>You have to create network manually first in Azure before you start provisoning with Cloudbreak that is a known issue on Azure side.</p>
+<p>You have to create a network manually first on Azure portal before you start provisioning with Cloudbreak (due to a known issue on Azure).</p>
 <p>You'll need an X509 certificate with a 2048-bit RSA keypair.</p>
 <p>Generate these artifacts with <code>openssl</code> by running the following command, and answering the questions in the command prompt:</p>
 <pre class="prettyprint well"><code>openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout my_azure_private.key -out my_azure_cert.pem
 </code></pre>
 
-<p>The command generates the following files into the directory you ran the command from:</p>
+<p>The command generates the following files into the directory you run the command from:</p>
 <p><code>my_azure_private.key</code> and <code>my_azure_cert.pem</code></p>
-<p>(obviously artifacts can be named after your wish)</p>
+<p>(obviously artifacts can be named as your prefer)</p>
 <p>Fill the form by providing your Azure <code>Subscription Id</code>, and the <strong>content</strong> of the previously generated certificate (my_azure_cert.pem).</p>
 <p><em>Note:</em> Cloudbreak will generate a <code>JKS</code> file (stored by the backend) and a <code>certificate</code> with the <code>passphrase</code>. You will need to upload the generated certificate (that is automatically downloaded to you after the form submission, alternatively you can download it any time from Cloudbreak) to your Azure account:</p>
 <p>On your <code>Azure Management Console</code>, <code>Settings</code> menu, click the <code>Management Certificates</code> tab and upload the downloaded <code>cert</code> file</p>
 <p>The JKS file and certificate will be used to encrypt the communication between Cloudbreak and Azure in both directions.</p>
 <p>You are done - from now on Cloudbreak can launch Azure instances on your behalf.</p>
-<p><em>Note:</em> Cloudbreak does not store any login details for these instances - when you create <strong>Templates</strong> you can specify a <code>password</code> or <code>SSH Public key</code> that can be used to login into the launched instances.</p>
-<p><em>Note:</em> Because Azure does not directly support third party public images Cloudbreak will copy the used image from VM Depot into your storage account. The steps below need to be finished ONCE and only ONCE before any stack is created for every affinity group - <strong>this is an automated step</strong>  - it's only highlighted here as an explanation of why it takes longer for the first time:</p>
+<p><em>Note:</em> Cloudbreak does not store any login details for these instances - you can specify a <code>password</code> or <code>SSH Public key</code> that can be used to login into the launched instances.</p>
+<p><em>Note:</em> Because Azure does not directly support third party public images Cloudbreak will copy the used image from VM Depot into your storage account. The steps below need to be finished ONCE and only ONCE before any stack is created for every affinity group - <strong>this is an automated step</strong>  - it's only highlighted here as an explanation of why provisioning takes longer at first time:</p>
 <p><em>1. Get the VM image - http://vmdepot.msopentech.com/Vhd/Show?vhdId=42480&amp;version=43564</em></p>
 <p><em>2. Copy the VHD blob from above (community images) into your storage account</em></p>
 <p><em>3. Create a VM image from the copied VHD blob.</em></p>
