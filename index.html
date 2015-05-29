@@ -743,12 +743,8 @@ The sequence diagram below shows the flow.</p>
 <p>Please note that Cloudbreak is launching Hadoop clusters on the user's behalf - on different cloud providers. We do not store your cloud provider account details (such as username, password, keys, private SSL certificates, etc), but work around the concept that Identity and Access Management is fully controlled by you - the end user.</p>
 <p>Though Cloudbreak controls your Hadoop cluster lifecycle (start, stop, pause), we <strong>do not</strong> have access to the launched instances. The Hadoop clusters created by Cloudbreak are private to you.</p>
 <h3 id="diy-deploying-cloudbreak-ui-and-api">DIY - Deploying Cloudbreak UI and API</h3>
-<p>To deploy a running Cloudbreak instance the only thing you will need to do is to get the code first.</p>
-<pre class="prettyprint well"><code>git clone https://github.com/sequenceiq/cloudbreak-deployment.git
-cloudbreak-deployment
-</code></pre>
-
-<p>Follow the instructions.</p>
+<p>Cloudbreak is deployed as orchestrated docker containers. We created a project which guides you through self deployment:
+https://github.com/sequenceiq/cloudbreak-deployer</p>
 <!--quickstart.md-->
 
 <!--releases.md-->
