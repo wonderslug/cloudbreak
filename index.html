@@ -680,7 +680,7 @@ The implementation should iterate over these resources and should call the prope
 <p>When a DELETE request arrives, the controller layer finds the requested stack in the database and passes it to the correct cloud platform implementation. There is no return type in this case. In case of a GET request, the implementation should return a <code>StackDescription</code> that contains the details of the cloud resources. Later in the controller the basic information from the Cloudbreak database is returned besides the detailed description coming from the <code>CloudPlatformConnector</code>.</p>
 <h3 id="event-handling-and-notifications">Event handling and notifications</h3>
 <p>Cloudbreak uses events and notifications extensively. Event publishing and subscribing uses the Reactor framework. This is an example to send a <code>METADATA_SETUP_COMPLETE</code> event after wiring the <code>Reactor</code> bean in the component:</p>
-<pre class="prettyprint well"><code>@Autowired
+<pre class="prettyprint well"><code>@Inject
 private Reactor reactor;
 ...
 reactor.notify(ReactorConfig.METADATA_SETUP_COMPLETE_EVENT, Event.wrap(new MetadataSetupComplete(CloudPlatform.AWS, stack.getId(), coreInstanceMetadata)));
