@@ -92,6 +92,8 @@
         
             <li><a href="#quickstart-and-installation">QuickStart and installation</a></li>
         
+            <li><a href="#gateway-node">Gateway node</a></li>
+        
             <li><a href="#releases-future-plans">Releases, future plans</a></li>
         
             <li><a href="#contribution">Contribution</a></li>
@@ -503,7 +505,6 @@ The goal of the UI is to ease to process and allow you to create a Hadoop cluste
 <p><code>Endpoint:</code> OpenStack API address endpoint's</p>
 <p><code>SSH public key:</code> the SSH public key to be used to log into the launched instances later</p>
 <p><code>Public in account:</code> share it with others in the account</p>
-<p>You can download our OpenStack image here: <a href=https://s3-eu-west-1.amazonaws.com/cb-openstack-images/cb-centos66-amb200-2015-05-25.img>link</a></p>
 <h3 id="manage-resources">Manage resources</h3>
 <p>Using manage resources you can create infrastructure templates.</p>
 <p><strong>Amazon AWS</strong></p>
@@ -554,15 +555,21 @@ The goal of the UI is to ease to process and allow you to create a Hadoop cluste
 <p><code>Public network ID:</code> the publuc network id (OpenStack only)</p>
 <p><code>Public in account:</code> share it with others in the account</p>
 <h3 id="create-cluster">Create cluster</h3>
-<p>Using the create cluster functionality you will create a cloud Stack and a Hadoop Cluster. In order to create a cluster you will have to select a credential first.
-<em>Note: Cloudbreak can maintain multiple cloud credentials (even for the same provider).</em></p>
+<p>Using the create cluster functionality you will create a cloud Stack and a Hadoop Cluster. In order to create a cluster you will have to select a credential first.</p>
+<p><em>Note: Cloudbreak can maintain multiple cloud credentials (even for the same provider).</em></p>
 <p><code>Cluster name:</code> your cluster name</p>
-<p><code>Region</code>: the region where the cluster is started</p>
-<p><code>Blueprint:</code> your Hadoop cluster blueprint</p>
-<p>Once the blueprint is selected we parse it and give you the option to select the followings for each <strong>hostgroup</strong>.</p>
+<p><code>Region:</code> the region where the cluster is started</p>
+<p><code>Network:</code> the network template</p>
+<p><code>Blueprint:</code> your Hadoop cluster blueprint. Once the blueprint is selected we parse it and give you the option to select the followings for each <strong>hostgroup</strong>.</p>
+<p><code>Hostgroup configuration</code></p>
 <p><code>Group size:</code> the number of instances to be started</p>
 <p><code>Template:</code> the stack template associated to the hostgroup</p>
 <p><code>Public in account:</code> share it with others in the account</p>
+<p><strong>Advanced features</strong>:</p>
+<p><code>Consul server count:</code> the number of Consul servers (odd number), by default is 3. It varies with the cluster size.</p>
+<p><code>Minimum cluster size:</code> the provisioning strategy in case of the cloud provider can't allocate all the requested nodes</p>
+<p><code>Validate blueprint:</code> feature to validate or not the Ambari blueprint. By default is switched on.</p>
+<p><code>Ambari Repository config:</code> you can take the stack RPM's from a custom stack repository</p>
 <p>Once you have launched the cluster creation you can track the progress either on Cloudbreak UI or your cloud provider management UI.</p>
 <p><em>Note: Because Azure does not directly support third party public images we will have to copy the used image from VM Depot into your storage account. The steps below need to be finished once and only once before any stack is created for every affinity group:</em></p>
 <p><em>1. Get the VM image - http://vmdepot.msopentech.com/Vhd/Show?vhdId=42480&amp;version=43564</em></p>
@@ -587,9 +594,15 @@ The goal of the UI is to ease to process and allow you to create a Hadoop cluste
 <p>Please note that Cloudbreak is launching Hadoop clusters on the user's behalf - on different cloud providers. We do not store your cloud provider account details (such as username, password, keys, private SSL certificates, etc), but work around the concept that Identity and Access Management is fully controlled by you - the end user.</p>
 <p>Though Cloudbreak controls your Hadoop cluster lifecycle (start, stop, pause), we <strong>do not</strong> have access to the launched instances. The Hadoop clusters created by Cloudbreak are private to you.</p>
 <h3 id="diy-deploying-cloudbreak">DIY - Deploying Cloudbreak</h3>
-<p><strong>This is the recommended way to use Cloudbreak</strong>. 
+<p><strong>This is the recommended way to use Cloudbreak</strong>.
 Cloudbreak is deployed as orchestrated Docker containers. We have created a project which guides you through the self deployment. Use the following <a href="https://github.com/sequenceiq/cloudbreak-deployer">link</a>.</p>
 <!--quickstart.md-->
+
+<!--security.md-->
+
+<h2 id="gateway-node">Gateway node</h2>
+<p>All communication with the provisioned cluster goes through a <code>gateway</code> node. The communication is over TLS. The cluster is provisioned in a locked down VPC with all the access towards externally accessible Hadoop services closed. In order to access the services (Cloudbreak lists all the available services) the ports will have to be opened using the cloud provider's specific <code>security group</code> configuration.</p>
+<!--security.md-->
 
 <!--releases.md-->
 
