@@ -539,7 +539,6 @@ The goal of the UI is to ease to process and allow you to create a Hadoop cluste
 <p><code>Attached volumes per instance:</code> the number of disks to be attached</p>
 <p><code>Volume size (GB):</code> the size of the attached disks (in GB)</p>
 <p><code>Public in account:</code> share it with others in the account</p>
-<p>You can download our OpenStack image here: <a href=https://s3-eu-west-1.amazonaws.com/cb-openstack-images/cb-centos66-amb200-2015-05-25.img>link</a></p>
 <h3 id="manage-blueprints">Manage blueprints</h3>
 <p>Blueprints are your declarative definition of a Hadoop cluster.</p>
 <p><code>Name:</code> name of your blueprint</p>
@@ -555,12 +554,17 @@ The goal of the UI is to ease to process and allow you to create a Hadoop cluste
 <p><code>Address prefix (CIDR):</code> the address space that is used for subnets (Azure only)</p>
 <p><code>Public network ID:</code> the publuc network id (OpenStack only)</p>
 <p><code>Public in account:</code> share it with others in the account</p>
+<h3 id="manage-security-groups">Manage security groups</h3>
+<p>Security groups allows confoguration of traffic/access to the cluster. Currently there are two default groups, and leter versions will allow setup of new groups.</p>
+<p><code>only-ssh-and-ssl:</code> all ports are locked down (you can't access Hadoop servives outside of the VPN) but SSH (22) and HTTPS (443)</p>
+<p><code>all-services-port:</code> all Hadoop services + SSH/HTTP are accessible by default</p>
 <h3 id="create-cluster">Create cluster</h3>
 <p>Using the create cluster functionality you will create a cloud Stack and a Hadoop Cluster. In order to create a cluster you will have to select a credential first.</p>
 <p><em>Note: Cloudbreak can maintain multiple cloud credentials (even for the same provider).</em></p>
 <p><code>Cluster name:</code> your cluster name</p>
 <p><code>Region:</code> the region where the cluster is started</p>
 <p><code>Network:</code> the network template</p>
+<p>`Security Group:" the security group</p>
 <p><code>Blueprint:</code> your Hadoop cluster blueprint. Once the blueprint is selected we parse it and give you the option to select the followings for each <strong>hostgroup</strong>.</p>
 <p><code>Hostgroup configuration</code></p>
 <p><code>Group size:</code> the number of instances to be started</p>
