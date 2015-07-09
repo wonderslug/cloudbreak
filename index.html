@@ -578,10 +578,10 @@ The goal of the UI is to ease to process and allow you to create a Hadoop cluste
 <p>Once you have launched the cluster creation you can track the progress either on Cloudbreak UI or your cloud provider management UI.</p>
 <h3 id="manage-cluster">Manage cluster</h3>
 <p>The provisioned cluster can be managed from the Details tab. There are a few lifecycle management options available.</p>
-<p><code>Termimate:</code> - terminates the infrastrucre and removes all cloud resources, including data</p>
-<p><code>Stop:</code> - stops the infrastructure but keeps the data; a stopped cluster can be rebroight to the same state as previously been</p>
-<p><code>Start:</code> - starts up the stopped cluster</p>
-<p><code>Synch:</code> - resync the cluster state and metadata</p>
+<p><code>Termimate:</code> terminates the infrastrucre and removes all cloud resources, including data</p>
+<p><code>Stop:</code> stops the infrastructure but keeps the data; a stopped cluster can be rebroight to the same state as previously been</p>
+<p><code>Start:</code> starts up the stopped cluster</p>
+<p><code>Synch:</code> resync the cluster state and metadata</p>
 <p><em>Note: in a cloud based environment due to remote VM or Ambari service failures the <code>local</code> state of the cluster can be unsychronized from the remote cluster state - using the synch button the cluster is resynchronized and the right values are shown (e.g. number and types of instances, Ambari service health, etc).</em></p>
 <p><code>Reinstall:</code> - due to wrong Blueprints sometimes the cluster can't be provisioned. With re-install the stack provisionig can be restarted using the already provisioned cloud infrastructure</p>
 <p><em>Note: Because Azure does not directly support third party public images we will have to copy the used image from VM Depot into your storage account. The steps below need to be finished once and only once before any stack is created for every affinity group:</em></p>
