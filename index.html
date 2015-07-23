@@ -332,23 +332,31 @@ Ambari Blueprints are a declarative definition of a cluster. With a Blueprint, y
 <td align="left">NAGIOS</td>
 <td align="left">NAGIOS_SERVER</td>
 </tr>
+<tr>
+<td align="left">ATLAS</td>
+<td align="left">ATLAS</td>
+</tr>
+<tr>
+<td align="left">CLOUDBREAK</td>
+<td align="left">CLOUDBREAK</td>
+</tr>
 </tbody>
 </table>
 <p>We provide a list of default Hadoop cluster Blueprints for your convenience, however you can always build and use your own Blueprint.</p>
 <ul>
-<li>hdp-small-default - HDP 2.2 blueprint</li>
+<li>hdp-small-default - HDP 2.3 blueprint</li>
 </ul>
-<p>This is a complex <a href="https://raw.githubusercontent.com/sequenceiq/cloudbreak/master/core/src/main/resources/defaults/blueprints/hdp-small-default.bp">Blueprint</a> which allows you to launch a multi node, fully distributed HDP 2.2 Cluster in the cloud.</p>
+<p>This is a complex <a href="https://raw.githubusercontent.com/sequenceiq/cloudbreak/master/core/src/main/resources/defaults/blueprints/hdp-small-default.bp">Blueprint</a> which allows you to launch a multi node, fully distributed HDP 2.3 Cluster in the cloud.</p>
 <p>It allows you to use the following services: HDFS, YARN, MAPREDUCE2, KNOX, HBASE, HIVE, HCATALOG, WEBHCAT, SLIDER, OOZIE, PIG, SQOOP, METRICS, TEZ, FALCON, ZOOKEEPER.</p>
 <ul>
-<li>hdp-streaming-cluster - HDP 2.2 blueprint</li>
+<li>hdp-streaming-cluster - HDP 2.3 blueprint</li>
 </ul>
-<p>This is a streaming <a href="https://raw.githubusercontent.com/sequenceiq/cloudbreak/master/core/src/main/resources/defaults/blueprints/hdp-streaming-cluster.bp">Blueprint</a> which allows you to launch a multi node, fully distributed HDP 2.2 Cluster in the cloud, optimized for streaming jobs.</p>
+<p>This is a streaming <a href="https://raw.githubusercontent.com/sequenceiq/cloudbreak/master/core/src/main/resources/defaults/blueprints/hdp-streaming-cluster.bp">Blueprint</a> which allows you to launch a multi node, fully distributed HDP 2.3 Cluster in the cloud, optimized for streaming jobs.</p>
 <p>It allows you to use the following services: HDFS, YARN, MAPREDUCE2, STORM, KNOX, HBASE, HIVE, HCATALOG, WEBHCAT, SLIDER, OOZIE, PIG, SQOOP, METRICS, TEZ, FALCON, ZOOKEEPER.</p>
 <ul>
-<li>hdp-spark-cluster - HDP 2.2 blueprint</li>
+<li>hdp-spark-cluster - HDP 2.3 blueprint</li>
 </ul>
-<p>This is an analytics <a href="https://raw.githubusercontent.com/sequenceiq/cloudbreak/master/core/src/main/resources/defaults/blueprints/hdp-spark-cluster.bp">Blueprint</a> which allows you to launch a multi node, fully distributed HDP 2.2 Cluster in the cloud, optimized for analytic jobs.</p>
+<p>This is an analytics <a href="https://raw.githubusercontent.com/sequenceiq/cloudbreak/master/core/src/main/resources/defaults/blueprints/hdp-spark-cluster.bp">Blueprint</a> which allows you to launch a multi node, fully distributed HDP 2.3 Cluster in the cloud, optimized for analytic jobs.</p>
 <p>It allows you to use the following services: HDFS, YARN, MAPREDUCE2, SPARK, ZEPPELIN, KNOX, HBASE, HIVE, HCATALOG, WEBHCAT, SLIDER, OOZIE, PIG, SQOOP, METRICS, TEZ, FALCON, ZOOKEEPER.</p>
 <!--components.md-->
 
@@ -630,33 +638,41 @@ Cloudbreak is deployed as orchestrated Docker containers. We have created a proj
 <p>Also we needed to find a way to speed up the process of adding new cloud providers, and be able to <code>ship</code> Hadoop between clouds without re-writing and re-engineering our code base each and every time - welcome <strong>Docker</strong>.</p>
 <p>All the Hadoop ecosystem related code, configuration and services are inside Docker containers - and these containers are launched on VMs of cloud providers or physical hardware - the end result is the same: a <strong>resilient and dynamic</strong> Hadoop cluster.</p>
 <p>We needed to find a unified way to provision, manage and configure Hadoop clusters - welcome <strong>Apache Ambari</strong>.</p>
-<h3 id="public-beta">Public Beta</h3>
-<p>The first public beta version of Cloudbreak supports Hadoop on Amazon's EC2, Microsoft's Azure, Google Cloud Platform and OpenStack cloud providers. The supported Hadoop platform is the Hortonworks Data Platform - the 100% open source Hadoop distribution.</p>
-<p>Versions:</p>
-<p>CentOS - 6.5
-Hortonworks Data Platform - 2.2
-Apache Hadoop - 2.6.0
-Apache Tez - 0.6
-Apache Pig - 0.14
-Apache Hive &amp; HCatalog - 0.14.0
-Apache HBase - 0.98.4
-Apache Phoenix - 4.2
-Apache Accumulo - 1.6.1
-Apache Storm - 0.9.3
-Apache Spark - 1.2.0
-Apache Slider - 0.5.1
-Apache Solr -  4.10.0
-Apache Kafka - 0.8.1
-Apache Falcon - 0.6.0
-Apache Sqoop - 1.4.5
-Apache Flume - 1.5.0
-Apache Ambari - 1.7.0
-Apache Oozie - 4.1.0
-Apache Zookeeper - 3.4.5
-Apache Knox - 0.5.0
-Docker - 1.6.2
-Swarm - 0.2
-Consul - 0.5</p>
+<h3 id="general-availability">General availability</h3>
+<p>The 1.0.0 version of Cloudbreak supports Hadoop on Amazon's EC2, Microsoft's Azure, Google Cloud Platform and OpenStack cloud providers. The supported Hadoop platform is the Hortonworks Data Platform (HDP - 2.3)- the 100% open source Hadoop distribution.</p>
+<p><strong>Versions:</strong></p>
+<p><em>System</em></p>
+<p>CentOS - 6.6
+Docker - 1.7.0
+Swarm - 0.3.0
+Consul - 0.5.0</p>
+<p><em>Data management</em></p>
+<p>Apache Hadoop - 2.7.1
+Apache YARN - 2.7.1</p>
+<p><em>Data access</em></p>
+<p>Apache Pig - 0.15.0
+Apache Hive &amp; HCatalog - 1.2.1
+Apache Tez - 0.7.0
+Apache Solr -  5.2.1
+Apache Spark - 1.3.1
+Apache Slider - 0.80.0
+Apache HBase - 1.1.1
+Apache Phoenix - 4.4.0
+Apache Accumulo - 1.7.0
+Apache Storm - 0.10.0</p>
+<p><em>Governance and Integration</em></p>
+<p>Apache Falcon - 0.6.1
+Apache Atlas - 0.5.0
+Apache Sqoop - 1.4.6
+Apache Flume - 1.5.2
+Apache Kafka - 0.8.2</p>
+<p><em>Operations</em></p>
+<p>Apache Ambari - 2.1.0
+Apache Oozie - 4.2.0
+Apache Zookeeper - 3.4.6</p>
+<p><em>Security</em></p>
+<p>Apache Knox - 0.6.0
+Apache Ranger - 0.5.0</p>
 <h3 id="future-releases">Future releases</h3>
 <h4 id="hadoop-distributions">Hadoop distributions</h4>
 <p>There is an effort by the community to bring <a href="http://bigtop.apache.org/">Apache Bigtop</a> - the Apache Hadoop distribution - under the umbrella of Ambari. Once this effort is finished, Cloudbreak will support Apache Bigtop as a Hadoop distribution as well.</p>
@@ -669,7 +685,7 @@ Consul - 0.5</p>
 <li>Google Cloud Platform</li>
 <li>OpenStack</li>
 </ul>
-<p>While we have just released the first public beta version of Cloudbreak, we have already started working on other cloud providers - namely <em>Rackspace</em> and <em>HP Helion Public Cloud</em>.
+<p>While we have just released the first public GA version of Cloudbreak, we have already started working on other cloud providers - namely <em>Rackspace</em> and <em>HP Helion Public Cloud</em>.
 We have received many requests from people to integrate Cloudbreak with 3d party hypervisors and cloud providers - as IBM's SoftLayer. In case you'd like to have your favorite cloud provider listed don't hesitate to contact us or use our SDK and process to add yours. You can fill the following <a href="https://docs.google.com/forms/d/129RVh6VfjRsuuHOcS3VPbFYTdM2SEjANDsGCR5Pul0I/viewform">questionnaire</a> and request your favorite cloud provider. In case you'd like to integrate your favorite provider we are happy to support you and merge your contribution.</p>
 <p>Enjoy Cloudbreak - the Hadoop as a Service API which brings you a Hadoop ecosystem in minutes. You are literaly one click or REST call away from a fully functional, distributed Hadoop cluster.</p>
 <!--releases.md-->
