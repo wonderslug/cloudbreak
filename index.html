@@ -397,7 +397,7 @@ You can do this on the management console, or - if you have aws-cli configured -
 <ul>
 <li>Allows IAM users from a 3rd party AWS account to access this account.</li>
 </ul>
-<p><strong>Account ID:</strong> In case you are using our hosted solution you will need to pass SequenceIQ's account id: 755047402263</p>
+<p><strong>Account ID:</strong> In case you are using our hosted solution you will need to pass SequenceIQ's account id: 755047402263, otherwise use the account ID you have configured as the master account in your Cloudbreak Deployer Profile.</p>
 <p><strong>External ID:</strong> provision-ambari (association link)</p>
 <ul>
 <li>Custom policy</li>
@@ -409,6 +409,7 @@ You can do this on the management console, or - if you have aws-cli configured -
 <ol>
 <li>Download <a href="https://raw.githubusercontent.com/sequenceiq/cloudbreak/master/docs/aws/create-iam-role.sh">this script</a>, e.g: <code>curl -O https://raw.githubusercontent.com/sequenceiq/cloudbreak/master/docs/aws/create-iam-role.sh</code></li>
 <li>Make sure you have the <a href="http://aws.amazon.com/cli/">AWS CLI</a> installed and on your path.</li>
+<li>In case you are using the hosted solution keep the account ID (755047402263), otherwise use the account ID you have configured as the master account in your Cloudbreak Deployer Profile.</li>
 <li>Run <code>./create-iam-role</code></li>
 <li>Copy the resulting role ARN</li>
 </ol>
