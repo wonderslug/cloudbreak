@@ -646,8 +646,10 @@ Cloudbreak is deployed as orchestrated Docker containers. We have created a proj
 <!--releases.md-->
 
 <h2 id="kerberos-security">Kerberos security</h2>
-<p>Ambari supports Kerberos security for internal communication. To activate Kerberos with Cloudbreak you have enable security option and fill kerberos master key, kerberos admin and kerberos password too.
-To run a job on the cluster, you should use one of the default Hadoop users, like ambari-qa, as usual. To create custom user please follow the steps below.</p>
+<p>Ambari supports Kerberos security for internal communication. To activate Kerberos with Cloudbreak you have enable security option and fill the <code>kerberos master key</code>, <code>kerberos admin</code> and <code>kerberos password</code> too.
+To run a job on the cluster, you can use one of the default Hadoop users, like <code>ambari-qa</code>, as usual. </p>
+<p><strong>Optional</strong></p>
+<p>To create custom users please follow the steps below.</p>
 <ul>
 <li>Log in via SSH to the Cloudbreak gateway node (IP address is the same as the Ambari UI)</li>
 </ul>
