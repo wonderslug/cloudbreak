@@ -416,7 +416,7 @@ You can do this on the management console, or - if you have aws-cli configured -
 <li>Copy the resulting role ARN</li>
 </ol>
 <p>Once this is configured, Cloudbreak is ready to launch Hadoop clusters on your behalf. The only thing Cloudbreak requires is the <code>Role ARN</code> (Role for Cross-Account access).</p>
-<h3 id="configuring-the-microsoft-azure-account">Configuring the Microsoft Azure account</h3>
+<h3 id="configuring-the-microsoft-azure-account-deprecated">Configuring the Microsoft Azure account (deprecated)</h3>
 <p>In order to launch Hadoop clusters on the  Microsoft Azure cloud platform you'll need to link your Azure account with Cloudbreak. This can be achieved by creating a new <code>Azure Credential</code> in Cloudbreak.</p>
 <p>You'll need an X509 certificate with a 2048-bit RSA keypair.</p>
 <p>Generate these artifacts with <code>openssl</code> by running the following command, and answering the questions in the command prompt:</p>
@@ -435,6 +435,29 @@ You can do this on the management console, or - if you have aws-cli configured -
 <p><em>2. Copy the VHD blob from above (community images) into your storage account</em></p>
 <p><em>3. Create a VM image from the copied VHD blob.</em></p>
 <p><em>This process will take 20 minutes so be patient - but this step will have do be done once and only once.</em></p>
+<h3 id="configuring-the-microsoft-azure-resource-manager-account">Configuring the Microsoft Azure Resource manager account</h3>
+<p>In order to launch Hadoop clusters on the  Microsoft Azure RM cloud platform you'll need to link your Azure RM account with Cloudbreak. This can be achieved by creating a new <code>Azure Credential</code> in Cloudbreak.</p>
+<p>You'll need an X509 certificate with a 2048-bit RSA keypair.</p>
+<p>Generate these artifacts with <code>openssl</code> by running the following command, and answering the questions in the command prompt:</p>
+<pre class="prettyprint well"><code>openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout my_azure_private.key -out my_azure_cert.pem
+</code></pre>
+
+<p>The command generates the following files into the directory you run the command from: <code>my_azure_private.key</code> and <code>my_azure_cert.pem</code></p>
+<p>Fill the form by providing your Azure <code>Subscription Id</code>, and the <strong>content</strong> of the previously generated certificate (my_azure_cert.pem).</p>
+<p>You have to create an active directory application in Azure (The example shows the <a href="https://github.com/Azure/azure-xplat-cli">azure-cli</a> commands)</p>
+<pre class="prettyprint well"><code>azure ad app create --name mynewapp --home-page http://mynewapp --identifier-uris http://mynewapp --password mypassword
+azure ad sp create &lt;Application Id&gt;
+azure role assignment create --objectId &lt;Object Id&gt; -o Owner -c /subscriptions/&lt;subscription-id&gt;
+azure provider list
+azure provider register Microsoft.Compute
+azure provider register Microsoft.Network
+azure provider register Microsoft.Storage
+</code></pre>
+
+<p>You are done - from now on Cloudbreak can launch Azure instances on your behalf.</p>
+<p><em>1. Copy the VHD blob from above (community images) into your storage account</em></p>
+<p><em>2. Create a VM image from the copied VHD blob.</em></p>
+<p><em>This process will quite fast but be patient - this step will have do be done once and only once in every region just before your provisioning. For sure if we upgrade the image then this copy phase will automatically refresh your image so copy again.</em></p>
 <h3 id="configuring-the-google-cloud-account">Configuring the Google Cloud account</h3>
 <p>Follow the <a href="https://cloud.google.com/storage/docs/authentication#service_accounts">instructions</a> in Google Cloud's documentation to create a <code>Service account</code> and <code>Generate a new P12 key</code>.</p>
 <p>Make sure that at API level (<strong>APIs and auth</strong> menu) you have enabled:</p>
