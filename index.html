@@ -94,6 +94,8 @@
         
             <li><a href="#misc">Misc</a></li>
         
+            <li><a href="#cluster-customization">Cluster customization</a></li>
+        
             <li><a href="#kerberos-security">Kerberos security</a></li>
         
             <li><a href="#releases-future-plans">Releases, future plans</a></li>
@@ -668,6 +670,84 @@ Cloudbreak is deployed as orchestrated Docker containers. We have created a proj
 
 <!--releases.md-->
 
+<h2 id="cluster-customization">Cluster customization</h2>
+<p>With the help of Cloudbreak it is very easy to provision Hadoop clusters in the cloud from an Apache Ambari blueprint. Cloudbreak built in provisioning doesn't contain every use case, so we are introducing the concept of recipes.
+Recipes are basically script extensions to a cluster that run on a set of nodes before or after the Ambari cluster installation. With recipes it's quite easy for example to put a JAR file on the Hadoop classpath or run some custom scripts.
+In Cloudbreak we supports two ways to configure recipe, we have downloadable and stored recipes. A downloadable recipe should be available on HTTP, HTTPS protocols optionally with basic authentication, or any kind of public Git repository.
+As the name mentions stored recipes are uploaded and stored in Cloudbreak with (Clodbreak shell)[https://github.com/sequenceiq/cloudbreak-shell]. <a href="https://github.com/sequenceiq/uluwatu">Uluwatu</a> support coming soon.</p>
+<h3 id="downloadable-recipes">Downloadable recipes</h3>
+<p>This kind of recipe must contain a plugin.toml file, with some basic information about the recipe, and at least a recipe-pre-install or recipe-post-install script.
+Content of plugin.toml</p>
+<pre class="prettyprint well"><code>[plugin]
+name = &quot;[recipe-name]&quot;
+description = &quot;[description-of-the-recipe]&quot;
+version = &quot;1.0&quot;
+maintainer_name = &quot;[maintainer-name]&quot;
+maintainer_email = &quot;[maintainer-email]&quot;
+website_url = &quot;[website-url]&quot;
+</code></pre>
+
+<p>Pre and post scripts are regular shell scripts, and must be executable.</p>
+<p>To configure recipe or recipe groups in Cloudbreak you have to create a descriptive JSON file and send it to Cloudbreak via our shell.</p>
+<pre class="prettyprint well"><code>{
+  &quot;name&quot;: &quot;[recipe-name]&quot;,
+  &quot;description&quot;: &quot;[description-of-the-recipe]&quot;,
+  &quot;properties&quot;: {
+    &quot;[key]&quot;: &quot;[value]&quot;
+  },
+  &quot;plugins&quot;: { 
+      &quot;git://github.com/account/recipe.git&quot;: &quot;ONE_NODE&quot;
+      &quot;http://user:password@mydomain.com/my-recipe.tar&quot;: &quot;ALL_NODES&quot;
+      &quot;https://mydomain.com/my-recipe.zip&quot;: &quot;ALL_NODES&quot;
+  }
+}
+</code></pre>
+
+<p>At this point we need to understand some element of the JSON above.</p>
+<p>First of all properties. Properties are saved to Consul key/value store, and they are available from the pre or post script by fetching http://localhost:8500/v1/kv/[key]?raw url. The limitation of the value's base64 representation is 512kB. This option is a good choice if you want to write reusable recipes.</p>
+<p>The next one is plugins. As you read before we support a few kind of protocols, and each of them has their own limitations:</p>
+<ul>
+<li>
+<p>Git</p>
+<ul>
+<li>git repository must be public (or available from the cluster)</li>
+<li>the recipe files must be on the root</li>
+<li>only repository default branch supported, there is no opportunity to check out different branch</li>
+</ul>
+</li>
+<li>
+<p>HTTP(S)</p>
+<ul>
+<li>on this kind of protocols you have to bundle your recipe into a tar or zip file</li>
+<li>basic authentication is the only way to protect recipe from public</li>
+</ul>
+</li>
+</ul>
+<p>Last one is the execution type of the recipe. We supports two options:</p>
+<ul>
+<li>ONE_NODE means the recipe will execute only one node in the hostgroup</li>
+<li>All_NODES runs every single instance in the hostgroup.</li>
+</ul>
+<p>To add recipe use the command(s) below:</p>
+<pre class="prettyprint well"><code>recipe add --file /path/of/the/recipe/json
+</code></pre>
+
+<p>or</p>
+<pre class="prettyprint well"><code>recipe add --url http(s)://mydomain.com/my-recipe.json
+</code></pre>
+
+<p>Add command has an optional parameter --publicInAccount, flags if the template is public in the account.</p>
+<h3 id="stored-recipes">Stored recipes</h3>
+<p>The easiest way to create a custom recipe in Cloudbreak is stored recipes. Create your own pre and/or post scripts, and upload them via shell. In the background Cloudbreak pushes recipe to Consul key/value store during cluster creation.
+Stored recipes has the same size limitation like properties in downloadable recipe, because of the key/value store, the base64 encoded contents of the scripts must be less then 512kB.</p>
+<pre class="prettyprint well"><code>recipe store --name [recipe-name] --executionType [ONE_NODE|ALL_NODES] --preInstallScriptFile /path/of/the/pre-install-script --postInstallScriptFile /path/of/the/post-install-script
+</code></pre>
+
+<p>This command has two optional parameters:
+- --description "string": description of the recipe
+- --timeout "integer": timeout of the script execution
+- --publicInAccount "flag": flags if the template is public in the account</p>
+<p>Recipes are ready to attach to a hostgroup, for more information about hostgroups please jump to <a href="https://github.com/sequenceiq/cloudbreak#create-cluster">Create cluster</a> section or visit the shell <a href="https://github.com/sequenceiq/cloudbreak-shell#configure-a-host-groups">documentation</a>.</p>
 <h2 id="kerberos-security">Kerberos security</h2>
 <p>Ambari supports Kerberos security for internal communication. To activate Kerberos with Cloudbreak you have enable security option and fill the <code>kerberos master key</code>, <code>kerberos admin</code> and <code>kerberos password</code> too.
 To run a job on the cluster, you can use one of the default Hadoop users, like <code>ambari-qa</code>, as usual. </p>
