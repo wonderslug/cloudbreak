@@ -681,6 +681,7 @@ When WASB is used as a Hadoop filesystem the files are full-value blobs in a sto
 To bypass those limits Microsoft created a small service called <a href="https://github.com/MicrosoftDX/Dash">DASH</a>. DASH itself is a service that imitates the API of the Azure Blob Storage API and it can be deployed as a Microsoft Azure Cloud Service. Because its API is the same as the standard blob storage API it can be used <em>almost</em> in the same way as the default WASB filesystem from a Hadoop deployment.
 DASH works by sharding the storage access across multiple storage accounts. It can be configured to distribute storage account load to at most 15 <strong>scaleout</strong> storage accounts. It needs one more <strong>namespace</strong> storage account where it keeps track of where the data is stored.
 When configuring a WASB filesystem with Hadoop, the only required config entries are the ones where the access details are described. To access a storage account Azure generates an access key that is displayed on the Azure portal or can be queried through the API while the account name is the name of the storage account itself. A DASH service has a similar account name and key, those can be configured in the configuration file while deploying the cloud service.</p>
+<p><img alt="" src="https://raw.githubusercontent.com/sequenceiq/cloudbreak/master/docs/images/dash.png" /></p>
 <h4 id="deploying-a-dash-service-with-cloudbreak-deployer">Deploying a DASH service with Cloudbreak deployer</h4>
 <p>We have automated the deployment of a DASH service in cloudbreak-deployer. After cbd is installed, simply run the following command to deploy a DASH cloud service with 5 scale out storage accounts:</p>
 <pre class="prettyprint well"><code>cbd azure deploy-dash --accounts 5 --prefix dash --location &quot;West Europe&quot; --instances 3
@@ -688,9 +689,9 @@ When configuring a WASB filesystem with Hadoop, the only required config entries
 
 <p>The command first creates the namespace account and the scaleout storage accounts, builds the <em>.cscfg</em> configuration file based on the created storage account names and keys, generates an Account Name and an Account Key for the DASH service and finally deploys the cloud service package file to a new cloud service.</p>
 <h4 id="configuring-dash-from-cloudbreak">Configuring DASH from Cloudbreak</h4>
-<p>When an Azure credential is selected in Cloudbreak the default filesystem is set to "WASB with DASH”. The <em>Account Name</em> and <em>Account Key</em> displayed by cbd must be copied to the corresponding fields.
-<em>Important:</em> For better performance DASH service and the Cloudbreak cluster must be in the same Azure region.</p>
-<p><screenshot></p>
+<p>When an Azure credential is selected in Cloudbreak the default filesystem is set to "WASB with DASH”. The <em>Account Name</em> and <em>Account Key</em> displayed by cbd must be copied to the corresponding fields.</p>
+<p><strong>Important:</strong> For better performance DASH service and the Cloudbreak cluster must be in the same Azure region.</p>
+<p><img alt="" src="https://raw.githubusercontent.com/sequenceiq/cloudbreak/master/docs/images/dashui.png" /></p>
 <p>The WASB filesystem configured with DASH can be used as a data lake - when multiple clusters are deployed with the same DASH filesystem configuration the same data can be accessed from all the clusters, but every cluster can have a different service configured as well. In that case deploy as many DASH services with cbd as clusters with Cloudbreak and configure them accordingly.</p>
 <h2 id="cluster-customization">Cluster customization</h2>
 <p>With the help of Cloudbreak it is very easy to provision Hadoop clusters in the cloud from an Apache Ambari blueprint. Cloudbreak built in provisioning doesn't contain every use case, so we are introducing the concept of recipes.
