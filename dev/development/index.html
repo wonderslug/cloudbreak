@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../img/favicon.ico">
+
+        <title>Development - Cloudbreak</title>
+        <link href="./css/sequenceiq.doc.min.css" rel="stylesheet">
+
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+        <![endif]-->
+
+        
+    </head>
+
+    <body>
+
+        <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+
+        <!-- Collapsed navigation -->
+        <div class="navbar-header">
+            <!-- Expander button -->
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+
+            <!-- Main title -->
+            <a class="navbar-brand" href="../..">Cloudbreak</a>
+        </div>
+
+        <!-- Expanded navigation -->
+        <div class="navbar-collapse collapse">
+            <!-- Main navigation -->
+            <ul class="nav navbar-nav">
+            
+            
+                <li class="dropdown active">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Dev <b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                    
+                        <li class="active">
+                            <a href="./">Development</a>
+                        </li>
+                    
+                    </ul>
+                </li>
+            
+            
+            </ul>
+
+            <!-- Search, Navigation and Repo links -->
+            <ul class="nav navbar-nav navbar-right">
+                
+                <li >
+                    <a rel="next" href="../..">
+                        <i class="fa fa-arrow-left"></i> Previous
+                    </a>
+                </li>
+                <li class="disabled">
+                    <a rel="prev" >
+                        Next <i class="fa fa-arrow-right"></i>
+                    </a>
+                </li>
+                
+            </ul>
+        </div>
+    </div>
+</div>
+
+        <div class="container">
+            <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+    <ul class="nav bs-sidenav">
+    
+        <li class="main active"><a href="#local-development-setup">Local Development Setup</a></li>
+        
+            <li><a href="#cloudbreak-deployer">Cloudbreak Deployer</a></li>
+        
+            <li><a href="#idea">IDEA</a></li>
+        
+            <li><a href="#database-development">Database development</a></li>
+        
+            <li><a href="#building">Building</a></li>
+        
+    
+    </ul>
+</div></div>
+            <div class="col-md-9" role="main">
+
+<h1 id="local-development-setup">Local Development Setup</h1>
+<p>To use this development environment on OSX, you need to have Docker and Boot2docker installed.</p>
+<h2 id="cloudbreak-deployer">Cloudbreak Deployer</h2>
+<p>Simplest way to prepare the working environment is to start the Cloudbreak on your local machine is to use the <a href="https://github.com/sequenceiq/cloudbreak-deployer">Cloudbreak Deployer</a>.</p>
+<p>First you need to create a <em>sandbox</em> directory which will store the necessary  configuration files and dependencies of <a href="https://github.com/sequenceiq/cloudbreak-deployer">Cloudbreak Deployer</a>. This directory must be created outside of the cloned Cloudbreak git repository:</p>
+<pre class="prettyprint well"><code>mkdir cbd-local
+</code></pre>
+
+<p>To start the complete Cloudbreak ecosystem on your machine just execute the following sequence of commands:</p>
+<pre class="prettyprint well"><code>cd cbd-local
+curl https://raw.githubusercontent.com/sequenceiq/cloudbreak-deployer/master/install | sh &amp;&amp; cbd --version
+cbd update master
+cbd init
+cbd start
+</code></pre>
+
+<p>If everything went well then the Cloudbreak will be available on http://192.168.59.103:3000. For more details and config parameters please check the documentation of <a href="https://github.com/sequenceiq/cloudbreak-deployer">Cloudbreak Deployer</a>.</p>
+<p>The deployer has generated a <code>certs</code> directory under <code>cbd-local</code> directory which will be needed later on to set up the IDEA properly.</p>
+<p>The next step is to edit the <code>cbd-local/Profile</code> file with any editor and add the CB_SCHEMA_SCRIPTS_LOCATION environment variable which configures the location of SQL scripts that are in the 'core/src/main/resources/schema' directory in the cloned Cloudbreak git repository. Please note that the full path needs to be configured and env variables like $USER cannot be used.</p>
+<pre class="prettyprint well"><code>export CB_SCHEMA_SCRIPTS_LOCATION=/Users/myusername/prj/cloudbreak/core/src/main/resources/schema
+</code></pre>
+
+<p>In order to kill Cloudbreak container running inside the boot2docker and redirect the Cloudbreak related traffic to the Cloudbreak running in IDEA use the followig command:</p>
+<pre class="prettyprint well"><code>cbd util local-dev
+</code></pre>
+
+<h2 id="idea">IDEA</h2>
+<p>Cloudbreak can be imported into IDEA as gradle project. Once it is done, you need to import the proper code formatter by using the <strong>File -&gt; Import Settings...</strong> menu and selecting the <code>idea_settings.jar</code> located in the <code>config</code> directory in Cloudbreak git repository.</p>
+<p>To launch the Cloudbreak application execute the <code>com.sequenceiq.cloudbreak.CloudbreakApplication</code> class with VM options:</p>
+<pre class="prettyprint well"><code>-XX:MaxPermSize=1024m
+-Dcb.cert.dir=FULL_PATH_OF_THE_CERTS_DIR_GENERATED_BY_CBD
+-Dcb.client.id=cloudbreak
+-Dcb.client.secret=cbsecret2015
+-Dcb.db.port.5432.tcp.addr=192.168.59.103
+-Dcb.db.port.5432.tcp.port=5432
+-Dcb.identity.server.url=http://192.168.59.103:8089
+-Dserver.port=9091
+</code></pre>
+
+<p>The <code>-Dcb.cert.dir=FULL_PATH_OF_THE_CERTS_DIR_GENERATED_BY_CBD</code> value above needs to be replaced with the full path of <code>certs</code> directory generated by Cloudbreak Deployer e.g. <code>-Dcb.cert.dir=/Users/myusername/prj/cbd-local/certs</code></p>
+<h2 id="database-development">Database development</h2>
+<p>If schema change is required in Cloudbreak database (cbdb), then the developer needs to write SQL scripts to migrate the database accordingly. In Cloudbreak the schema migration is managed by <a href="https://github.com/mybatis/migrations">MYBATIS Migrations</a> and the cbd tool provides an easy-to-use wrapper for it. The syntax for using the migration commands is <code>cbd migrate &lt;database name&gt; &lt;command&gt; [parameters]</code> e.g. <code>cbd migrate migrate status</code>.</p>
+<p>Create a SQL template for schema changes:</p>
+<pre class="prettyprint well"><code>cbd migrate cbdb new &quot;CLOUD-123 schema change for new feature&quot;
+</code></pre>
+
+<p>As as result of the above command an SQL file template is generated under the path specified in <code>CB_SCHEMA_SCRIPTS_LOCATION</code> environment variable, which is defined in Profile. The structure of the generated SQL template looks like the following:</p>
+<pre class="prettyprint well"><code>-- // CLOUD-123 schema change for new feature
+-- Migration SQL that makes the change goes here.
+
+
+
+-- //@UNDO
+-- SQL to undo the change goes here.
+</code></pre>
+
+<p>Once you have implemented your SQLs then you can execute them with:</p>
+<pre class="prettyprint well"><code>cbd migrate cbdb up
+</code></pre>
+
+<p>If you would like to rollback the last SQL file, then just use the down command:</p>
+<pre class="prettyprint well"><code>cbd migrate cbdb down
+</code></pre>
+
+<p>On order to check the status of database</p>
+<pre class="prettyprint well"><code>cbd migrate cbdb status
+
+#Every script that has not been executed will be marked as ...pending... in the output of status command:
+
+------------------------------------------------------------------------
+-- MyBatis Migrations - status
+------------------------------------------------------------------------
+ID             Applied At          Description
+================================================================================
+20150421140021 2015-07-08 10:04:28 create changelog
+20150421150000 2015-07-08 10:04:28 CLOUD-607 create baseline schema
+20150507121756 2015-07-08 10:04:28 CLOUD-576 change instancegrouptype hostgroup to core
+20151008090632    ...pending...    CLOUD-123 schema change for new feature
+
+------------------------------------------------------------------------
+</code></pre>
+
+<h2 id="building">Building</h2>
+<p>Gradle is used for build and dependency management. Gradle wrapper is added to Cloudbreak git repository, therefore building can be done with:</p>
+<pre class="prettyprint well"><code>./gradlew clean build
+</code></pre>
+
+</div>
+        </div>
+
+        
+
+        <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+        <script src="./js/bootstrap-3.0.3.min.js"></script>
+        <script src="./js/prettify-1.0.min.js"></script>
+        <script src="./js/base.js"></script>
+    </body>
+</html>

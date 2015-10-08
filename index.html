@@ -45,6 +45,19 @@
             <!-- Main navigation -->
             <ul class="nav navbar-nav">
             
+            
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Dev <b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                    
+                        <li >
+                            <a href="dev/development/">Development</a>
+                        </li>
+                    
+                    </ul>
+                </li>
+            
+            
             </ul>
 
             <!-- Search, Navigation and Repo links -->
@@ -55,8 +68,8 @@
                         <i class="fa fa-arrow-left"></i> Previous
                     </a>
                 </li>
-                <li class="disabled">
-                    <a rel="prev" >
+                <li >
+                    <a rel="prev" href="dev/development/">
                         Next <i class="fa fa-arrow-right"></i>
                     </a>
                 </li>
@@ -718,7 +731,7 @@ website_url = &quot;[website-url]&quot;
   &quot;properties&quot;: {
     &quot;[key]&quot;: &quot;[value]&quot;
   },
-  &quot;plugins&quot;: { 
+  &quot;plugins&quot;: {
       &quot;git://github.com/account/recipe.git&quot;: &quot;ONE_NODE&quot;
       &quot;http://user:password@mydomain.com/my-recipe.tar&quot;: &quot;ALL_NODES&quot;
       &quot;https://mydomain.com/my-recipe.zip&quot;: &quot;ALL_NODES&quot;
@@ -773,7 +786,7 @@ Stored recipes has the same size limitation like properties in downloadable reci
 <p>Recipes are ready to attach to a hostgroup, for more information about hostgroups please jump to <a href="https://github.com/sequenceiq/cloudbreak#create-cluster">Create cluster</a> section or visit the shell <a href="https://github.com/sequenceiq/cloudbreak-shell#configure-a-host-groups">documentation</a>.</p>
 <h2 id="kerberos-security">Kerberos security</h2>
 <p>Ambari supports Kerberos security for internal communication. To activate Kerberos with Cloudbreak you have enable security option and fill the <code>kerberos master key</code>, <code>kerberos admin</code> and <code>kerberos password</code> too.
-To run a job on the cluster, you can use one of the default Hadoop users, like <code>ambari-qa</code>, as usual. </p>
+To run a job on the cluster, you can use one of the default Hadoop users, like <code>ambari-qa</code>, as usual.</p>
 <p><strong>Optional</strong></p>
 <p>To create custom users please follow the steps below.</p>
 <ul>
@@ -896,6 +909,8 @@ If you wish to contribute to Cloudbreak (which you're very welcome and encourage
 Before submitting issues please check for duplicate or similar issues. If you are unclear about an issue please feel free to <a href="https://groups.google.com/forum/#!forum/cloudbreak">contact us</a>.</p>
 <h4 id="discuss-your-design">Discuss your design</h4>
 <p>We recommend discussing your plans on the <a href="https://groups.google.com/forum/#!forum/cloudbreak">mailing list</a> before starting to code - especially for more ambitious contributions. This gives other contributors a chance to point you in the right direction, give feedback on your design, and maybe point out if someone else is working on the same thing.</p>
+<h3 id="development-environment">Development environment</h3>
+<p>If you would like to contribute then probably you need a comfortable development environment. We have created a detailed description about <a href="https://github.com/sequenceiq/cloudbreak/blob/master/dev/development.md">how to set up Cloudbreak on your local machine with IDEA</a>.</p>
 <h4 id="conventions">Conventions</h4>
 <p>Please write clean code. Universally formatted code promotes ease of writing, reading, and maintenance.
 * Do not use @author tags.</p>
@@ -907,7 +922,7 @@ Before submitting issues please check for duplicate or similar issues. If you ar
 <p>Code must be formatted according to our <a href="https://github.com/sequenceiq/cloudbreak/blob/master/config/eclipse_formatter.xml">formatter</a>.</p>
 </li>
 <li>
-<p>Code must be checked with our <a href="https://github.com/sequenceiq/cloudbreak/blob/master/core/config/checkstyle/checkstyle-suppressions.xml">checkstyle</a>.</p>
+<p>Code must be checked with our <a href="https://github.com/sequenceiq/cloudbreak/blob/master/config/checkstyle/checkstyle.xml">checkstyle</a>.</p>
 </li>
 <li>
 <p>Contributions must pass existing unit tests.</p>
