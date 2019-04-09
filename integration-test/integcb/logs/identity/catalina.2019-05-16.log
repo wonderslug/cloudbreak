@@ -1,0 +1,46 @@
+16-May-2019 08:05:24.273 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server version:        Apache Tomcat/8.0.28
+16-May-2019 08:05:24.277 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server built:          Oct 7 2015 18:25:21 UTC
+16-May-2019 08:05:24.278 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server number:         8.0.28.0
+16-May-2019 08:05:24.278 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log OS Name:               Linux
+16-May-2019 08:05:24.278 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log OS Version:            4.9.125-linuxkit
+16-May-2019 08:05:24.278 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Architecture:          amd64
+16-May-2019 08:05:24.279 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Java Home:             /usr/lib/jvm/java-8-openjdk-amd64/jre
+16-May-2019 08:05:24.279 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log JVM Version:           1.8.0_141-8u141-b15-1~deb9u1-b15
+16-May-2019 08:05:24.279 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log JVM Vendor:            Oracle Corporation
+16-May-2019 08:05:24.279 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log CATALINA_BASE:         /tomcat
+16-May-2019 08:05:24.279 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log CATALINA_HOME:         /tomcat
+16-May-2019 08:05:24.280 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.util.logging.config.file=/tomcat/conf/logging.properties
+16-May-2019 08:05:24.280 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager
+16-May-2019 08:05:24.280 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.endorsed.dirs=/tomcat/endorsed
+16-May-2019 08:05:24.281 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dcatalina.base=/tomcat
+16-May-2019 08:05:24.281 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dcatalina.home=/tomcat
+16-May-2019 08:05:24.281 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.io.tmpdir=/tomcat/temp
+16-May-2019 08:05:24.282 INFO [main] org.apache.catalina.core.AprLifecycleListener.lifecycleEvent The APR based Apache Tomcat Native library which allows optimal performance in production environments was not found on the java.library.path: /usr/java/packages/lib/amd64:/usr/lib/x86_64-linux-gnu/jni:/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu:/usr/lib/jni:/lib:/usr/lib
+16-May-2019 08:05:24.427 INFO [main] org.apache.coyote.AbstractProtocol.init Initializing ProtocolHandler ["http-nio-8080"]
+16-May-2019 08:05:24.459 INFO [main] org.apache.tomcat.util.net.NioSelectorPool.getSharedSelector Using a shared selector for servlet write/read
+16-May-2019 08:05:24.463 INFO [main] org.apache.coyote.AbstractProtocol.init Initializing ProtocolHandler ["ajp-nio-8009"]
+16-May-2019 08:05:24.465 INFO [main] org.apache.tomcat.util.net.NioSelectorPool.getSharedSelector Using a shared selector for servlet write/read
+16-May-2019 08:05:24.466 INFO [main] org.apache.catalina.startup.Catalina.load Initialization processed in 787 ms
+16-May-2019 08:05:24.503 INFO [main] org.apache.catalina.core.StandardService.startInternal Starting service Catalina
+16-May-2019 08:05:24.504 INFO [main] org.apache.catalina.core.StandardEngine.startInternal Starting Servlet Engine: Apache Tomcat/8.0.28
+16-May-2019 08:05:24.521 INFO [localhost-startStop-1] org.apache.catalina.startup.HostConfig.deployDirectory Deploying web application directory /tomcat/webapps/ROOT
+16-May-2019 08:05:25.301 INFO [localhost-startStop-1] org.apache.jasper.servlet.TldScanner.scanJars At least one JAR was scanned for TLDs yet contained no TLDs. Enable debug logging for this logger for a complete list of JARs that were scanned but no TLDs were found in them. Skipping unneeded JARs during scanning can improve startup time and JSP compilation time.
+16-May-2019 08:05:43.300 INFO [localhost-startStop-1] org.apache.catalina.startup.HostConfig.deployDirectory Deployment of web application directory /tomcat/webapps/ROOT has finished in 18,777 ms
+16-May-2019 08:05:43.306 INFO [main] org.apache.coyote.AbstractProtocol.start Starting ProtocolHandler ["http-nio-8080"]
+16-May-2019 08:05:43.562 INFO [main] org.apache.coyote.AbstractProtocol.start Starting ProtocolHandler ["ajp-nio-8009"]
+16-May-2019 08:05:43.563 INFO [main] org.apache.catalina.startup.Catalina.start Server startup in 19096 ms
+16-May-2019 12:19:49.595 INFO [Thread-11] org.apache.coyote.AbstractProtocol.pause Pausing ProtocolHandler ["http-nio-8080"]
+16-May-2019 12:19:49.613 INFO [Thread-11] org.apache.coyote.AbstractProtocol.pause Pausing ProtocolHandler ["ajp-nio-8009"]
+16-May-2019 12:19:49.674 INFO [Thread-11] org.apache.catalina.core.StandardService.stopInternal Stopping service Catalina
+16-May-2019 12:19:50.908 WARNING [localhost-startStop-2] org.apache.catalina.loader.WebappClassLoaderBase.clearReferencesJdbc The web application [ROOT] registered the JDBC driver [org.postgresql.Driver] but failed to unregister it when the web application was stopped. To prevent a memory leak, the JDBC Driver has been forcibly unregistered.
+16-May-2019 12:19:50.910 WARNING [localhost-startStop-2] org.apache.catalina.loader.WebappClassLoaderBase.clearReferencesThreads The web application [ROOT] appears to have started a thread named [true] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ java.lang.Object.wait(Native Method)
+ java.lang.Object.wait(Object.java:502)
+ java.util.TimerThread.mainLoop(Timer.java:526)
+ java.util.TimerThread.run(Timer.java:505)
+16-May-2019 12:19:50.912 SEVERE [localhost-startStop-2] org.apache.catalina.loader.WebappClassLoaderBase.checkThreadLocalMapForLeaks The web application [ROOT] created a ThreadLocal with key of type [org.apache.log4j.helpers.ThreadLocalMap] (value [org.apache.log4j.helpers.ThreadLocalMap@b2576b6]) and a value of type [java.util.Hashtable] (value [{context=}]) but failed to remove it when the web application was stopped. Threads are going to be renewed over time to try and avoid a probable memory leak.
+16-May-2019 12:19:50.912 SEVERE [localhost-startStop-2] org.apache.catalina.loader.WebappClassLoaderBase.checkThreadLocalMapForLeaks The web application [ROOT] created a ThreadLocal with key of type [org.cloudfoundry.identity.uaa.zone.IdentityZoneHolder$1] (value [org.cloudfoundry.identity.uaa.zone.IdentityZoneHolder$1@4fbee039]) and a value of type [org.cloudfoundry.identity.uaa.zone.IdentityZoneHolder.IdentityZoneWithKeyManager] (value [org.cloudfoundry.identity.uaa.zone.IdentityZoneHolder$IdentityZoneWithKeyManager@28e9c96d]) but failed to remove it when the web application was stopped. Threads are going to be renewed over time to try and avoid a probable memory leak.
+16-May-2019 12:19:50.919 INFO [Thread-11] org.apache.coyote.AbstractProtocol.stop Stopping ProtocolHandler ["http-nio-8080"]
+16-May-2019 12:19:51.001 INFO [Thread-11] org.apache.coyote.AbstractProtocol.stop Stopping ProtocolHandler ["ajp-nio-8009"]
+16-May-2019 12:19:51.122 INFO [Thread-11] org.apache.coyote.AbstractProtocol.destroy Destroying ProtocolHandler ["http-nio-8080"]
+16-May-2019 12:19:51.123 INFO [Thread-11] org.apache.coyote.AbstractProtocol.destroy Destroying ProtocolHandler ["ajp-nio-8009"]

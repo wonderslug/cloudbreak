@@ -1,5 +1,6 @@
 package com.sequenceiq.notification;
 
+import java.util.Collections;
 import java.util.List;
 
 import javax.ws.rs.client.Client;
@@ -9,11 +10,17 @@ import javax.ws.rs.core.MediaType;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import com.sequenceiq.cloudbreak.client.RestClientUtil;
 
 @Service
 public class HttpNotificationSender implements NotificationSender {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpNotificationSender.class);
+
+    @Value("${cb.notification.endpoint}")
+    private String cbNotificationEndpoint;
 
     @Override
     public <T> void send(Notification<T> notification, List<String> endpoints, Client restClient) {
@@ -28,5 +35,10 @@ public class HttpNotificationSender implements NotificationSender {
                 LOGGER.info("Could not send notification to the specified endpoint: '{}' Cause: {}", endpoint, ex.getMessage());
             }
         }
+    }
+
+    @Override
+    public <T> void send(Notification<T> notification) {
+        send(notification, Collections.singletonList(cbNotificationEndpoint), RestClientUtil.get());
     }
 }

@@ -9,7 +9,6 @@ import javax.validation.Valid;
 
 import org.springframework.stereotype.Controller;
 
-import com.sequenceiq.cloudbreak.workspace.controller.WorkspaceEntityType;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.clustertemplate.ClusterTemplateV4Endpoint;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.clustertemplate.requests.ClusterTemplateV4Request;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.clustertemplate.responses.ClusterTemplateV4Response;
@@ -23,11 +22,12 @@ import com.sequenceiq.cloudbreak.common.service.TransactionService.TransactionRu
 import com.sequenceiq.cloudbreak.domain.stack.cluster.ClusterTemplate;
 import com.sequenceiq.cloudbreak.service.blueprint.BlueprintService;
 import com.sequenceiq.cloudbreak.service.template.ClusterTemplateService;
+import com.sequenceiq.cloudbreak.workspace.controller.WorkspaceEntityType;
 
 @Controller
 @Transactional(TxType.NEVER)
 @WorkspaceEntityType(ClusterTemplate.class)
-public class ClusterTemplateV4Controller extends NotificationController implements ClusterTemplateV4Endpoint {
+public class ClusterTemplateV4Controller implements ClusterTemplateV4Endpoint {
 
     @Inject
     private ConverterUtil converterUtil;

@@ -1,10 +1,9 @@
 package com.sequenceiq.cloudbreak.service.cluster;
 
-import static com.sequenceiq.cloudbreak.api.endpoint.v4.common.Status.AVAILABLE;
 import static com.sequenceiq.cloudbreak.api.endpoint.v4.common.Status.REQUESTED;
-import static com.sequenceiq.cloudbreak.api.endpoint.v4.common.Status.START_REQUESTED;
 import static com.sequenceiq.cloudbreak.api.endpoint.v4.common.Status.STOP_REQUESTED;
 import static com.sequenceiq.cloudbreak.api.endpoint.v4.common.Status.UPDATE_REQUESTED;
+import static com.sequenceiq.cloudbreak.message.NotificationEventType.RECOVERY;
 import static com.sequenceiq.cloudbreak.cloud.model.component.StackRepoDetails.CUSTOM_VDF_REPO_KEY;
 import static com.sequenceiq.cloudbreak.cloud.model.component.StackRepoDetails.MPACK_TAG;
 import static com.sequenceiq.cloudbreak.cloud.model.component.StackRepoDetails.REPOSITORY_VERSION;
@@ -45,6 +44,7 @@ import com.sequenceiq.cloudbreak.api.endpoint.v4.common.DatabaseVendor;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.common.ResourceStatus;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.common.Status;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.database.base.DatabaseType;
+import com.sequenceiq.cloudbreak.message.NotificationEventType;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.base.InstanceStatus;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.base.RecoveryMode;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.base.StatusRequest;
@@ -59,7 +59,6 @@ import com.sequenceiq.cloudbreak.blueprint.utils.BlueprintUtils;
 import com.sequenceiq.cloudbreak.blueprint.validation.AmbariBlueprintValidator;
 import com.sequenceiq.cloudbreak.client.HttpClientConfig;
 import com.sequenceiq.cloudbreak.cloud.model.AmbariRepo;
-import com.sequenceiq.cloudbreak.cloud.model.ClouderaManagerRepo;
 import com.sequenceiq.cloudbreak.cloud.model.VolumeSetAttributes;
 import com.sequenceiq.cloudbreak.cloud.model.component.ManagementPackComponent;
 import com.sequenceiq.cloudbreak.cloud.model.component.StackRepoDetails;
@@ -67,7 +66,6 @@ import com.sequenceiq.cloudbreak.cloud.store.InMemoryStateStore;
 import com.sequenceiq.cloudbreak.cluster.api.ClusterApi;
 import com.sequenceiq.cloudbreak.cluster.service.ClusterComponentConfigProvider;
 import com.sequenceiq.cloudbreak.cluster.util.ResourceAttributeUtil;
-import com.sequenceiq.cloudbreak.cmtemplate.CMRepositoryVersionUtil;
 import com.sequenceiq.cloudbreak.common.json.Json;
 import com.sequenceiq.cloudbreak.common.json.JsonUtil;
 import com.sequenceiq.cloudbreak.common.model.OrchestratorType;
@@ -246,9 +244,6 @@ public class ClusterService {
             if (cluster.getKerberosConfig() != null) {
                 kerberosConfigService.save(cluster.getKerberosConfig());
             }
-
-            removeGatewayIfNotSupported(cluster, components);
-
             cluster.setStack(stack);
             stack.setCluster(cluster);
 
@@ -297,21 +292,6 @@ public class ClusterService {
             throw new BadRequestException(msg, ex);
         }
         return savedCluster;
-    }
-
-    private void removeGatewayIfNotSupported(Cluster cluster, List<ClusterComponent> components) {
-        Optional<ClusterComponent> cmRepoOpt = components.stream().filter(cmp -> ComponentType.CM_REPO_DETAILS.equals(cmp.getComponentType())).findFirst();
-        if (cmRepoOpt.isPresent()) {
-            try {
-                ClouderaManagerRepo cmRepo = cmRepoOpt.get().getAttributes().get(ClouderaManagerRepo.class);
-                if (!CMRepositoryVersionUtil.isKnoxGatewaySupported(cmRepo)) {
-                    LOGGER.debug("Knox gateway is not supported by CM version: {}, ignoring it for cluster: {}", cmRepo.getVersion(), cluster.getName());
-                    cluster.setGateway(null);
-                }
-            } catch (IOException e) {
-                LOGGER.debug("Failed to read CM repo cluster component", e);
-            }
-        }
     }
 
     public Cluster saveWithRef(Cluster cluster) {
@@ -711,7 +691,7 @@ public class ClusterService {
             String recoveryMessage = cloudbreakMessagesService.getMessage(Msg.CLUSTER_MANUALRECOVERY_REQUESTED.code(),
                     Collections.singletonList(recoveryMessageArgument));
             LOGGER.debug(recoveryMessage);
-            eventService.fireCloudbreakEvent(stackId, "RECOVERY", recoveryMessage);
+            eventService.fireCloudbreakEvent(stackId, RECOVERY, recoveryMessage);
         } else {
             throw new BadRequestException(String.format("Could not trigger cluster repair  for stack %s, because node list is incorrect", stackId));
         }
@@ -742,7 +722,7 @@ public class ClusterService {
             }
             if (!changedHosts.isEmpty()) {
                 LOGGER.debug(recoveryMessage);
-                eventService.fireCloudbreakEvent(cluster.getStack().getId(), "RECOVERY", recoveryMessage);
+                eventService.fireCloudbreakEvent(cluster.getStack().getId(), RECOVERY, recoveryMessage);
                 hostMetadataService.saveAll(changedHosts);
             }
             return null;
@@ -756,13 +736,13 @@ public class ClusterService {
     private void start(Stack stack, Cluster cluster) {
         if (stack.isStartInProgress()) {
             String message = cloudbreakMessagesService.getMessage(Msg.CLUSTER_START_REQUESTED.code());
-            eventService.fireCloudbreakEvent(stack.getId(), START_REQUESTED.name(), message);
-            updateClusterStatusByStackId(stack.getId(), START_REQUESTED);
+            eventService.fireCloudbreakEvent(stack.getId(), NotificationEventType.START_REQUESTED, message);
+            updateClusterStatusByStackId(stack.getId(), Status.START_REQUESTED);
         } else {
             if (cluster.isAvailable()) {
                 String statusDesc = cloudbreakMessagesService.getMessage(Msg.CLUSTER_START_IGNORED.code());
                 LOGGER.debug(statusDesc);
-                eventService.fireCloudbreakEvent(stack.getId(), stack.getStatus().name(), statusDesc);
+                eventService.fireCloudbreakEvent(stack.getId(), NotificationEventType.valueOf(stack.getStatus().name()), statusDesc);
             } else if (!cluster.isClusterReadyForStart() && !cluster.isStartFailed()) {
                 throw new BadRequestException(
                         String.format("Cannot update the status of cluster '%s' to STARTED, because it isn't in STOPPED state.", cluster.getId()));
@@ -770,7 +750,7 @@ public class ClusterService {
                 throw new BadRequestException(
                         String.format("Cannot update the status of cluster '%s' to STARTED, because the stack is not AVAILABLE", cluster.getId()));
             } else {
-                updateClusterStatusByStackId(stack.getId(), START_REQUESTED);
+                updateClusterStatusByStackId(stack.getId(), Status.START_REQUESTED);
                 flowManager.triggerClusterStart(stack.getId());
             }
         }
@@ -781,7 +761,7 @@ public class ClusterService {
         if (cluster.isStopped()) {
             String statusDesc = cloudbreakMessagesService.getMessage(Msg.CLUSTER_STOP_IGNORED.code());
             LOGGER.debug(statusDesc);
-            eventService.fireCloudbreakEvent(stack.getId(), stack.getStatus().name(), statusDesc);
+            eventService.fireCloudbreakEvent(stack.getId(), NotificationEventType.valueOf(stack.getStatus().name()), statusDesc);
         } else if (reason != StopRestrictionReason.NONE) {
             throw new BadRequestException(
                     String.format("Cannot stop a cluster '%s'. Reason: %s", cluster.getId(), reason.getReason()));
@@ -1125,7 +1105,7 @@ public class ClusterService {
             stateChanged = true;
             hostMetadata.setHostMetadataState(newState);
             hostMetadataService.save(hostMetadata);
-            eventService.fireCloudbreakEvent(stack.getId(), AVAILABLE.name(),
+            eventService.fireCloudbreakEvent(stack.getId(), NotificationEventType.AVAILABLE,
                     cloudbreakMessagesService.getMessage(Msg.CLUSTER_HOST_STATUS_UPDATED.code(), Arrays.asList(hostName, newState.name())));
         }
         return stateChanged;

@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.sequenceiq.cloudbreak.api.endpoint.v4.common.Status;
+import com.sequenceiq.cloudbreak.message.NotificationEventType;
 import com.sequenceiq.cloudbreak.core.flow2.service.ReactorFlowManager;
 import com.sequenceiq.cloudbreak.core.flow2.stack.CloudbreakFlowMessageService;
 import com.sequenceiq.cloudbreak.domain.stack.Stack;
@@ -45,12 +45,12 @@ public class StackRepairService {
     public void add(Stack stack, Collection<String> unhealthyInstanceIds) {
         if (unhealthyInstanceIds.isEmpty()) {
             LOGGER.debug("No instances are unhealthy, returning...");
-            flowMessageService.fireEventAndLog(stack.getId(), Msg.STACK_REPAIR_COMPLETE_CLEAN, Status.AVAILABLE.name());
+            flowMessageService.fireEventAndLog(stack.getId(), Msg.STACK_REPAIR_COMPLETE_CLEAN, NotificationEventType.AVAILABLE);
             return;
         }
         UnhealthyInstances unhealthyInstances = groupInstancesByHostGroups(stack, unhealthyInstanceIds);
         Runnable stackRepairFlowSubmitter = new StackRepairFlowSubmitter(stack.getId(), unhealthyInstances);
-        flowMessageService.fireEventAndLog(stack.getId(), Msg.STACK_REPAIR_ATTEMPTING, Status.UPDATE_IN_PROGRESS.name());
+        flowMessageService.fireEventAndLog(stack.getId(), Msg.STACK_REPAIR_ATTEMPTING, NotificationEventType.UPDATE_IN_PROGRESS);
         executorService.submit(stackRepairFlowSubmitter);
     }
 
@@ -97,7 +97,7 @@ public class StackRepairService {
             while (!submitted) {
                 try {
                     reactorFlowManager.triggerStackRepairFlow(stackId, unhealthyInstances);
-                    flowMessageService.fireEventAndLog(stackId, Msg.STACK_REPAIR_TRIGGERED, Status.UPDATE_IN_PROGRESS.name());
+                    flowMessageService.fireEventAndLog(stackId, Msg.STACK_REPAIR_TRIGGERED, NotificationEventType.UPDATE_IN_PROGRESS);
                     submitted = true;
                 } catch (FlowsAlreadyRunningException ignored) {
                     trials++;

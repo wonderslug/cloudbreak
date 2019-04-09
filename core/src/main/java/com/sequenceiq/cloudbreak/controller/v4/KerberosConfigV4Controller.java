@@ -29,7 +29,7 @@ import com.sequenceiq.cloudbreak.workspace.model.User;
 @Controller
 @Transactional(TxType.NEVER)
 @WorkspaceEntityType(KerberosConfig.class)
-public class KerberosConfigV4Controller extends NotificationController implements KerberosConfigV4Endpoint {
+public class KerberosConfigV4Controller implements KerberosConfigV4Endpoint {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(KerberosConfigV4Controller.class);
 

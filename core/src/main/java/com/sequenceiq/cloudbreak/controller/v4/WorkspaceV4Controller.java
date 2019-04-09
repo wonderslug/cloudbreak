@@ -24,7 +24,7 @@ import com.sequenceiq.cloudbreak.workspace.model.Workspace;
 
 @Controller
 @Transactional(Transactional.TxType.NEVER)
-public class WorkspaceV4Controller extends NotificationController implements WorkspaceV4Endpoint {
+public class WorkspaceV4Controller implements WorkspaceV4Endpoint {
 
     @Inject
     private WorkspaceService workspaceService;

@@ -23,6 +23,7 @@ dependencies {
   }
   compile project(':cluster-api')
   compile project(':template-manager-blueprint')
+  compile project(':notification-sender')
 
   testCompile (group: 'junit', name: 'junit', version: junitVersion) {
     exclude group: 'org.hamcrest'

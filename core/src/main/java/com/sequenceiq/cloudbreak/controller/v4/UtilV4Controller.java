@@ -7,6 +7,7 @@ import javax.inject.Inject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 
+import com.sequenceiq.cloudbreak.api.endpoint.v4.events.responses.CloudbreakEventBaseV4;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.util.UtilV4Endpoint;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.util.requests.RepoConfigValidationV4Request;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.util.responses.CloudStorageSupportedV4Responses;
@@ -18,7 +19,7 @@ import com.sequenceiq.cloudbreak.api.endpoint.v4.util.responses.SupportedExterna
 import com.sequenceiq.cloudbreak.api.endpoint.v4.util.responses.VersionCheckV4Result;
 import com.sequenceiq.cloudbreak.api.util.ConverterUtil;
 import com.sequenceiq.cloudbreak.common.user.CloudbreakUser;
-import com.sequenceiq.cloudbreak.notification.NotificationSender;
+import com.sequenceiq.cloudbreak.message.NotificationEventType;
 import com.sequenceiq.cloudbreak.service.CloudbreakRestRequestThreadLocalService;
 import com.sequenceiq.cloudbreak.service.StackMatrixService;
 import com.sequenceiq.cloudbreak.service.account.PreferencesService;
@@ -27,9 +28,11 @@ import com.sequenceiq.cloudbreak.service.filesystem.FileSystemSupportMatrixServi
 import com.sequenceiq.cloudbreak.service.securityrule.SecurityRuleService;
 import com.sequenceiq.cloudbreak.util.ClientVersionUtil;
 import com.sequenceiq.cloudbreak.validation.externaldatabase.SupportedDatabaseProvider;
+import com.sequenceiq.notification.Notification;
+import com.sequenceiq.notification.NotificationSender;
 
 @Controller
-public class UtilV4Controller extends NotificationController implements UtilV4Endpoint {
+public class UtilV4Controller implements UtilV4Endpoint {
 
     @Inject
     private StackMatrixService stackMatrixService;
@@ -102,6 +105,17 @@ public class UtilV4Controller extends NotificationController implements UtilV4En
     @Override
     public void postNotificationTest() {
         CloudbreakUser cloudbreakUser = restRequestThreadLocalService.getCloudbreakUser();
-        notificationSender.sendTestNotification(cloudbreakUser.getUserId());
+        notificationSender.send(new Notification<>(createTestNotification(cloudbreakUser.getUserId())));
     }
+
+    private CloudbreakEventBaseV4 createTestNotification(String userId) {
+        CloudbreakEventBaseV4 baseEvent = new CloudbreakEventBaseV4();
+        baseEvent.setEventType(NotificationEventType.TEST_NOTIFICATION.name());
+        baseEvent.setEventMessage("Test notification message.");
+        baseEvent.setEventTimestamp(System.currentTimeMillis());
+        baseEvent.setUserId(userId);
+        baseEvent.setNotificationType("TEST_NOTIFICATION");
+        return baseEvent;
+    }
+
 }

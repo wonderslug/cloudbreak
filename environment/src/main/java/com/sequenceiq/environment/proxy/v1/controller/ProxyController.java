@@ -22,7 +22,6 @@ import com.sequenceiq.environment.proxy.v1.converter.ProxyConfigToProxyRequestCo
 import com.sequenceiq.environment.proxy.v1.converter.ProxyConfigToProxyResponseConverter;
 import com.sequenceiq.environment.proxy.v1.converter.ProxyRequestToProxyConfigConverter;
 import com.sequenceiq.notification.NotificationController;
-import com.sequenceiq.notification.ResourceEvent;
 
 @Controller
 @Transactional(TxType.NEVER)
@@ -68,25 +67,26 @@ public class ProxyController extends NotificationController implements ProxyEndp
     public ProxyResponse post(ProxyRequest request) {
         String accountId = threadBasedUserCrnProvider.getAccountId();
         ProxyConfig proxyConfig = proxyRequestToProxyConfigConverter.convert(request);
-        notify(ResourceEvent.PROXY_CONFIG_CREATED);
-        return proxyConfigToProxyResponseConverter
-                .convert(proxyConfigService.create(proxyConfig, accountId));
+        ProxyResponse response = proxyConfigToProxyResponseConverter.convert(proxyConfigService.create(proxyConfig, accountId));
+//        notify(response, NotificationEventType.CREATE_SUCCESS, "proxyconfig");
+        return response;
     }
 
     @Override
     public ProxyResponse delete(String name) {
-        notify(ResourceEvent.PROXY_CONFIG_DELETED);
-        return proxyConfigToProxyResponseConverter.convert(proxyConfigService.deleteInAccount(name, threadBasedUserCrnProvider.getAccountId()));
+        ProxyResponse response = proxyConfigToProxyResponseConverter.convert(proxyConfigService.deleteInAccount(name, threadBasedUserCrnProvider.getAccountId()));
+//        notify(response, NotificationEventType.CREATE_SUCCESS, "proxyconfig");
+        return response;
     }
 
     @Override
     public ProxyResponses deleteMultiple(Set<String> names) {
-        notify(ResourceEvent.PROXY_CONFIG_DELETED);
-        Set<ProxyConfig> responses = proxyConfigService.deleteMultipleInAccount(names, threadBasedUserCrnProvider.getAccountId());
-        return new ProxyResponses(responses
+        ProxyResponses responses = new ProxyResponses(proxyConfigService.deleteMultipleInAccount(names, threadBasedUserCrnProvider.getAccountId())
                 .stream()
                 .map(p -> proxyConfigToProxyResponseConverter.convert(p))
                 .collect(Collectors.toSet()));
+//        notify(responses, NotificationEventType.CREATE_SUCCESS, "proxyconfig");
+        return responses;
     }
 
     @Override

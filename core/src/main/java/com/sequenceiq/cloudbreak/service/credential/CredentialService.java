@@ -33,13 +33,13 @@ import com.sequenceiq.cloudbreak.domain.view.EnvironmentView;
 import com.sequenceiq.cloudbreak.exception.BadRequestException;
 import com.sequenceiq.cloudbreak.exception.NotFoundException;
 import com.sequenceiq.cloudbreak.message.CloudbreakMessagesService;
-import com.sequenceiq.cloudbreak.notification.Notification;
-import com.sequenceiq.cloudbreak.notification.NotificationSender;
+import com.sequenceiq.cloudbreak.message.NotificationEventType;
 import com.sequenceiq.cloudbreak.repository.CredentialRepository;
 import com.sequenceiq.cloudbreak.service.AbstractWorkspaceAwareResourceService;
 import com.sequenceiq.cloudbreak.service.CloudbreakServiceException;
 import com.sequenceiq.cloudbreak.service.account.PreferencesService;
 import com.sequenceiq.cloudbreak.service.environment.EnvironmentViewService;
+import com.sequenceiq.cloudbreak.service.secret.service.SecretService;
 import com.sequenceiq.cloudbreak.service.stack.StackService;
 import com.sequenceiq.cloudbreak.service.stack.connector.adapter.ServiceProviderCredentialAdapter;
 import com.sequenceiq.cloudbreak.service.user.UserProfileHandler;
@@ -48,7 +48,8 @@ import com.sequenceiq.cloudbreak.workspace.model.User;
 import com.sequenceiq.cloudbreak.workspace.model.Workspace;
 import com.sequenceiq.cloudbreak.workspace.repository.workspace.WorkspaceResourceRepository;
 import com.sequenceiq.cloudbreak.workspace.resource.WorkspaceResource;
-import com.sequenceiq.cloudbreak.service.secret.service.SecretService;
+import com.sequenceiq.notification.Notification;
+import com.sequenceiq.notification.NotificationSender;
 
 @Service
 public class CredentialService extends AbstractWorkspaceAwareResourceService<Credential> {
@@ -120,13 +121,14 @@ public class CredentialService extends AbstractWorkspaceAwareResourceService<Cre
         Credential original = credentialRepository.findActiveByNameAndWorkspaceIdFilterByPlatforms(credential.getName(), workspaceId,
                 preferencesService.enabledPlatforms()).orElseThrow(notFound(NOT_FOUND_FORMAT_MESS_NAME, credential.getName()));
         if (!Objects.equals(credential.cloudPlatform(), original.cloudPlatform())) {
+            sendCredentialNotification(credential, ResourceEvent.CREDENTIAL_MODIFICATION_FAILED, NotificationEventType.UPDATE_FAILED);
             throw new BadRequestException("Modifying credential platform is forbidden");
         }
         credential.setId(original.getId());
         credential.setWorkspace(workspaceService.get(workspaceId, user));
         Credential updated = super.create(credentialAdapter.verify(credential, workspaceId, user.getUserId()), workspaceId, user);
         secretService.delete(original.getAttributesSecret());
-        sendCredentialNotification(credential, ResourceEvent.CREDENTIAL_MODIFIED);
+        sendCredentialNotification(credential, ResourceEvent.CREDENTIAL_MODIFIED, NotificationEventType.UPDATE_SUCCESS);
         return updated;
     }
 
@@ -141,7 +143,7 @@ public class CredentialService extends AbstractWorkspaceAwareResourceService<Cre
         credentialValidator.validateCredentialCloudPlatform(credential.cloudPlatform());
         credentialValidator.validateParameters(Platform.platform(credential.cloudPlatform()), new Json(credential.getAttributes()).getMap());
         Credential created = super.create(credentialAdapter.verify(credential, workspaceId, user.getUserId()), workspaceId, user);
-        sendCredentialNotification(credential, ResourceEvent.CREDENTIAL_CREATED);
+        sendCredentialNotification(credential, ResourceEvent.CREDENTIAL_CREATED, NotificationEventType.CREATE_SUCCESS);
         return created;
     }
 
@@ -280,7 +282,7 @@ public class CredentialService extends AbstractWorkspaceAwareResourceService<Cre
         LOGGER.debug(String.format("Starting to delete credential [name: %s, workspace: %s]", credential.getName(), workspace.getName()));
         userProfileHandler.destroyProfileCredentialPreparation(credential);
         Credential archived = archiveCredential(credential);
-        sendCredentialNotification(credential, ResourceEvent.CREDENTIAL_DELETED);
+        sendCredentialNotification(credential, ResourceEvent.CREDENTIAL_DELETED, NotificationEventType.DELETE_SUCCESS);
         return archived;
     }
 
@@ -322,11 +324,11 @@ public class CredentialService extends AbstractWorkspaceAwareResourceService<Cre
         }
     }
 
-    private void sendCredentialNotification(Credential credential, ResourceEvent resourceEvent) {
+    private void sendCredentialNotification(Credential credential, ResourceEvent resourceEvent, NotificationEventType notificationEventType) {
         CloudbreakEventV4Response notification = new CloudbreakEventV4Response();
         notification.setEventType(resourceEvent.name());
         notification.setEventTimestamp(new Date().getTime());
-        notification.setEventMessage(messagesService.getMessage(resourceEvent.getMessage()));
+        notification.setEventMessage(messagesService.getMessage(WorkspaceResource.CREDENTIAL.name(), notificationEventType));
         notification.setCloud(credential.cloudPlatform());
         notification.setWorkspaceId(credential.getWorkspace().getId());
         notification.setTenantName(credential.getWorkspace().getName());

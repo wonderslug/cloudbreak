@@ -9,7 +9,7 @@ import com.sequenceiq.cloudbreak.api.endpoint.v4.info.CloudbreakInfoV4Endpoint;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.info.responses.CloudbreakInfoResponse;
 
 @Controller
-public class CloudbreakInfoV4Controller extends NotificationController implements CloudbreakInfoV4Endpoint {
+public class CloudbreakInfoV4Controller implements CloudbreakInfoV4Endpoint {
 
     @Inject
     private InfoEndpoint infoEndpoint;

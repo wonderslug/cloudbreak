@@ -27,7 +27,7 @@ import com.sequenceiq.distrox.v1.distrox.StackOperation;
 
 @Controller
 @WorkspaceEntityType(Stack.class)
-public class StackV4Controller extends NotificationController implements StackV4Endpoint {
+public class StackV4Controller implements StackV4Endpoint {
 
     @Inject
     private StackOperation stackOperation;

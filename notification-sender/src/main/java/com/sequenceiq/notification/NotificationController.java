@@ -2,18 +2,14 @@ package com.sequenceiq.notification;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
-import java.util.function.Consumer;
 
 import javax.inject.Inject;
 
-import org.springframework.beans.factory.annotation.Value;
-
-import com.sequenceiq.cloudbreak.auth.security.authentication.AuthenticatedUserService;
-import com.sequenceiq.cloudbreak.client.RestClientUtil;
-import com.sequenceiq.cloudbreak.common.user.CloudbreakUser;
+import com.sequenceiq.cloudbreak.auth.ThreadBasedUserCrnProvider;
 import com.sequenceiq.cloudbreak.message.CloudbreakMessagesService;
-import com.sequenceiq.cloudbreak.structuredevent.event.CloudbreakNotification;
+import com.sequenceiq.cloudbreak.message.NotificationEventType;
+import com.sequenceiq.cloudbreak.structuredevent.event.responses.CloudbreakV4Event;
+import com.sequenceiq.cloudbreak.workspace.resource.WorkspaceResource;
 
 public abstract class NotificationController {
 
@@ -24,29 +20,19 @@ public abstract class NotificationController {
     private NotificationSender notificationSender;
 
     @Inject
-    private AuthenticatedUserService authenticatedUserService;
+    private ThreadBasedUserCrnProvider threadBasedUserCrnProvider;
 
-    @Value("${notification.url:http://localhost:3000/notifications}")
-    private String notificationUrl;
-
-    protected final void executeAndNotify(Consumer<CloudbreakUser> consumer, ResourceEvent resourceEvent) {
-        CloudbreakUser cloudbreakUser = authenticatedUserService.getCbUser();
-        consumer.accept(cloudbreakUser);
-        notify(resourceEvent);
+    protected final void notify(Object payload, NotificationEventType eventType, WorkspaceResource resource) {
+        notify(payload, eventType, resource.getShortName(), Collections.emptySet());
+    }
+    protected final void notify(Object payload, NotificationEventType eventType, String resource) {
+        notify(payload, eventType, resource, Collections.emptySet());
     }
 
-    protected final void notify(ResourceEvent resourceEvent) {
-        notify(resourceEvent, Collections.emptySet());
-    }
-
-    protected final void notify(ResourceEvent resourceEvent, Collection<?> messageArgs) {
-        CloudbreakUser cloudbreakUser = authenticatedUserService.getCbUser();
-        CloudbreakNotification notification = new CloudbreakNotification();
-        notification.setEventTimestamp(new Date().getTime());
-        notification.setEventType(resourceEvent.name());
-        notification.setEventMessage(messagesService.getMessage(resourceEvent.getMessage(), messageArgs));
-        notification.setTenantName(cloudbreakUser.getTenant());
-        notification.setUserId(cloudbreakUser.getUserId());
-        notificationSender.send(new Notification<>(notification), Collections.singletonList(notificationUrl), RestClientUtil.get());
+    protected final void notify(Object payload, NotificationEventType eventType, String resource, Collection<?> messageArgs) {
+        CloudbreakV4Event notification = NotificationAssemblingService.cloudbreakEvent(payload, eventType, resource);
+        notification.setUser(threadBasedUserCrnProvider.getUserCrn());
+        notification.setMessage(messagesService.getMessage(resource, eventType, messageArgs));
+        notificationSender.send(new Notification<>(notification));
     }
 }

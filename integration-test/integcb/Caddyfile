@@ -1,0 +1,41 @@
+(proxies) {
+  proxy /         {$GATEWAY_HOST}:3000  {
+    transparent
+  }
+  proxy /socket.io {$GATEWAY_HOST}:3000  {
+    websocket
+  }
+}
+
+
+localhost:443 {
+
+  tls self_signed
+  log stdout
+
+  import proxies
+}
+
+localhost:80 {
+
+  log stdout
+
+  import proxies
+}
+
+manage.dps.local:443 {
+
+  tls self_signed
+  log stdout
+
+  import proxies
+}
+
+manage.dps.local:80 {
+
+  log stdout
+
+  import proxies
+}
+
+

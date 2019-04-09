@@ -25,6 +25,7 @@ import org.springframework.core.convert.ConversionService;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.database.requests.DatabaseV4Request;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.database.responses.DatabaseV4Response;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.environment.requests.DatalakePrerequisiteV4Request;
+import com.sequenceiq.cloudbreak.message.NotificationEventType;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.kerberos.requests.FreeIPAKerberosDescriptor;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.kerberos.requests.KerberosV4Request;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.kerberos.responses.KerberosV4Response;
@@ -112,7 +113,7 @@ public class DatalakePrerequisiteServiceTest {
     @Test
     public void testTestConnectionWhenLdapIsNotAvailableShouldThrowBadRequestException() {
         doThrow(new BadRequestException(errorMessage)).when(ldapConfigValidator).validateLdapConnection(any(LdapConfig.class));
-        doNothing().when(defaultCloudbreakEventService).fireLdapEvent(any(LdapDetails.class), anyString(), anyString(), anyBoolean());
+        doNothing().when(defaultCloudbreakEventService).fireLdapEvent(any(LdapDetails.class), any(NotificationEventType.class), anyString(), anyBoolean());
 
         thrown.expect(BadRequestException.class);
         thrown.expectMessage("Some of the resource for datalake prerequistes was not available please make sure that everything is up and running.");
@@ -123,9 +124,9 @@ public class DatalakePrerequisiteServiceTest {
     @Test
     public void testTestConnectionWhenRdsIsNotAvailableShouldThrowBadRequestException() {
         doThrow(new BadRequestException(errorMessage)).when(rdsConnectionValidator).validateRdsConnection(any(RDSConfig.class));
-        doNothing().when(defaultCloudbreakEventService).fireLdapEvent(any(LdapDetails.class), anyString(), anyString(), anyBoolean());
+        doNothing().when(defaultCloudbreakEventService).fireLdapEvent(any(LdapDetails.class), any(NotificationEventType.class), anyString(), anyBoolean());
         doNothing().when(ldapConfigValidator).validateLdapConnection(any(LdapConfig.class));
-        doNothing().when(defaultCloudbreakEventService).fireRdsEvent(any(RdsDetails.class), anyString(), anyString(), anyBoolean());
+        doNothing().when(defaultCloudbreakEventService).fireRdsEvent(any(RdsDetails.class), any(NotificationEventType.class), anyString(), anyBoolean());
 
         thrown.expect(BadRequestException.class);
         thrown.expectMessage("Some of the resource for datalake prerequistes was not available please make sure that everything is up and running.");
@@ -135,10 +136,10 @@ public class DatalakePrerequisiteServiceTest {
 
     @Test
     public void testPrepareResourceWhenTestIsOkAndShouldPersistResources() {
-        doNothing().when(defaultCloudbreakEventService).fireLdapEvent(any(LdapDetails.class), anyString(), anyString(), anyBoolean());
+        doNothing().when(defaultCloudbreakEventService).fireLdapEvent(any(LdapDetails.class), any(NotificationEventType.class), anyString(), anyBoolean());
         doNothing().when(ldapConfigValidator).validateLdapConnection(any(LdapConfig.class));
         doNothing().when(rdsConnectionValidator).validateRdsConnection(any(RDSConfig.class));
-        doNothing().when(defaultCloudbreakEventService).fireRdsEvent(any(RdsDetails.class), anyString(), anyString(), anyBoolean());
+        doNothing().when(defaultCloudbreakEventService).fireRdsEvent(any(RdsDetails.class), any(NotificationEventType.class), anyString(), anyBoolean());
 
         when(kerberosConfigService.create(any(KerberosConfig.class), anyLong(), any())).thenReturn(kerberosConfig());
         underTest.prepare(workspaceId, environmentName, datalakePrerequisiteRequest());

@@ -7,6 +7,7 @@ public enum ResourceEvent {
     BLUEPRINT_DELETED("resource.blueprint.deleted"),
     CREDENTIAL_CREATED("resource.credential.created"),
     CREDENTIAL_MODIFIED("resource.credential.modified"),
+    CREDENTIAL_MODIFICATION_FAILED("resource.credential.modified.failed"),
     CREDENTIAL_DELETED("resource.credential.deleted"),
     CLUSTER_TEMPLATE_CREATED("resource.clustertemplate.created"),
     CLUSTER_TEMPLATE_DELETED("resource.clustertemplate.deleted"),

@@ -1,6 +1,7 @@
 package com.sequenceiq.cloudbreak.message;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Locale;
 
 import javax.inject.Inject;
@@ -15,6 +16,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class CloudbreakMessagesService {
 
+    private static final String RESOURCE_PREFIX = "resource.";
+
+    private static final String DOT = ".";
+
     @Inject
     private MessageSource messageSource;
 
@@ -24,5 +29,27 @@ public class CloudbreakMessagesService {
 
     public String getMessage(String code, Collection<?> args) {
         return messageSource.getMessage(code, args.toArray(), Locale.getDefault());
+    }
+
+    public String getMessage(NotificationEventType eventType) {
+        return getMessage(eventType, Collections.emptyList());
+    }
+
+    public String getMessage(NotificationEventType eventType, Collection<?> args) {
+        String code = RESOURCE_PREFIX + normalize(eventType.name());
+        return messageSource.getMessage(code, args.toArray(), Locale.getDefault());
+    }
+
+    public String getMessage(String resource, NotificationEventType eventType) {
+        return getMessage(resource, eventType, Collections.emptyList());
+    }
+
+    public String getMessage(String resource, NotificationEventType eventType, Collection<?> args) {
+        String code = RESOURCE_PREFIX + resource.toLowerCase() + DOT + normalize(eventType.name());
+        return messageSource.getMessage(code, args.toArray(), Locale.getDefault());
+    }
+
+    private String normalize(String value) {
+        return value.replaceAll("_", DOT).toLowerCase();
     }
 }

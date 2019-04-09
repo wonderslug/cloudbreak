@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.sequenceiq.cloudbreak.api.endpoint.v4.common.DetailedStackStatus;
-import com.sequenceiq.cloudbreak.api.endpoint.v4.common.Status;
+import com.sequenceiq.cloudbreak.message.NotificationEventType;
 import com.sequenceiq.cloudbreak.cloud.event.CloudPlatformResult;
 import com.sequenceiq.cloudbreak.cloud.event.model.EventStatus;
 import com.sequenceiq.cloudbreak.cloud.event.resource.UpdateImageRequest;
@@ -56,7 +56,7 @@ public class StackImageUpdateActions {
         return new AbstractStackImageUpdateAction<>(StackImageUpdateTriggerEvent.class) {
             @Override
             protected void doExecute(StackContext context, StackImageUpdateTriggerEvent payload, Map<Object, Object> variables) {
-                getFlowMessageService().fireEventAndLog(context.getStack().getId(), Msg.STACK_IMAGE_UPDATE_STARTED, Status.UPDATE_IN_PROGRESS.name());
+                getFlowMessageService().fireEventAndLog(context.getStack().getId(), Msg.STACK_IMAGE_UPDATE_STARTED, NotificationEventType.UPDATE_IN_PROGRESS);
                 if (!getStackImageUpdateService().isCbVersionOk(context.getStack())) {
                     throw new OperationException("Stack must be created at least with Cloudbreak version [" + StackImageUpdateService.MIN_VERSION + ']');
                 }
@@ -140,7 +140,7 @@ public class StackImageUpdateActions {
         return new AbstractStackImageUpdateAction<>(CloudPlatformResult.class) {
             @Override
             protected void doExecute(StackContext context, CloudPlatformResult payload, Map<Object, Object> variables) {
-                getFlowMessageService().fireEventAndLog(context.getStack().getId(), Msg.STACK_IMAGE_UPDATE_FINISHED, Status.AVAILABLE.name());
+                getFlowMessageService().fireEventAndLog(context.getStack().getId(), Msg.STACK_IMAGE_UPDATE_FINISHED, NotificationEventType.AVAILABLE);
                 getStackUpdater().updateStackStatus(context.getStack().getId(), DetailedStackStatus.AVAILABLE);
                 sendEvent(context, new StackEvent(STACK_IMAGE_UPDATE_FINISHED_EVENT.event(), context.getStack().getId()));
             }
@@ -177,7 +177,7 @@ public class StackImageUpdateActions {
                         LOGGER.info("Could not parse JSON. Image restore failed");
                     }
                 }
-                flowMessageService.fireEventAndLog(context.getStackView().getId(), Msg.STACK_IMAGE_UPDATE_FAILED, Status.UPDATE_FAILED.name(),
+                flowMessageService.fireEventAndLog(context.getStackView().getId(), Msg.STACK_IMAGE_UPDATE_FAILED, NotificationEventType.UPDATE_FAILED,
                         payload.getException().getMessage());
                 stackUpdater.updateStackStatus(context.getStackView().getId(), DetailedStackStatus.AVAILABLE);
                 sendEvent(context, new StackEvent(StackImageUpdateEvent.STACK_IMAGE_UPDATE_FAILE_HANDLED_EVENT.event(),

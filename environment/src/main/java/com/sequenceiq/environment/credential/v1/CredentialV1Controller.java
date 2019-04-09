@@ -21,7 +21,6 @@ import com.sequenceiq.environment.credential.domain.Credential;
 import com.sequenceiq.environment.credential.service.CredentialService;
 import com.sequenceiq.environment.credential.v1.converter.CredentialToCredentialV1ResponseConverter;
 import com.sequenceiq.notification.NotificationController;
-import com.sequenceiq.notification.ResourceEvent;
 
 @Component
 public class CredentialV1Controller extends NotificationController implements CredentialEndpoint {
@@ -61,34 +60,38 @@ public class CredentialV1Controller extends NotificationController implements Cr
     public CredentialResponse post(@Valid CredentialRequest request) {
         String accountId = threadBasedUserCrnProvider.getAccountId();
         Credential credential = credentialConverter.convert(request);
-        notify(ResourceEvent.CREDENTIAL_CREATED);
-        return credentialConverter.convert(credentialService.create(credential, accountId));
+        CredentialResponse response = credentialConverter.convert(credentialService.create(credential, accountId));
+//        notify(response, NotificationEventType.CREATE_SUCCESS, "credential");
+        return response;
     }
 
     @Override
     public CredentialResponse delete(String name) {
         String accountId = threadBasedUserCrnProvider.getAccountId();
         Credential credential = credentialService.deleteByNameFromWorkspace(name, accountId);
-        notify(ResourceEvent.CREDENTIAL_DELETED);
-        return credentialConverter.convert(credential);
+        CredentialResponse response = credentialConverter.convert(credential);
+//        notify(response, NotificationEventType.DELETE_SUCCESS, "credential");
+        return response;
     }
 
     @Override
     public CredentialResponses deleteMultiple(Set<String> names) {
         // TODO: implement
         Set<Credential> credentials = Set.of();
-        notify(ResourceEvent.CREDENTIAL_DELETED);
-        return new CredentialResponses(credentials
+        CredentialResponses responses = new CredentialResponses(credentials
                 .stream()
                 .map(c -> credentialConverter.convert(c))
                 .collect(Collectors.toSet()));
+//        notify(responses, NotificationEventType.DELETE_SUCCESS, "credential");
+        return responses;
     }
 
     @Override
     public CredentialResponse put(@Valid CredentialRequest credentialRequest) {
         Credential credential = credentialService.updateByAccountId(credentialConverter.convert(credentialRequest), threadBasedUserCrnProvider.getAccountId());
-        notify(ResourceEvent.CREDENTIAL_MODIFIED);
-        return credentialConverter.convert(credential);
+        CredentialResponse response = credentialConverter.convert(credential);
+//        notify(response, NotificationEventType.UPDATE_SUCCESS, "credential");
+        return response;
     }
 
     @Override
@@ -122,7 +125,8 @@ public class CredentialV1Controller extends NotificationController implements Cr
     public CredentialResponse authorizeCodeGrantFlow(String platform, String code, String state) {
         String accountId = threadBasedUserCrnProvider.getAccountId();
         Credential credential = credentialService.authorizeCodeGrantFlow(code, state, accountId, platform);
-        notify(ResourceEvent.CREDENTIAL_CREATED);
-        return credentialConverter.convert(credential);
+        CredentialResponse response = credentialConverter.convert(credential);
+//        notify(response, NotificationEventType.CREATE_SUCCESS, "credential");
+        return response;
     }
 }

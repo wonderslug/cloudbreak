@@ -1,6 +1,5 @@
 package com.sequenceiq.cloudbreak.cm;
 
-import static com.sequenceiq.cloudbreak.api.endpoint.v4.common.Status.UPDATE_IN_PROGRESS;
 import static com.sequenceiq.cloudbreak.polling.PollingResult.isExited;
 import static com.sequenceiq.cloudbreak.polling.PollingResult.isTimeout;
 
@@ -26,6 +25,7 @@ import com.cloudera.api.swagger.model.ApiCommand;
 import com.cloudera.api.swagger.model.ApiHost;
 import com.cloudera.api.swagger.model.ApiHostRef;
 import com.cloudera.api.swagger.model.ApiHostRefList;
+import com.sequenceiq.cloudbreak.message.NotificationEventType;
 import com.sequenceiq.cloudbreak.client.HttpClientConfig;
 import com.sequenceiq.cloudbreak.cloud.model.component.StackRepoDetails;
 import com.sequenceiq.cloudbreak.cloud.scheduler.CancellationException;
@@ -152,7 +152,7 @@ public class ClouderaManagerModificationService implements ClusterModificationSe
         try {
             LOGGER.debug("Stop all Hadoop services");
             eventService
-                    .fireCloudbreakEvent(stack.getId(), UPDATE_IN_PROGRESS.name(),
+                    .fireCloudbreakEvent(stack.getId(), NotificationEventType.UPDATE_IN_PROGRESS,
                             cloudbreakMessagesService.getMessage(ClouderaManagerMessages.CM_CLUSTER_SERVICES_STOPPING.code()));
             ApiCommand apiCommand = clustersResourceApi.stopCommand(cluster.getName());
             PollingResult pollingResult = clouderaManagerPollingServiceProvider.stopPollingService(stack, client, apiCommand.getId());
@@ -162,7 +162,7 @@ public class ClouderaManagerModificationService implements ClusterModificationSe
                 throw new CloudbreakException("Timeout while stopping Cloudera Manager services.");
             }
             eventService
-                    .fireCloudbreakEvent(stack.getId(), UPDATE_IN_PROGRESS.name(),
+                    .fireCloudbreakEvent(stack.getId(), NotificationEventType.UPDATE_IN_PROGRESS,
                             cloudbreakMessagesService.getMessage(ClouderaManagerMessages.CM_CLUSTER_SERVICES_STOPPED.code()));
         } catch (ApiException e) {
             LOGGER.info("Couldn't stop ClouderaManager services", e);
@@ -198,7 +198,7 @@ public class ClouderaManagerModificationService implements ClusterModificationSe
         String clusterName = cluster.getName();
         LOGGER.debug("Starting all services for cluster.");
         eventService
-                .fireCloudbreakEvent(stack.getId(), UPDATE_IN_PROGRESS.name(),
+                .fireCloudbreakEvent(stack.getId(), NotificationEventType.UPDATE_IN_PROGRESS,
                         cloudbreakMessagesService.getMessage(ClouderaManagerMessages.CM_CLUSTER_SERVICES_STARTING.code()));
         ApiCommand apiCommand = apiInstance.startCommand(clusterName);
         PollingResult pollingResult = clouderaManagerPollingServiceProvider.startPollingService(stack, client, apiCommand.getId());
@@ -208,7 +208,7 @@ public class ClouderaManagerModificationService implements ClusterModificationSe
             throw new CloudbreakException("Timeout while stopping Cloudera Manager services.");
         }
         eventService
-                .fireCloudbreakEvent(stack.getId(), UPDATE_IN_PROGRESS.name(),
+                .fireCloudbreakEvent(stack.getId(), NotificationEventType.UPDATE_IN_PROGRESS,
                         cloudbreakMessagesService.getMessage(ClouderaManagerMessages.CM_CLUSTER_SERVICES_STARTED.code()));
         return apiCommand;
     }

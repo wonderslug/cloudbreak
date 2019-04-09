@@ -46,6 +46,7 @@ import com.sequenceiq.cloudbreak.structuredevent.rest.StructuredEventFilter;
 import com.sequenceiq.cloudbreak.util.FileReaderUtils;
 import com.sequenceiq.distrox.v1.distrox.controller.DistroXV1Controller;
 
+import io.swagger.converter.ModelConverters;
 import io.swagger.jaxrs.config.BeanConfig;
 import io.swagger.jaxrs.config.SwaggerConfigLocator;
 import io.swagger.jaxrs.config.SwaggerContextService;
@@ -138,5 +139,8 @@ public class EndpointConfig extends ResourceConfig {
         register(io.swagger.jaxrs.listing.ApiListingResource.class);
         register(io.swagger.jaxrs.listing.SwaggerSerializers.class);
         register(io.swagger.jaxrs.listing.AcceptHeaderApiListingResource.class);
+
+        ModelConverters modelConverters = ModelConverters.getInstance();
+        modelConverters.addConverter(new EnumResolver());
     }
 }

@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.sequenceiq.cloudbreak.api.endpoint.v4.common.Status;
+import com.sequenceiq.cloudbreak.message.NotificationEventType;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.base.MaintenanceModeStatus;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.request.HostGroupV4Request;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.request.UpdateClusterV4Request;
@@ -27,7 +28,6 @@ import com.sequenceiq.cloudbreak.blueprint.validation.AmbariBlueprintValidator;
 import com.sequenceiq.cloudbreak.cloud.model.component.StackRepoDetails;
 import com.sequenceiq.cloudbreak.common.service.TransactionService.TransactionExecutionException;
 import com.sequenceiq.cloudbreak.common.service.TransactionService.TransactionRuntimeExecutionException;
-import com.sequenceiq.cloudbreak.common.type.ResourceEvent;
 import com.sequenceiq.cloudbreak.domain.Blueprint;
 import com.sequenceiq.cloudbreak.domain.stack.Stack;
 import com.sequenceiq.cloudbreak.domain.stack.cluster.Cluster;
@@ -194,10 +194,10 @@ public class ClusterCommonService {
 
         switch (maintenanceMode) {
             case ENABLED:
-                saveAndFireEventOnClusterStatusChange(cluster, stack.getId(), MAINTENANCE_MODE_ENABLED, ResourceEvent.MAINTENANCE_MODE_ENABLED);
+                saveAndFireEventOnClusterStatusChange(cluster, stack.getId(), MAINTENANCE_MODE_ENABLED, NotificationEventType.MAINTENANCE_MODE_ENABLED);
                 break;
             case DISABLED:
-                saveAndFireEventOnClusterStatusChange(cluster, stack.getId(), AVAILABLE, ResourceEvent.MAINTENANCE_MODE_DISABLED);
+                saveAndFireEventOnClusterStatusChange(cluster, stack.getId(), AVAILABLE, NotificationEventType.MAINTENANCE_MODE_DISABLED);
                 break;
             case VALIDATION_REQUESTED:
                 if (!MAINTENANCE_MODE_ENABLED.equals(cluster.getStatus())) {
@@ -254,11 +254,10 @@ public class ClusterCommonService {
         return String.format("[%s]%n%s%n", section, rawBody);
     }
 
-    private void saveAndFireEventOnClusterStatusChange(Cluster cluster, Long stackId, Status status, ResourceEvent event) {
+    private void saveAndFireEventOnClusterStatusChange(Cluster cluster, Long stackId, Status status, NotificationEventType event) {
         if (!status.equals(cluster.getStatus())) {
             cluster.setStatus(status);
-            clusterService.save(cluster);
-            cloudbreakEventService.fireCloudbreakEvent(stackId, event.name(), messagesService.getMessage(event.getMessage()));
+            cloudbreakEventService.fireCloudbreakEvent(stackId, event, messagesService.getMessage(event));
         }
     }
 }

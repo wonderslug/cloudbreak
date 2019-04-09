@@ -10,7 +10,7 @@ import com.sequenceiq.cloudbreak.api.endpoint.v4.util.responses.ExposedServiceV4
 import com.sequenceiq.cloudbreak.service.ServiceEndpointCollector;
 
 @Controller
-public class WorkspaceAwareUtilV4Controller extends NotificationController implements WorkspaceAwareUtilV4Endpoint {
+public class WorkspaceAwareUtilV4Controller implements WorkspaceAwareUtilV4Endpoint {
 
     @Inject
     private ServiceEndpointCollector serviceEndpointCollector;

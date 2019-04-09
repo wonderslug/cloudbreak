@@ -16,6 +16,7 @@ import com.sequenceiq.cloudbreak.api.endpoint.v4.database.requests.DatabaseV4Req
 import com.sequenceiq.cloudbreak.api.endpoint.v4.database.responses.DatabaseV4Response;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.environment.requests.DatalakePrerequisiteV4Request;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.environment.responses.DatalakePrerequisiteV4Response;
+import com.sequenceiq.cloudbreak.message.NotificationEventType;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.kerberos.requests.KerberosV4Request;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.kerberos.responses.KerberosV4Response;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.ldaps.requests.LdapV4Request;
@@ -27,10 +28,12 @@ import com.sequenceiq.cloudbreak.domain.KerberosConfig;
 import com.sequenceiq.cloudbreak.domain.LdapConfig;
 import com.sequenceiq.cloudbreak.domain.RDSConfig;
 import com.sequenceiq.cloudbreak.exception.BadRequestException;
+import com.sequenceiq.cloudbreak.exception.BadRequestException;
 import com.sequenceiq.cloudbreak.service.CloudbreakRestRequestThreadLocalService;
 import com.sequenceiq.cloudbreak.service.kerberos.KerberosConfigService;
 import com.sequenceiq.cloudbreak.service.ldapconfig.LdapConfigService;
 import com.sequenceiq.cloudbreak.service.rdsconfig.RdsConfigService;
+import com.sequenceiq.cloudbreak.structuredevent.event.CloudbreakEventService;
 import com.sequenceiq.cloudbreak.service.user.UserService;
 import com.sequenceiq.cloudbreak.structuredevent.event.CloudbreakEventService;
 import com.sequenceiq.cloudbreak.structuredevent.event.LdapDetails;
@@ -87,9 +90,10 @@ public class DatalakePrerequisiteService {
         boolean ret = true;
         try {
             ldapConfigValidator.validateLdapConnection(ldapConfig);
-            fireLdapEvent(ldapConfig, ResourceEvent.TEST_CONNECTION_SUCCESS, "Connection successfully established with the LDAP server", NOTIFY_WORKSPACE);
+            fireLdapEvent(ldapConfig, NotificationEventType.TEST_CONNECTION_SUCCESS, "Connection successfully established with the LDAP server",
+                    NOTIFY_WORKSPACE);
         } catch (Exception ex) {
-            fireLdapEvent(ldapConfig, ResourceEvent.TEST_CONNECTION_FAILED, "Connection failed to established with the LDAP server", NOTIFY_WORKSPACE);
+            fireLdapEvent(ldapConfig, NotificationEventType.TEST_CONNECTION_FAILED, "Connection failed to established with the LDAP server", NOTIFY_WORKSPACE);
             ret = false;
         }
 
@@ -97,10 +101,10 @@ public class DatalakePrerequisiteService {
             RDSConfig rdsConfig = conversionService.convert(rdsConfigRequest, RDSConfig.class);
             try {
                 rdsConnectionValidator.validateRdsConnection(rdsConfig);
-                fireRdsEvent(rdsConfig, ResourceEvent.TEST_CONNECTION_SUCCESS, "Connection successfully established with the Remote database server",
+                fireRdsEvent(rdsConfig, NotificationEventType.TEST_CONNECTION_SUCCESS, "Connection successfully established with the Remote database server",
                         NOTIFY_WORKSPACE);
             } catch (Exception ex) {
-                fireRdsEvent(rdsConfig, ResourceEvent.TEST_CONNECTION_FAILED, "Connection failed to established with the Remote database server",
+                fireRdsEvent(rdsConfig, NotificationEventType.TEST_CONNECTION_FAILED, "Connection failed to established with the Remote database server",
                         NOTIFY_WORKSPACE);
                 ret = false;
             }
@@ -154,12 +158,12 @@ public class DatalakePrerequisiteService {
         return conversionService.convert(ldapConfig, LdapV4Response.class);
     }
 
-    private void fireLdapEvent(LdapConfig ldapConfig, ResourceEvent event, String message, boolean notifyWorkspace) {
-        defaultCloudbreakEventService.fireLdapEvent(prepareLdapDetails(ldapConfig), event.name(), message, notifyWorkspace);
+    private void fireLdapEvent(LdapConfig ldapConfig, NotificationEventType event, String message, boolean notifyWorkspace) {
+        defaultCloudbreakEventService.fireLdapEvent(prepareLdapDetails(ldapConfig), event, message, notifyWorkspace);
     }
 
-    private void fireRdsEvent(RDSConfig rdsConfig, ResourceEvent event, String message, boolean notifyWorkspace) {
-        defaultCloudbreakEventService.fireRdsEvent(prepareRdsDetails(rdsConfig), event.name(), message, notifyWorkspace);
+    private void fireRdsEvent(RDSConfig rdsConfig, NotificationEventType event, String message, boolean notifyWorkspace) {
+        defaultCloudbreakEventService.fireRdsEvent(prepareRdsDetails(rdsConfig), event, message, notifyWorkspace);
     }
 
     private RdsDetails prepareRdsDetails(RDSConfig rdsConfig) {

@@ -22,6 +22,7 @@ import org.springframework.stereotype.Component;
 import com.google.api.client.util.Joiner;
 import com.google.common.collect.Sets;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.common.Status;
+import com.sequenceiq.cloudbreak.message.NotificationEventType;
 import com.sequenceiq.cloudbreak.core.bootstrap.service.ClusterDeletionBasedExitCriteriaModel;
 import com.sequenceiq.cloudbreak.core.bootstrap.service.host.HostOrchestratorResolver;
 import com.sequenceiq.cloudbreak.domain.Recipe;
@@ -42,9 +43,9 @@ import com.sequenceiq.cloudbreak.recipe.CentralRecipeUpdater;
 import com.sequenceiq.cloudbreak.service.CloudbreakException;
 import com.sequenceiq.cloudbreak.service.GatewayConfigService;
 import com.sequenceiq.cloudbreak.service.cluster.flow.recipe.RecipeExecutionFailureCollector.RecipeFailure;
-import com.sequenceiq.cloudbreak.structuredevent.event.CloudbreakEventService;
 import com.sequenceiq.cloudbreak.service.recipe.GeneratedRecipeService;
 import com.sequenceiq.cloudbreak.service.stack.InstanceMetaDataService;
+import com.sequenceiq.cloudbreak.structuredevent.event.CloudbreakEventService;
 import com.sequenceiq.cloudbreak.template.TemplatePreparationObject;
 import com.sequenceiq.cloudbreak.util.StackUtil;
 import com.sequenceiq.cloudbreak.workspace.model.Workspace;
@@ -241,7 +242,7 @@ class OrchestratorRecipeExecutor {
         if (!recipes.isEmpty()) {
             Collections.sort(recipes);
             String messageStr = Joiner.on(';').join(recipes);
-            cloudbreakEventService.fireCloudbreakEvent(stackId, status.name(),
+            cloudbreakEventService.fireCloudbreakEvent(stackId, NotificationEventType.valueOf(status.name()),
                     cloudbreakMessagesService.getMessage(Msg.UPLOAD_RECIPES.code(), Collections.singletonList(messageStr)));
         }
     }

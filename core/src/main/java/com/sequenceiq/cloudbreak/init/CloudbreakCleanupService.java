@@ -26,6 +26,7 @@ import org.springframework.stereotype.Component;
 
 import com.sequenceiq.cloudbreak.api.endpoint.v4.common.DetailedStackStatus;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.common.Status;
+import com.sequenceiq.cloudbreak.message.NotificationEventType;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.base.InstanceStatus;
 import com.sequenceiq.cloudbreak.common.service.TransactionService;
 import com.sequenceiq.cloudbreak.common.service.TransactionService.TransactionExecutionException;
@@ -271,7 +272,7 @@ public class CloudbreakCleanupService implements ApplicationListener<ContextRefr
     }
 
     private void fireEvent(Stack stack) {
-        eventService.fireCloudbreakEvent(stack.getId(), Status.UPDATE_IN_PROGRESS.name(),
+        eventService.fireCloudbreakEvent(stack.getId(), NotificationEventType.UPDATE_IN_PROGRESS,
                 "Couldn't retrieve the cluster's status, starting to sync.");
     }
 }

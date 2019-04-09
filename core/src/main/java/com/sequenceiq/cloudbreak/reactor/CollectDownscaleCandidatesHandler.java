@@ -1,7 +1,5 @@
 package com.sequenceiq.cloudbreak.reactor;
 
-import static com.sequenceiq.cloudbreak.api.endpoint.v4.common.Status.AVAILABLE;
-
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -12,14 +10,14 @@ import org.springframework.stereotype.Component;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
-import com.sequenceiq.cloudbreak.exception.NotFoundException;
+import com.sequenceiq.cloudbreak.message.NotificationEventType;
 import com.sequenceiq.cloudbreak.core.flow2.stack.CloudbreakFlowMessageService;
 import com.sequenceiq.cloudbreak.domain.stack.Stack;
 import com.sequenceiq.cloudbreak.domain.stack.cluster.host.HostGroup;
 import com.sequenceiq.cloudbreak.domain.stack.cluster.host.HostMetadata;
 import com.sequenceiq.cloudbreak.domain.stack.instance.InstanceMetaData;
+import com.sequenceiq.cloudbreak.exception.NotFoundException;
 import com.sequenceiq.cloudbreak.message.Msg;
-import com.sequenceiq.flow.event.EventSelectorUtil;
 import com.sequenceiq.cloudbreak.reactor.api.event.resource.CollectDownscaleCandidatesRequest;
 import com.sequenceiq.cloudbreak.reactor.api.event.resource.CollectDownscaleCandidatesResult;
 import com.sequenceiq.flow.reactor.api.handler.EventHandler;
@@ -30,6 +28,7 @@ import com.sequenceiq.cloudbreak.service.hostmetadata.HostMetadataService;
 import com.sequenceiq.cloudbreak.service.stack.DefaultRootVolumeSizeProvider;
 import com.sequenceiq.cloudbreak.service.stack.InstanceMetaDataService;
 import com.sequenceiq.cloudbreak.service.stack.StackService;
+import com.sequenceiq.flow.event.EventSelectorUtil;
 
 import reactor.bus.Event;
 import reactor.bus.EventBus;
@@ -115,7 +114,7 @@ public class CollectDownscaleCandidatesHandler implements EventHandler<CollectDo
         Set<InstanceMetaData> instanceMetaDatasInStack = instanceMetaDataService.findAllInStack(stack.getId());
         Set<String> hostNames = clusterApiConnectors.getConnector(stack).clusterDecomissionService()
                 .collectDownscaleCandidates(hostGroup, request.getScalingAdjustment(), defaultRootVolumeSize, instanceMetaDatasInStack);
-        flowMessageService.fireEventAndLog(stack.getId(), Msg.STACK_SELECT_FOR_DOWNSCALE, AVAILABLE.name(), hostNames);
+        flowMessageService.fireEventAndLog(stack.getId(), Msg.STACK_SELECT_FOR_DOWNSCALE, NotificationEventType.AVAILABLE, hostNames);
         return stackService.getPrivateIdsForHostNames(stack.getInstanceMetaDataAsList(), hostNames);
     }
 

@@ -15,10 +15,12 @@ import com.sequenceiq.cloudbreak.api.endpoint.v4.database.responses.DatabaseTest
 import com.sequenceiq.cloudbreak.api.endpoint.v4.database.responses.DatabaseV4Response;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.database.responses.DatabaseV4Responses;
 import com.sequenceiq.cloudbreak.api.util.ConverterUtil;
-import com.sequenceiq.cloudbreak.common.type.ResourceEvent;
 import com.sequenceiq.cloudbreak.domain.RDSConfig;
+import com.sequenceiq.cloudbreak.message.NotificationEventType;
 import com.sequenceiq.cloudbreak.service.rdsconfig.RdsConfigService;
 import com.sequenceiq.cloudbreak.workspace.controller.WorkspaceEntityType;
+import com.sequenceiq.cloudbreak.workspace.resource.WorkspaceResource;
+import com.sequenceiq.notification.NotificationController;
 
 @Controller
 @Transactional(TxType.NEVER)
@@ -46,22 +48,24 @@ public class DatabaseV4Controller extends NotificationController implements Data
     @Override
     public DatabaseV4Response create(Long workspaceId, DatabaseV4Request request) {
         RDSConfig database = databaseService.createForLoggedInUser(converterUtil.convert(request, RDSConfig.class), workspaceId);
-        notify(ResourceEvent.RDS_CONFIG_CREATED);
-        return converterUtil.convert(database, DatabaseV4Response.class);
+        DatabaseV4Response response = converterUtil.convert(database, DatabaseV4Response.class);
+        notify(response, NotificationEventType.CREATE_SUCCESS, WorkspaceResource.DATABASE);
+        return response;
     }
 
     @Override
     public DatabaseV4Response delete(Long workspaceId, String name) {
         RDSConfig deleted = databaseService.deleteByNameFromWorkspace(name, workspaceId);
-        notify(ResourceEvent.RDS_CONFIG_DELETED);
-        return converterUtil.convert(deleted, DatabaseV4Response.class);
+        DatabaseV4Response response = converterUtil.convert(deleted, DatabaseV4Response.class);
+        notify(response, NotificationEventType.CREATE_SUCCESS, WorkspaceResource.DATABASE);
+        return response;
     }
 
     @Override
     public DatabaseV4Responses deleteMultiple(Long workspaceId, Set<String> names) {
-        Set<RDSConfig> deleted = databaseService.deleteMultipleByNameFromWorkspace(names, workspaceId);
-        notify(ResourceEvent.LDAP_DELETED);
-        return new DatabaseV4Responses(converterUtil.convertAllAsSet(deleted, DatabaseV4Response.class));
+        Set<RDSConfig> response = databaseService.deleteMultipleByNameFromWorkspace(names, workspaceId);
+        notify(response, NotificationEventType.CREATE_SUCCESS, WorkspaceResource.DATABASE);
+        return new DatabaseV4Responses(converterUtil.convertAllAsSet(response, DatabaseV4Response.class));
     }
 
     @Override

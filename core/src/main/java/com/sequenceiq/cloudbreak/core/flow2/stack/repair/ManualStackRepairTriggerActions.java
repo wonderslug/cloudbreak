@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.statemachine.StateContext;
 import org.springframework.statemachine.action.Action;
 
-import com.sequenceiq.cloudbreak.api.endpoint.v4.common.Status;
+import com.sequenceiq.cloudbreak.message.NotificationEventType;
 import com.sequenceiq.cloudbreak.common.event.Payload;
 import com.sequenceiq.cloudbreak.common.event.Selectable;
 import com.sequenceiq.cloudbreak.core.flow2.AbstractStackAction;
@@ -40,7 +40,7 @@ public class ManualStackRepairTriggerActions {
 
             @Override
             protected void doExecute(StackRepairTriggerContext context, StackEvent payload, Map<Object, Object> variables) {
-                flowMessageService.fireEventAndLog(payload.getResourceId(), Msg.STACK_REPAIR_DETECTION_STARTED, Status.UPDATE_IN_PROGRESS.name());
+                flowMessageService.fireEventAndLog(payload.getResourceId(), Msg.STACK_REPAIR_DETECTION_STARTED, NotificationEventType.UPDATE_IN_PROGRESS);
                 sendEvent(context);
             }
 
@@ -74,7 +74,7 @@ public class ManualStackRepairTriggerActions {
 
             @Override
             protected void doExecute(StackRepairTriggerContext context, UnhealthyInstancesDetectionResult payload, Map<Object, Object> variables) {
-                flowMessageService.fireEventAndLog(payload.getResourceId(), Msg.STACK_REPAIR_FAILED, Status.AVAILABLE.name(), payload.getStatusReason());
+                flowMessageService.fireEventAndLog(payload.getResourceId(), Msg.STACK_REPAIR_FAILED, NotificationEventType.AVAILABLE, payload.getStatusReason());
                 sendEvent(context);
             }
 

@@ -33,6 +33,7 @@ import com.sequenceiq.cloudbreak.cloud.model.Platform;
 import com.sequenceiq.cloudbreak.cloud.response.CredentialPrerequisitesResponse;
 import com.sequenceiq.cloudbreak.common.json.Json;
 import com.sequenceiq.cloudbreak.message.CloudbreakMessagesService;
+import com.sequenceiq.cloudbreak.message.NotificationEventType;
 import com.sequenceiq.cloudbreak.service.secret.service.SecretService;
 import com.sequenceiq.cloudbreak.structuredevent.event.CloudbreakNotification;
 import com.sequenceiq.environment.credential.domain.Credential;
@@ -108,7 +109,7 @@ public class CredentialService {
         credential.setResourceCrn(original.getResourceCrn());
         Credential updated = repository.save(credentialAdapter.verify(credential, accountId));
         secretService.delete(original.getAttributesSecret());
-        sendCredentialNotification(credential, ResourceEvent.CREDENTIAL_MODIFIED);
+        sendCredentialNotification(credential, ResourceEvent.CREDENTIAL_MODIFIED, NotificationEventType.UPDATE_SUCCESS);
         return updated;
     }
 
@@ -123,7 +124,7 @@ public class CredentialService {
         credential.setResourceCrn(createCRN(accountId));
         credential.setAccountId(accountId);
         Credential created = repository.save(credentialAdapter.verify(credential, accountId));
-        sendCredentialNotification(credential, ResourceEvent.CREDENTIAL_CREATED);
+        sendCredentialNotification(credential, ResourceEvent.CREDENTIAL_CREATED, NotificationEventType.CREATE_SUCCESS);
         return created;
     }
 
@@ -197,7 +198,7 @@ public class CredentialService {
     private Credential delete(Credential credential) {
         checkCredentialIsDeletable(credential);
         Credential archived = archiveCredential(credential);
-        sendCredentialNotification(credential, ResourceEvent.CREDENTIAL_DELETED);
+        sendCredentialNotification(credential, ResourceEvent.CREDENTIAL_DELETED, NotificationEventType.DELETE_SUCCESS);
         return archived;
     }
 
@@ -218,11 +219,11 @@ public class CredentialService {
         }
     }
 
-    private void sendCredentialNotification(Credential credential, ResourceEvent resourceEvent) {
+    private void sendCredentialNotification(Credential credential, ResourceEvent resourceEvent, NotificationEventType notificationEventType) {
         CloudbreakNotification notification = new CloudbreakNotification();
         notification.setEventType(resourceEvent.name());
         notification.setEventTimestamp(new Date().getTime());
-        notification.setEventMessage(messagesService.getMessage(resourceEvent.getMessage()));
+        notification.setEventMessage(messagesService.getMessage("credential", notificationEventType));
         notification.setCloud(credential.getCloudPlatform());
         notificationSender.send(new Notification<>(notification), Collections.emptyList(), RestClientUtil.get());
     }

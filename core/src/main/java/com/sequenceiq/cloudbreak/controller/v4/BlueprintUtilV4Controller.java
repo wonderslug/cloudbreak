@@ -24,7 +24,7 @@ import com.sequenceiq.cloudbreak.workspace.controller.WorkspaceEntityType;
 @Controller
 @Transactional(TxType.NEVER)
 @WorkspaceEntityType(Blueprint.class)
-public class BlueprintUtilV4Controller extends NotificationController implements BlueprintUtilV4Endpoint {
+public class BlueprintUtilV4Controller implements BlueprintUtilV4Endpoint {
 
     @Inject
     private PlatformParameterService platformParameterService;
