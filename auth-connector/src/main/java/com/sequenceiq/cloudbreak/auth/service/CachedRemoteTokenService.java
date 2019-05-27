@@ -74,6 +74,7 @@ public class CachedRemoteTokenService implements ResourceServerTokenServices {
             try {
                 return getUmsAuthentication(accessToken);
             } catch (RuntimeException e) {
+                LOGGER.debug("Invalid CRN Proivded:", e);
                 throw new InvalidTokenException("Invalid CRN provided", e);
             }
         }

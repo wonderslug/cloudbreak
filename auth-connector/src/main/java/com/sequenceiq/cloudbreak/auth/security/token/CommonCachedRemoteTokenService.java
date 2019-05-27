@@ -43,6 +43,7 @@ public class CommonCachedRemoteTokenService implements ResourceServerTokenServic
         try {
             return getUmsAuthentication(accessToken);
         } catch (RuntimeException e) {
+            LOGGER.debug("Invalid CRN provided:", e);
             throw new InvalidTokenException("Invalid CRN provided", e);
         }
     }
