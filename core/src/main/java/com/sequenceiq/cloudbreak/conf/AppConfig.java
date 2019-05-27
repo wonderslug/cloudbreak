@@ -44,13 +44,13 @@ import org.springframework.web.filter.GenericFilterBean;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Maps;
-import com.sequenceiq.cloudbreak.common.mappable.CloudPlatform;
 import com.sequenceiq.cloudbreak.auth.uaa.IdentityClient;
 import com.sequenceiq.cloudbreak.blueprint.validation.StackServiceComponentDescriptor;
 import com.sequenceiq.cloudbreak.blueprint.validation.StackServiceComponentDescriptors;
 import com.sequenceiq.cloudbreak.client.ConfigKey;
 import com.sequenceiq.cloudbreak.client.RestClientUtil;
 import com.sequenceiq.cloudbreak.common.json.JsonUtil;
+import com.sequenceiq.cloudbreak.common.mappable.CloudPlatform;
 import com.sequenceiq.cloudbreak.common.type.filesystem.FileSystemType;
 import com.sequenceiq.cloudbreak.concurrent.MDCCleanerTaskDecorator;
 import com.sequenceiq.cloudbreak.controller.validation.environment.network.EnvironmentNetworkValidator;
@@ -64,6 +64,8 @@ import com.sequenceiq.cloudbreak.orchestrator.state.ExitCriteria;
 import com.sequenceiq.cloudbreak.service.StackUnderOperationService;
 import com.sequenceiq.cloudbreak.template.filesystem.FileSystemConfigurator;
 import com.sequenceiq.cloudbreak.util.FileReaderUtils;
+import com.sequenceiq.freeipa.api.client.FreeIpaApiUserCrnClient;
+import com.sequenceiq.freeipa.api.client.FreeIpaApiUserCrnClientBuilder;
 
 @Configuration
 @EnableRetry
@@ -137,6 +139,10 @@ public class AppConfig implements ResourceLoaderAware {
     @Inject
     @Named("identityServerUrl")
     private String identityServerUrl;
+
+    @Inject
+    @Named("freeIpaServerUrl")
+    private String freeIpaServerUrl;
 
     @Inject
     private List<EnvironmentNetworkConverter> environmentNetworkConverters;
@@ -260,6 +266,15 @@ public class AppConfig implements ResourceLoaderAware {
     @Bean
     public IdentityClient identityClient() {
         return new IdentityClient(identityServerUrl, clientId, new ConfigKey(certificateValidation, restDebug, ignorePreValidation));
+    }
+
+    @Bean
+    public FreeIpaApiUserCrnClient freeIpaApiClient() {
+        return new FreeIpaApiUserCrnClientBuilder(freeIpaServerUrl)
+                .withCertificateValidation(certificateValidation)
+                .withIgnorePreValidation(ignorePreValidation)
+                .withDebug(restDebug)
+                .build();
     }
 
     @Bean

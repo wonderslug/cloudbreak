@@ -29,6 +29,7 @@ import com.sequenceiq.cloudbreak.api.endpoint.v4.common.DetailedStackStatus;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.events.responses.CloudbreakEventV4Response;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.base.InstanceStatus;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.base.OnFailureAction;
+import com.sequenceiq.cloudbreak.auth.security.authentication.AuthenticatedUserService;
 import com.sequenceiq.cloudbreak.cloud.context.CloudContext;
 import com.sequenceiq.cloudbreak.cloud.event.instance.CollectMetadataResult;
 import com.sequenceiq.cloudbreak.cloud.event.resource.LaunchStackResult;
@@ -63,6 +64,8 @@ import com.sequenceiq.cloudbreak.service.stack.StackService;
 import com.sequenceiq.cloudbreak.service.stack.connector.adapter.ServiceProviderConnectorAdapter;
 import com.sequenceiq.cloudbreak.service.stack.flow.MetadataSetupService;
 import com.sequenceiq.cloudbreak.service.stack.flow.TlsSetupService;
+import com.sequenceiq.freeipa.api.client.FreeIpaApiEndpoint;
+import com.sequenceiq.freeipa.api.client.FreeIpaApiUserCrnClient;
 
 import reactor.bus.EventBus;
 
@@ -107,6 +110,12 @@ public class StackCreationService {
     @Inject
     private CloudbreakFlowMessageService flowMessageService;
 
+    @Inject
+    private FreeIpaApiUserCrnClient freeIpaApiClient;
+
+    @Inject
+    private AuthenticatedUserService authenticatedUserService;
+
     public void setupProvision(Stack stack) {
         stackUpdater.updateStackStatus(stack.getId(), DetailedStackStatus.PROVISION_SETUP, "Provisioning setup");
     }
@@ -117,6 +126,8 @@ public class StackCreationService {
     }
 
     public void startProvisioning(StackContext context) {
+        FreeIpaApiEndpoint freeipa = freeIpaApiClient.withCrn(context.getStack().getCreator().getUserCrn());
+        freeipa.getLdapConfigV1Endpoint().describe("asd");
         Stack stack = context.getStack();
         stackUpdater.updateStackStatus(stack.getId(), DetailedStackStatus.CREATING_INFRASTRUCTURE, "Creating infrastructure");
         flowMessageService.fireEventAndLog(stack.getId(), Msg.STACK_PROVISIONING, CREATE_IN_PROGRESS.name());

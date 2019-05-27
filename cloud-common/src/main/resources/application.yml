@@ -84,7 +84,9 @@ cb:
     capacity.size: 4000
   notification:
     endpoint: http://localhost:3000/notifications
-
+  freeipa:
+    server:
+      url: http://localhost:8090/freeipa
   host.discovery.custom.hostname.enabled: false
 
   cert:

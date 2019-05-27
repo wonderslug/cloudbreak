@@ -32,6 +32,7 @@ import com.sequenceiq.cloudbreak.api.endpoint.v4.common.ExecutorType;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.database.base.DatabaseType;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.base.SSOType;
 import com.sequenceiq.cloudbreak.auth.altus.GrpcUmsClient;
+import com.sequenceiq.cloudbreak.auth.security.authentication.AuthenticatedUserService;
 import com.sequenceiq.cloudbreak.blueprint.kerberos.KerberosDetailService;
 import com.sequenceiq.cloudbreak.cloud.PlatformParameters;
 import com.sequenceiq.cloudbreak.cloud.model.AmbariRepo;
@@ -154,6 +155,9 @@ public class ClusterHostServiceRunner {
 
     @Inject
     private GrpcUmsClient umsClient;
+
+    @Inject
+    private AuthenticatedUserService authenticatedUserService;
 
     public void runClusterServices(@Nonnull Stack stack, @Nonnull Cluster cluster) {
         try {
