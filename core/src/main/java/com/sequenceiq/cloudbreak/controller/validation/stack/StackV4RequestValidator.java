@@ -31,7 +31,7 @@ import com.sequenceiq.cloudbreak.controller.validation.ValidationResult.Validati
 import com.sequenceiq.cloudbreak.controller.validation.Validator;
 import com.sequenceiq.cloudbreak.controller.validation.template.InstanceTemplateV4RequestValidator;
 import com.sequenceiq.cloudbreak.domain.Blueprint;
-import com.sequenceiq.cloudbreak.domain.Credential;
+import com.sequenceiq.cloudbreak.dto.credential.Credential;
 import com.sequenceiq.cloudbreak.domain.PlatformResourceRequest;
 import com.sequenceiq.cloudbreak.domain.stack.Stack;
 import com.sequenceiq.cloudbreak.domain.stack.cluster.Cluster;
@@ -238,10 +238,10 @@ public class StackV4RequestValidator implements Validator<StackV4Request> {
             ValidationResultBuilder validationBuilder, Optional<String> credentialName, Optional<String> environmentName, Long workspaceId) {
         Credential credential;
         if (credentialName.isPresent()) {
-            credential = credentialService.getByNameForWorkspaceId(credentialName.get(), workspaceId);
+            credential = credentialService.get(credentialName.get());
         } else if (environmentName.isPresent()) {
             String credentialNameFromEnvironment = environmentService.get(environmentName.get(), workspaceId).getCredentialName();
-            credential = credentialService.getByNameForWorkspaceId(credentialNameFromEnvironment, workspaceId);
+            credential = credentialService.getByEnvironmentNameOrCrn(credentialNameFromEnvironment);
         } else {
             validationBuilder.error("Environment must contains at least environment name or the name of the credential!");
             return;

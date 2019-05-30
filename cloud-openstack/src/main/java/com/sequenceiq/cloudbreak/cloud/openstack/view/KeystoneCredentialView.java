@@ -29,7 +29,7 @@ public class KeystoneCredentialView {
     }
 
     public String getKeyPairName() {
-        return String.format("%s-%s-%s-%s", CB_KEYPAIR_NAME, stackName, deleteWhitespace(getName().toLowerCase()), cloudCredential.getId());
+        return String.format("%s-%s-%s-%s", CB_KEYPAIR_NAME, stackName, deleteWhitespace(getName().toLowerCase()), cloudCredential.getCredentialCrn());
     }
 
     public String getName() {

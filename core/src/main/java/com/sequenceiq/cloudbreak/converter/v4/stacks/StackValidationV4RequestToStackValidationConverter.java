@@ -26,7 +26,7 @@ import com.sequenceiq.cloudbreak.exception.BadRequestException;
 import com.sequenceiq.cloudbreak.converter.AbstractConversionServiceAwareConverter;
 import com.sequenceiq.cloudbreak.converter.v4.environment.network.EnvironmentNetworkConverter;
 import com.sequenceiq.cloudbreak.domain.Blueprint;
-import com.sequenceiq.cloudbreak.domain.Credential;
+import com.sequenceiq.cloudbreak.dto.credential.Credential;
 import com.sequenceiq.cloudbreak.domain.Network;
 import com.sequenceiq.cloudbreak.domain.stack.StackValidation;
 import com.sequenceiq.cloudbreak.domain.stack.cluster.host.HostGroup;
@@ -94,7 +94,7 @@ public class StackValidationV4RequestToStackValidationConverter extends Abstract
                 "environment", stackValidationRequest.getEnvironmentName()
         );
         formatAccessDeniedMessage(
-                () -> validateCredential(stackValidationRequest, stackValidation, workspace),
+                () -> validateCredential(stackValidationRequest, stackValidation),
                 "credential", stackValidationRequest.getCredentialName()
         );
         formatAccessDeniedMessage(
@@ -123,9 +123,9 @@ public class StackValidationV4RequestToStackValidationConverter extends Abstract
         }
     }
 
-    private void validateCredential(StackValidationV4Request stackValidationRequest, StackValidation stackValidation, Workspace workspace) {
+    private void validateCredential(StackValidationV4Request stackValidationRequest, StackValidation stackValidation) {
         if (stackValidationRequest.getCredentialName() != null) {
-            Credential credential = credentialService.getByNameForWorkspace(stackValidationRequest.getCredentialName(), workspace);
+            Credential credential = credentialService.get(stackValidationRequest.getCredentialName());
             stackValidation.setCredential(credential);
         } else if (stackValidation.getCredential() == null) {
             throw new BadRequestException("Credential is not configured for the validation request!");

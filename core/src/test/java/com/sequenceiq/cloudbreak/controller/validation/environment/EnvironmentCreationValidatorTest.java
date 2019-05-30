@@ -27,7 +27,7 @@ import com.sequenceiq.cloudbreak.api.endpoint.v4.environment.requests.LocationV4
 import com.sequenceiq.cloudbreak.cloud.model.CloudRegions;
 import com.sequenceiq.cloudbreak.controller.validation.ValidationResult;
 import com.sequenceiq.cloudbreak.controller.validation.environment.network.EnvironmentNetworkValidator;
-import com.sequenceiq.cloudbreak.domain.Credential;
+import com.sequenceiq.cloudbreak.dto.credential.Credential;
 import com.sequenceiq.cloudbreak.domain.environment.Environment;
 import com.sequenceiq.cloudbreak.domain.environment.Region;
 import com.sequenceiq.cloudbreak.util.EnvironmentUtils;
@@ -47,7 +47,7 @@ public class EnvironmentCreationValidatorTest {
     @Test
     public void testValidationWithMultipleErrors() {
         assertNotNull(environmentRegionValidator);
-        Credential credential = new Credential();
+        Credential credential = Credential.builder().build();
 
         Environment environment = new Environment();
         environment.setCredential(credential);
@@ -74,7 +74,7 @@ public class EnvironmentCreationValidatorTest {
     @Test
     public void testValidationWhenRegionsAreNotSupportedOnCloudProviderButProvided() {
         // GIVEN
-        Credential credential = new Credential();
+        Credential credential = Credential.builder().build();
         Environment environment = new Environment();
         environment.setCredential(credential);
         EnvironmentV4Request environmentRequest = new EnvironmentV4Request();
@@ -95,7 +95,7 @@ public class EnvironmentCreationValidatorTest {
     @Test
     public void testValidationWhenRegionsAreSupportedOnCloudProviderButNotProvided() {
         // GIVEN
-        Credential credential = new Credential();
+        Credential credential = Credential.builder().build();
         Environment environment = new Environment();
         environment.setCredential(credential);
         environment.setRegions(Set.of());
@@ -119,7 +119,7 @@ public class EnvironmentCreationValidatorTest {
     @Test
     public void testSuccessfulValidationWithRegions() {
         // GIVEN
-        Credential credential = new Credential();
+        Credential credential = Credential.builder().build();
 
         Environment environment = new Environment();
         environment.setCredential(credential);
@@ -147,7 +147,7 @@ public class EnvironmentCreationValidatorTest {
     @Test
     public void testSuccessfulValidationWithoutRegions() {
         // GIVEN
-        Credential credential = new Credential();
+        Credential credential = Credential.builder().build();
 
         Environment environment = new Environment();
         environment.setCredential(credential);
@@ -173,7 +173,7 @@ public class EnvironmentCreationValidatorTest {
     @Test
     public void testValidationWhenNetworkIsNotSupportedForPlatform() {
         // GIVEN
-        Credential credential = new Credential();
+        Credential credential = Credential.builder().build();
         Environment environment = new Environment();
         environment.setCredential(credential);
         environment.setLocation("region1");

@@ -121,7 +121,7 @@ public class AwsClient {
     }
 
     public String getKeyPairName(AuthenticatedContext ac) {
-        return String.format("%s%s%s%s", ac.getCloudCredential().getName(), ac.getCloudCredential().getId(),
+        return String.format("%s%s%s%s", ac.getCloudCredential().getName(), ac.getCloudCredential().getCredentialCrn(),
                 ac.getCloudContext().getName(), ac.getCloudContext().getId());
     }
 

@@ -9,25 +9,25 @@ public class CloudCredential extends DynamicModel {
 
     public static final String GOV_CLOUD = "govCloud";
 
-    private final Long id;
+    private final String credentialCrn;
 
     private final String name;
 
-    public CloudCredential(Long id, String name) {
-        this(id, name, new HashMap<>());
+    public CloudCredential(String credentialCrn, String name) {
+        this(credentialCrn, name, new HashMap<>());
     }
 
-    public CloudCredential(Long id, String name, Map<String, Object> parameters) {
+    public CloudCredential(String credentialCrn, String name, Map<String, Object> parameters) {
         super(parameters);
-        this.id = id;
+        this.credentialCrn = credentialCrn;
         this.name = name;
-    }
-
-    public Long getId() {
-        return id;
     }
 
     public String getName() {
         return name;
+    }
+
+    public String getCredentialCrn() {
+        return credentialCrn;
     }
 }

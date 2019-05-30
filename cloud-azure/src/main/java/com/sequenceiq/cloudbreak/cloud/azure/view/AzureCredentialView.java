@@ -10,8 +10,8 @@ public class AzureCredentialView {
         this.cloudCredential = cloudCredential;
     }
 
-    public Long getId() {
-        return cloudCredential.getId();
+    public String getCredentialCrn() {
+        return cloudCredential.getCredentialCrn();
     }
 
     public String getName() {

@@ -41,7 +41,7 @@ public class PlatformParameterService {
         PlatformResourceRequest platformResourceRequest = new PlatformResourceRequest();
 
         if (!Strings.isNullOrEmpty(credentialName)) {
-            platformResourceRequest.setCredential(credentialService.getByNameForWorkspaceId(credentialName, workspaceId));
+            platformResourceRequest.setCredential(credentialService.get(credentialName));
         } else {
             throw new BadRequestException("The credentialId or the credentialName must be specified in the request");
         }

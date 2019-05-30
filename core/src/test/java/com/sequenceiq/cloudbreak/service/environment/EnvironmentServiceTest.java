@@ -5,14 +5,12 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -59,12 +57,12 @@ import com.sequenceiq.cloudbreak.converter.v4.environment.network.AwsEnvironment
 import com.sequenceiq.cloudbreak.converter.v4.environment.network.AzureEnvironmentNetworkConverter;
 import com.sequenceiq.cloudbreak.converter.v4.environment.network.EnvironmentNetworkConverter;
 import com.sequenceiq.cloudbreak.converter.v4.stacks.view.StackApiViewToStackViewV4ResponseConverter;
-import com.sequenceiq.cloudbreak.domain.Credential;
 import com.sequenceiq.cloudbreak.domain.environment.AwsNetwork;
 import com.sequenceiq.cloudbreak.domain.environment.AzureNetwork;
 import com.sequenceiq.cloudbreak.domain.environment.BaseNetwork;
 import com.sequenceiq.cloudbreak.domain.environment.Environment;
 import com.sequenceiq.cloudbreak.domain.view.StackApiView;
+import com.sequenceiq.cloudbreak.dto.credential.Credential;
 import com.sequenceiq.cloudbreak.repository.environment.EnvironmentRepository;
 import com.sequenceiq.cloudbreak.service.RestRequestThreadLocalService;
 import com.sequenceiq.cloudbreak.service.platform.PlatformParameterService;
@@ -169,7 +167,6 @@ public class EnvironmentServiceTest {
         doAnswer(invocation -> ((Supplier<?>) invocation.getArgument(0)).get()).when(transactionService).required(any());
         workspace.setId(WORKSPACE_ID);
         workspace.setName("ws");
-        when(rdsConfigService.findByNamesInWorkspace(anySet(), anyLong())).thenReturn(Collections.emptySet());
         when(environmentCreationValidator.validate(any(), any(), any())).thenReturn(ValidationResult.builder().build());
         when(workspaceService.get(anyLong(), any())).thenReturn(workspace);
         when(restRequestThreadLocalService.getCloudbreakUser()).thenReturn(new CloudbreakUser("", "", "", "", ""));
@@ -191,10 +188,10 @@ public class EnvironmentServiceTest {
         LocationV4Request locationV4Request = new LocationV4Request();
         locationV4Request.setName("region1");
         environmentV4Request.setLocation(locationV4Request);
-        Credential credential = new Credential();
-        credential.setCloudPlatform(CloudPlatform.MOCK.name());
 
-        when(conversionService.convert(any(EnvironmentV4Request.class), eq(Environment.class))).thenReturn(new Environment());
+        Environment environment = new Environment();
+        environment.setCloudPlatform(CloudPlatform.MOCK.name());
+        when(conversionService.convert(any(EnvironmentV4Request.class), eq(Environment.class))).thenReturn(environment);
         ArgumentCaptor<Environment> envCaptor = ArgumentCaptor.forClass(Environment.class);
         when(environmentRepository.save(envCaptor.capture())).thenAnswer(answerWithFirstEnvironmentArgument);
 
@@ -336,8 +333,6 @@ public class EnvironmentServiceTest {
         LocationV4Request locationV4Request = new LocationV4Request();
         locationV4Request.setName("region1");
         environmentV4Request.setLocation(locationV4Request);
-        Credential cred = new Credential();
-        cred.setCloudPlatform(CloudPlatform.AWS.name());
 
         EnvironmentNetworkV4Request network = new EnvironmentNetworkV4Request();
         network.setSubnetIds(Set.of("subnet-id"));
@@ -346,7 +341,9 @@ public class EnvironmentServiceTest {
         when(environmentNetworkConverterMap.get(any(CloudPlatform.class))).thenReturn(awsEnvironmentNetworkConverter);
         when(awsEnvironmentNetworkConverter.convert(any(EnvironmentNetworkV4Request.class), any(Environment.class))).thenReturn(new AwsNetwork());
 
-        when(conversionService.convert(any(EnvironmentV4Request.class), eq(Environment.class))).thenReturn(new Environment());
+        Environment environment = new Environment();
+        environment.setCloudPlatform(CloudPlatform.AWS.name());
+        when(conversionService.convert(any(EnvironmentV4Request.class), eq(Environment.class))).thenReturn(environment);
         when(environmentRepository.save(any(Environment.class))).thenAnswer(answerWithFirstEnvironmentArgument);
         CloudRegions cloudRegions = EnvironmentUtils.getCloudRegions();
         when(platformParameterService.getRegionsByCredential(any())).thenReturn(cloudRegions);
@@ -365,14 +362,14 @@ public class EnvironmentServiceTest {
         LocationV4Request locationV4Request = new LocationV4Request();
         locationV4Request.setName("region1");
         environmentV4Request.setLocation(locationV4Request);
-        Credential cred = new Credential();
-        cred.setCloudPlatform(CloudPlatform.AWS.name());
 
         EnvironmentNetworkV4Request network = new EnvironmentNetworkV4Request();
         network.setSubnetIds(Set.of("subnet-id"));
         environmentV4Request.setNetwork(network);
 
-        when(conversionService.convert(any(EnvironmentV4Request.class), eq(Environment.class))).thenReturn(new Environment());
+        Environment environment = new Environment();
+        environment.setCloudPlatform(CloudPlatform.AWS.name());
+        when(conversionService.convert(any(EnvironmentV4Request.class), eq(Environment.class))).thenReturn(environment);
         when(environmentRepository.save(any(Environment.class))).thenAnswer(answerWithFirstEnvironmentArgument);
         CloudRegions cloudRegions = EnvironmentUtils.getCloudRegions();
         when(platformParameterService.getRegionsByCredential(any())).thenReturn(cloudRegions);
@@ -390,8 +387,6 @@ public class EnvironmentServiceTest {
         LocationV4Request locationV4Request = new LocationV4Request();
         locationV4Request.setName("region1");
         environmentV4Request.setLocation(locationV4Request);
-        Credential cred = new Credential();
-        cred.setCloudPlatform(CloudPlatform.AZURE.name());
 
         EnvironmentNetworkV4Request network = new EnvironmentNetworkV4Request();
         network.setSubnetIds(Set.of("subnet-id"));
@@ -400,7 +395,9 @@ public class EnvironmentServiceTest {
         when(environmentNetworkConverterMap.get(any(CloudPlatform.class))).thenReturn(azureEnvironmentNetworkConverter);
         when(azureEnvironmentNetworkConverter.convert(any(EnvironmentNetworkV4Request.class), any(Environment.class))).thenReturn(new AwsNetwork());
 
-        when(conversionService.convert(any(EnvironmentV4Request.class), eq(Environment.class))).thenReturn(new Environment());
+        Environment environment = new Environment();
+        environment.setCloudPlatform(CloudPlatform.AZURE.name());
+        when(conversionService.convert(any(EnvironmentV4Request.class), eq(Environment.class))).thenReturn(environment);
         when(environmentRepository.save(any(Environment.class))).thenAnswer(answerWithFirstEnvironmentArgument);
         CloudRegions cloudRegions = EnvironmentUtils.getCloudRegions();
         when(platformParameterService.getRegionsByCredential(any())).thenReturn(cloudRegions);
@@ -418,14 +415,14 @@ public class EnvironmentServiceTest {
         LocationV4Request locationV4Request = new LocationV4Request();
         locationV4Request.setName("region1");
         environmentV4Request.setLocation(locationV4Request);
-        Credential cred = new Credential();
-        cred.setCloudPlatform(CloudPlatform.AZURE.name());
 
         EnvironmentNetworkV4Request network = new EnvironmentNetworkV4Request();
         network.setSubnetIds(Set.of("subnet-id"));
         environmentV4Request.setNetwork(network);
 
-        when(conversionService.convert(any(EnvironmentV4Request.class), eq(Environment.class))).thenReturn(new Environment());
+        Environment environment = new Environment();
+        environment.setCloudPlatform(CloudPlatform.AZURE.name());
+        when(conversionService.convert(any(EnvironmentV4Request.class), eq(Environment.class))).thenReturn(environment);
         when(environmentRepository.save(any(Environment.class))).thenAnswer(answerWithFirstEnvironmentArgument);
         CloudRegions cloudRegions = EnvironmentUtils.getCloudRegions();
         when(platformParameterService.getRegionsByCredential(any())).thenReturn(cloudRegions);
@@ -444,11 +441,12 @@ public class EnvironmentServiceTest {
         LocationV4Request locationV4Request = new LocationV4Request();
         locationV4Request.setName("region1");
         environmentV4Request.setLocation(locationV4Request);
-        Credential cred = new Credential();
-        cred.setCloudPlatform(CloudPlatform.MOCK.name());
         when(environmentNetworkConverterMap.get(any(CloudPlatform.class))).thenReturn(null);
 
-        when(conversionService.convert(any(EnvironmentV4Request.class), eq(Environment.class))).thenReturn(new Environment());
+
+        Environment environment = new Environment();
+        environment.setCloudPlatform(CloudPlatform.MOCK.name());
+        when(conversionService.convert(any(EnvironmentV4Request.class), eq(Environment.class))).thenReturn(environment);
         when(environmentRepository.save(any(Environment.class))).thenAnswer(answerWithFirstEnvironmentArgument);
         CloudRegions cloudRegions = EnvironmentUtils.getCloudRegions();
         when(platformParameterService.getRegionsByCredential(any())).thenReturn(cloudRegions);
@@ -467,10 +465,10 @@ public class EnvironmentServiceTest {
         LocationV4Request locationV4Request = new LocationV4Request();
         locationV4Request.setName("region1");
         environmentV4Request.setLocation(locationV4Request);
-        Credential cred = new Credential();
-        cred.setCloudPlatform(CloudPlatform.MOCK.name());
 
-        when(conversionService.convert(any(EnvironmentV4Request.class), eq(Environment.class))).thenReturn(new Environment());
+        Environment environment = new Environment();
+        environment.setCloudPlatform(CloudPlatform.AWS.name());
+        when(conversionService.convert(any(EnvironmentV4Request.class), eq(Environment.class))).thenReturn(environment);
         when(environmentRepository.save(any(Environment.class))).thenAnswer(answerWithFirstEnvironmentArgument);
         CloudRegions cloudRegions = EnvironmentUtils.getCloudRegions();
         when(platformParameterService.getRegionsByCredential(any())).thenReturn(cloudRegions);
@@ -482,8 +480,10 @@ public class EnvironmentServiceTest {
     }
 
     private void setCredential(Environment environment) {
-        Credential credential = new Credential();
-        credential.setName("credential1");
+        Credential credential = Credential.builder()
+                .name("credential1")
+                .cloudPlatform(CloudPlatform.MOCK.name())
+                .build();
         environment.setCredential(credential);
         environment.setStacks(new HashSet<>());
     }

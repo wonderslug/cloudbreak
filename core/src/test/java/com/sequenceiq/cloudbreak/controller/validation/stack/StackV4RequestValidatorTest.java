@@ -43,7 +43,7 @@ import com.sequenceiq.cloudbreak.controller.validation.ValidationResult;
 import com.sequenceiq.cloudbreak.controller.validation.ValidationResult.State;
 import com.sequenceiq.cloudbreak.controller.validation.template.InstanceTemplateV4RequestValidator;
 import com.sequenceiq.cloudbreak.domain.Blueprint;
-import com.sequenceiq.cloudbreak.domain.Credential;
+import com.sequenceiq.cloudbreak.dto.credential.Credential;
 import com.sequenceiq.cloudbreak.domain.PlatformResourceRequest;
 import com.sequenceiq.cloudbreak.domain.RDSConfig;
 import com.sequenceiq.cloudbreak.service.CloudbreakRestRequestThreadLocalService;
@@ -117,7 +117,7 @@ public class StackV4RequestValidatorTest extends StackRequestValidatorTestBase {
     public void setUp() {
         when(blueprintService.getByNameForWorkspaceId(anyString(), eq(WORKSPACE_ID))).thenReturn(blueprint);
         when(credential.cloudPlatform()).thenReturn(CloudPlatform.AWS.name());
-        when(credentialService.getByNameForWorkspaceId(CREDENTIAL_NAME, WORKSPACE_ID)).thenReturn(credential);
+        when(credentialService.get(CREDENTIAL_NAME)).thenReturn(credential);
         when(environmentService.get(ENVIRONMENT_NAME, WORKSPACE_ID)).thenReturn(new DetailedEnvironmentV4Response());
         when(restRequestThreadLocalService.getRequestedWorkspaceId()).thenReturn(WORKSPACE_ID);
     }
@@ -318,8 +318,8 @@ public class StackV4RequestValidatorTest extends StackRequestValidatorTestBase {
         assertValidationErrorIsEmpty(validationResult.getErrors());
 
         verify(platformParameterService, times(1)).getRegionsByCredential(any(PlatformResourceRequest.class));
-        verify(credentialService, times(1)).getByNameForWorkspaceId(anyString(), anyLong());
-        verify(credentialService, times(1)).getByNameForWorkspaceId(CREDENTIAL_NAME, WORKSPACE_ID);
+        verify(credentialService, times(1)).get(anyString());
+        verify(credentialService, times(1)).get(CREDENTIAL_NAME);
         verify(environmentService, times(0)).get(anyString(), anyLong());
     }
 
@@ -337,8 +337,8 @@ public class StackV4RequestValidatorTest extends StackRequestValidatorTestBase {
         assertValidationErrorIsEmpty(validationResult.getErrors());
 
         verify(platformParameterService, times(1)).getRegionsByCredential(any(PlatformResourceRequest.class));
-        verify(credentialService, times(1)).getByNameForWorkspaceId(anyString(), anyLong());
-        verify(credentialService, times(1)).getByNameForWorkspaceId(CREDENTIAL_NAME, WORKSPACE_ID);
+        verify(credentialService, times(1)).get(anyString());
+        verify(credentialService, times(1)).get(CREDENTIAL_NAME);
         verify(environmentService, times(0)).get(anyString(), anyLong());
     }
 
@@ -359,8 +359,8 @@ public class StackV4RequestValidatorTest extends StackRequestValidatorTestBase {
         assertValidationErrorIsEmpty(validationResult.getErrors());
 
         verify(platformParameterService, times(1)).getRegionsByCredential(any(PlatformResourceRequest.class));
-        verify(credentialService, times(1)).getByNameForWorkspaceId(anyString(), anyLong());
-        verify(credentialService, times(1)).getByNameForWorkspaceId(CREDENTIAL_NAME, WORKSPACE_ID);
+        verify(credentialService, times(1)).get(anyString());
+        verify(credentialService, times(1)).get(CREDENTIAL_NAME);
         verify(environmentService, times(1)).get(anyString(), anyLong());
         verify(environmentService, times(1)).get(ENVIRONMENT_NAME, WORKSPACE_ID);
     }
@@ -379,8 +379,8 @@ public class StackV4RequestValidatorTest extends StackRequestValidatorTestBase {
         assertEquals(1L, validationResult.getErrors().size());
 
         verify(platformParameterService, times(1)).getRegionsByCredential(any(PlatformResourceRequest.class));
-        verify(credentialService, times(1)).getByNameForWorkspaceId(anyString(), anyLong());
-        verify(credentialService, times(1)).getByNameForWorkspaceId(CREDENTIAL_NAME, WORKSPACE_ID);
+        verify(credentialService, times(1)).get(anyString());
+        verify(credentialService, times(1)).get(CREDENTIAL_NAME);
         verify(environmentService, times(0)).get(anyString(), anyLong());
     }
 
@@ -401,8 +401,8 @@ public class StackV4RequestValidatorTest extends StackRequestValidatorTestBase {
         assertEquals(1L, validationResult.getErrors().size());
 
         verify(platformParameterService, times(1)).getRegionsByCredential(any(PlatformResourceRequest.class));
-        verify(credentialService, times(1)).getByNameForWorkspaceId(anyString(), anyLong());
-        verify(credentialService, times(1)).getByNameForWorkspaceId(CREDENTIAL_NAME, WORKSPACE_ID);
+        verify(credentialService, times(1)).get(anyString());
+        verify(credentialService, times(1)).get(CREDENTIAL_NAME);
         verify(environmentService, times(1)).get(anyString(), anyLong());
         verify(environmentService, times(1)).get(ENVIRONMENT_NAME, WORKSPACE_ID);
     }
@@ -424,8 +424,8 @@ public class StackV4RequestValidatorTest extends StackRequestValidatorTestBase {
         assertValidationErrorIsEmpty(validationResult.getErrors());
 
         verify(platformParameterService, times(1)).getRegionsByCredential(any(PlatformResourceRequest.class));
-        verify(credentialService, times(1)).getByNameForWorkspaceId(anyString(), anyLong());
-        verify(credentialService, times(1)).getByNameForWorkspaceId(CREDENTIAL_NAME, WORKSPACE_ID);
+        verify(credentialService, times(1)).get(anyString());
+        verify(credentialService, times(1)).get(CREDENTIAL_NAME);
         verify(environmentService, times(1)).get(anyString(), anyLong());
         verify(environmentService, times(1)).get(ENVIRONMENT_NAME, WORKSPACE_ID);
     }
@@ -441,7 +441,7 @@ public class StackV4RequestValidatorTest extends StackRequestValidatorTestBase {
         assertEquals(1L, validationResult.getErrors().size());
 
         verify(platformParameterService, times(0)).getRegionsByCredential(any(PlatformResourceRequest.class));
-        verify(credentialService, times(0)).getByNameForWorkspaceId(anyString(), anyLong());
+        verify(credentialService, times(0)).get(anyString());
         verify(environmentService, times(0)).get(anyString(), anyLong());
     }
 

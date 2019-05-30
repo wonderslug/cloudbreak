@@ -50,7 +50,7 @@ import com.sequenceiq.cloudbreak.common.type.ResourceType;
 import com.sequenceiq.cloudbreak.common.user.CloudbreakUser;
 import com.sequenceiq.cloudbreak.domain.Blueprint;
 import com.sequenceiq.cloudbreak.domain.Constraint;
-import com.sequenceiq.cloudbreak.domain.Credential;
+import com.sequenceiq.cloudbreak.dto.credential.Credential;
 import com.sequenceiq.cloudbreak.domain.FailurePolicy;
 import com.sequenceiq.cloudbreak.domain.KerberosConfig;
 import com.sequenceiq.cloudbreak.domain.LdapConfig;
@@ -77,6 +77,8 @@ import com.sequenceiq.cloudbreak.domain.stack.instance.InstanceGroup;
 import com.sequenceiq.cloudbreak.domain.stack.instance.InstanceMetaData;
 import com.sequenceiq.cloudbreak.domain.view.StackStatusView;
 import com.sequenceiq.cloudbreak.domain.view.StackView;
+import com.sequenceiq.cloudbreak.dto.credential.aws.AwsCredentialAttributes;
+import com.sequenceiq.cloudbreak.dto.credential.azure.AzureCredentialAttributes;
 import com.sequenceiq.cloudbreak.service.secret.domain.Secret;
 import com.sequenceiq.cloudbreak.structuredevent.event.LdapDetails;
 import com.sequenceiq.cloudbreak.structuredevent.event.LdapNotificationDetails;
@@ -125,22 +127,19 @@ public class TestUtil {
     }
 
     public static Credential awsCredential() {
-        Credential awsCredential = new Credential();
-        awsCredential.setArchived(false);
-        awsCredential.setCloudPlatform(AWS);
-        awsCredential.setDescription(DUMMY_DESCRIPTION);
-        awsCredential.setId(1L);
-        awsCredential.setName(DUMMY_NAME);
-        return awsCredential;
+        return Credential.builder()
+                .aws(AwsCredentialAttributes.builder().build())
+                .description(DUMMY_DESCRIPTION)
+                .name(DUMMY_NAME)
+                .build();
     }
 
     public static Credential gcpCredential() {
-        Credential credential = new Credential();
-        credential.setId(1L);
-        credential.setName(DUMMY_NAME);
-        credential.setCloudPlatform(GCP);
-        credential.setDescription(DUMMY_DESCRIPTION);
-        return credential;
+        return Credential.builder()
+                .azure(AzureCredentialAttributes.builder().build())
+                .description(DUMMY_DESCRIPTION)
+                .name(DUMMY_NAME)
+                .build();
     }
 
     public static Stack setEphemeral(Stack stack) {
@@ -170,7 +169,7 @@ public class TestUtil {
         stack.setCreator(user);
         stack.setWorkspace(workspace);
         stack.setStackStatus(new StackStatus(stack, stackStatus, "statusReason", DetailedStackStatus.UNKNOWN));
-        stack.setCredential(credential);
+        stack.setCredentialCrn(credential.getCrn());
         stack.setName("simplestack");
         stack.setId(1L);
         stack.setInstanceGroups(generateGcpInstanceGroups(3));

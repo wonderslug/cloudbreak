@@ -28,7 +28,7 @@ import com.sequenceiq.cloudbreak.cloud.model.Platform;
 import com.sequenceiq.cloudbreak.exception.BadRequestException;
 import com.sequenceiq.cloudbreak.converter.v4.stacks.StackValidationV4RequestToStackValidationConverter;
 import com.sequenceiq.cloudbreak.domain.Blueprint;
-import com.sequenceiq.cloudbreak.domain.Credential;
+import com.sequenceiq.cloudbreak.dto.credential.Credential;
 import com.sequenceiq.cloudbreak.domain.stack.StackValidation;
 import com.sequenceiq.cloudbreak.domain.view.EnvironmentView;
 import com.sequenceiq.cloudbreak.workspace.model.Workspace;
@@ -116,7 +116,7 @@ public class StackValidationRequestToStackValidationConverterTest {
         validationRequest.setBlueprintName(bpName);
         validationRequest.setCredentialName("credName");
 
-        when(credentialService.getByNameForWorkspace(validationRequest.getCredentialName(), workspace)).thenReturn(credential);
+        when(credentialService.get(validationRequest.getCredentialName())).thenReturn(credential);
 
         Map<Platform, PlatformParameters> platformParametersMap = new HashMap<>();
         platformParametersMap.put(Platform.platform("GCP"), parameters);

@@ -18,11 +18,11 @@ import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.request.instancegroup.te
 import com.sequenceiq.cloudbreak.blueprint.GeneralClusterConfigsProvider;
 import com.sequenceiq.cloudbreak.blueprint.utils.StackInfoService;
 import com.sequenceiq.cloudbreak.cluster.api.DatalakeConfigApi;
+import com.sequenceiq.cloudbreak.common.json.Json;
 import com.sequenceiq.cloudbreak.common.user.CloudbreakUser;
 import com.sequenceiq.cloudbreak.converter.AbstractConversionServiceAwareConverter;
 import com.sequenceiq.cloudbreak.converter.util.CloudStorageValidationUtil;
 import com.sequenceiq.cloudbreak.domain.Blueprint;
-import com.sequenceiq.cloudbreak.domain.Credential;
 import com.sequenceiq.cloudbreak.domain.FileSystem;
 import com.sequenceiq.cloudbreak.domain.KerberosConfig;
 import com.sequenceiq.cloudbreak.domain.LdapConfig;
@@ -30,12 +30,11 @@ import com.sequenceiq.cloudbreak.domain.RDSConfig;
 import com.sequenceiq.cloudbreak.domain.stack.Stack;
 import com.sequenceiq.cloudbreak.domain.stack.cluster.DatalakeResources;
 import com.sequenceiq.cloudbreak.domain.stack.cluster.gateway.Gateway;
-import com.sequenceiq.cloudbreak.domain.view.EnvironmentView;
+import com.sequenceiq.cloudbreak.dto.credential.Credential;
 import com.sequenceiq.cloudbreak.service.CloudbreakRestRequestThreadLocalService;
 import com.sequenceiq.cloudbreak.service.CloudbreakServiceException;
 import com.sequenceiq.cloudbreak.service.blueprint.BlueprintService;
 import com.sequenceiq.cloudbreak.service.blueprint.BlueprintViewProvider;
-import com.sequenceiq.cloudbreak.service.credential.CredentialPrerequisiteService;
 import com.sequenceiq.cloudbreak.service.credential.CredentialService;
 import com.sequenceiq.cloudbreak.service.datalake.DatalakeResourcesService;
 import com.sequenceiq.cloudbreak.service.environment.EnvironmentViewService;
@@ -109,9 +108,6 @@ public class StackV4RequestToTemplatePreparationObjectConverter extends Abstract
     private DatalakeResourcesService datalakeResourcesService;
 
     @Inject
-    private CredentialPrerequisiteService credentialPrerequisiteService;
-
-    @Inject
     private StackService stackService;
 
     @Inject
@@ -126,10 +122,10 @@ public class StackV4RequestToTemplatePreparationObjectConverter extends Abstract
             CloudbreakUser cloudbreakUser = restRequestThreadLocalService.getCloudbreakUser();
             User user = userService.getOrCreate(cloudbreakUser);
             Workspace workspace = workspaceService.get(restRequestThreadLocalService.getRequestedWorkspaceId(), user);
-            Credential credential = getCredential(source, workspace);
+            Credential credential = credentialService.get(source.getEnvironment().getCredentialName());
             KerberosConfig kerberosConfig = getKerberosConfig(source);
             LdapConfig ldapConfig = getLdapConfig(source, workspace);
-            BaseFileSystemConfigurationsView fileSystemConfigurationView = getFileSystemConfigurationView(source, credential);
+            BaseFileSystemConfigurationsView fileSystemConfigurationView = getFileSystemConfigurationView(source, credential.getAttributes());
             Set<RDSConfig> rdsConfigs = getRdsConfigs(source, workspace);
             Blueprint blueprint = getBlueprint(source, workspace);
             String blueprintText = blueprint.getBlueprintText();
@@ -164,7 +160,7 @@ public class StackV4RequestToTemplatePreparationObjectConverter extends Abstract
             if (sharedService != null && StringUtils.isNotBlank(sharedService.getDatalakeName())) {
                 DatalakeResources datalakeResource = datalakeResourcesService.getByNameForWorkspace(source.getSharedService().getDatalakeName(), workspace);
                 if (datalakeResource != null) {
-                    DatalakeConfigApi connector = getDatalakeConnector(datalakeResource, credential);
+                    DatalakeConfigApi connector = getDatalakeConnector(datalakeResource);
                     SharedServiceConfigsView sharedServiceConfigsView = ambariDatalakeConfigProvider.createSharedServiceConfigView(datalakeResource);
                     Map<String, String> blueprintConfigParams =
                             ambariDatalakeConfigProvider.getBlueprintConfigParameters(datalakeResource, blueprint, connector);
@@ -182,24 +178,13 @@ public class StackV4RequestToTemplatePreparationObjectConverter extends Abstract
         }
     }
 
-    public DatalakeConfigApi getDatalakeConnector(DatalakeResources datalakeResources, Credential credential) {
+    public DatalakeConfigApi getDatalakeConnector(DatalakeResources datalakeResources) {
         if (datalakeResources.getDatalakeStackId() != null) {
             Stack datalakeStack = stackService.getById(datalakeResources.getDatalakeStackId());
             return datalakeConfigApiConnector.getConnector(datalakeStack);
-        } else if (credentialPrerequisiteService.isCumulusCredential(credential.getAttributes())) {
-            return credentialPrerequisiteService.createCumulusDatalakeConnector(credential.getAttributes());
         } else {
             throw new CloudbreakServiceException("Can not create Ambari Clientas there is no Datalake Stack and the credential is not for Cumulus");
         }
-    }
-
-    private Credential getCredential(StackV4Request source, Workspace workspace) {
-        String environmentName = source.getEnvironment().getName();
-        if (!StringUtils.isEmpty(environmentName)) {
-            EnvironmentView environmentView = environmentViewService.getByNameForWorkspace(environmentName, workspace);
-            return environmentView.getCredential();
-        }
-        return credentialService.getByNameForWorkspace(source.getEnvironment().getCredentialName(), workspace);
     }
 
     private Blueprint getBlueprint(StackV4Request source, Workspace workspace) {
@@ -225,11 +210,12 @@ public class StackV4RequestToTemplatePreparationObjectConverter extends Abstract
                 .collect(Collectors.toSet());
     }
 
-    private BaseFileSystemConfigurationsView getFileSystemConfigurationView(StackV4Request source, Credential credential) throws IOException {
+    private BaseFileSystemConfigurationsView getFileSystemConfigurationView(StackV4Request source, Json credentialAttributes)
+            throws IOException {
         BaseFileSystemConfigurationsView fileSystemConfigurationView = null;
         if (cloudStorageValidationUtil.isCloudStorageConfigured(source.getCluster().getCloudStorage())) {
             FileSystem fileSystem = getConversionService().convert(source.getCluster().getCloudStorage(), FileSystem.class);
-            fileSystemConfigurationView = fileSystemConfigurationProvider.fileSystemConfiguration(fileSystem, source, credential);
+            fileSystemConfigurationView = fileSystemConfigurationProvider.fileSystemConfiguration(fileSystem, source, credentialAttributes);
         }
         return fileSystemConfigurationView;
     }

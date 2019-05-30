@@ -104,7 +104,7 @@ public class ClusterCreationSetupService {
         MDCBuilder.buildUserMdcContext(user.getUserId(), user.getUserName());
         CloudCredential credential = cloudCredential;
         if (credential == null) {
-            credential = credentialToCloudCredentialConverter.convert(stack.getCredential());
+            credential = credentialToCloudCredentialConverter.convert(stack.getCredentialCrn());
         }
         fileSystemValidator.validateCloudStorage(stack.cloudPlatform(), credential, request.getCloudStorage(),
                 stack.getCreator().getUserId(), stack.getWorkspace().getId());

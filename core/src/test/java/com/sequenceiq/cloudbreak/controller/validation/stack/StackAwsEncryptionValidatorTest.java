@@ -40,7 +40,7 @@ import com.sequenceiq.cloudbreak.cloud.model.CloudRegions;
 import com.sequenceiq.cloudbreak.controller.validation.ValidationResult;
 import com.sequenceiq.cloudbreak.controller.validation.template.InstanceTemplateV4RequestValidator;
 import com.sequenceiq.cloudbreak.domain.Blueprint;
-import com.sequenceiq.cloudbreak.domain.Credential;
+import com.sequenceiq.cloudbreak.dto.credential.Credential;
 import com.sequenceiq.cloudbreak.domain.PlatformResourceRequest;
 import com.sequenceiq.cloudbreak.common.json.Json;
 import com.sequenceiq.cloudbreak.service.CloudbreakRestRequestThreadLocalService;
@@ -128,7 +128,7 @@ public class StackAwsEncryptionValidatorTest extends StackRequestValidatorTestBa
         String credentialName = "someCred";
         when(clusterRequest.getBlueprintName()).thenReturn("dummy");
         when(credential.cloudPlatform()).thenReturn("AWS");
-        when(credentialService.getByNameForWorkspaceId(any(), any())).thenReturn(credential);
+        when(credentialService.get(anyString())).thenReturn(credential);
         when(platformParameterService.getPlatformResourceRequest(anyLong(), anyString(), eq(null), eq(null), eq(null)))
                 .thenReturn(platformResourceRequest);
         when(environmentSettingsRequest.getCredentialName()).thenReturn(credentialName);

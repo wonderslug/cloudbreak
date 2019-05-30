@@ -69,7 +69,7 @@ public class EnvironmentV4Controller implements EnvironmentV4Endpoint {
 
     @Override
     public DetailedEnvironmentV4Response registerExternalDatalake(Long workspaceId, String environmentName, @Valid RegisterDatalakeV4Request request) {
-        return environmentService.registerExternalDatalake(environmentName, workspaceId, request);
+        throw new UnsupportedOperationException("register external datalake on an environment is not supported anymore!");
     }
 
     @Override

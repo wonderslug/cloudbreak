@@ -15,7 +15,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import com.google.common.base.Strings;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.request.StackV4Request;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.request.environment.placement.PlacementSettingsV4Request;
 import com.sequenceiq.cloudbreak.api.util.ConverterUtil;
@@ -33,7 +32,6 @@ import com.sequenceiq.cloudbreak.common.type.InstanceGroupType;
 import com.sequenceiq.cloudbreak.common.user.CloudbreakUser;
 import com.sequenceiq.cloudbreak.controller.validation.ValidationResult;
 import com.sequenceiq.cloudbreak.controller.validation.template.TemplateValidator;
-import com.sequenceiq.cloudbreak.domain.Credential;
 import com.sequenceiq.cloudbreak.domain.FailurePolicy;
 import com.sequenceiq.cloudbreak.domain.Network;
 import com.sequenceiq.cloudbreak.domain.SecurityGroup;
@@ -41,6 +39,7 @@ import com.sequenceiq.cloudbreak.domain.Template;
 import com.sequenceiq.cloudbreak.domain.stack.Stack;
 import com.sequenceiq.cloudbreak.domain.stack.instance.InstanceGroup;
 import com.sequenceiq.cloudbreak.domain.view.EnvironmentView;
+import com.sequenceiq.cloudbreak.dto.credential.Credential;
 import com.sequenceiq.cloudbreak.exception.BadRequestException;
 import com.sequenceiq.cloudbreak.service.RestRequestThreadLocalService;
 import com.sequenceiq.cloudbreak.service.credential.CredentialService;
@@ -102,13 +101,13 @@ public class StackDecorator {
         setEnvironment(subject, request, workspace);
 
         String stackName = request.getName();
-        measure(() -> prepareCredential(subject, request, workspace),
+        Credential credential = measure(() -> credentialService.get(subject.getCredentialCrn()),
                 LOGGER, "Credential was prepared under {} ms for stack {}", stackName);
 
-        measure(() -> prepareDomainIfDefined(subject, request, user, workspace),
+        measure(() -> prepareDomainIfDefined(subject, request, user, workspace, credential),
                 LOGGER, "Domain was prepared under {} ms for stack {}", stackName);
 
-        subject.setCloudPlatform(subject.getCredential().cloudPlatform());
+        subject.setCloudPlatform(credential.cloudPlatform());
         if (subject.getInstanceGroups() == null) {
             throw new BadRequestException("Instance groups must be specified!");
         }
@@ -121,7 +120,7 @@ public class StackDecorator {
             }
         }, LOGGER, "Network was prepared and validated under {} ms for stack {}", stackName);
 
-        measure(() -> prepareOrchestratorIfNotExist(subject, subject.getCredential()),
+        measure(() -> prepareOrchestratorIfNotExist(subject, credential),
                 LOGGER, "Orchestrator was prepared under {} ms for stack {}", stackName);
 
         if (subject.getFailurePolicy() != null) {
@@ -129,7 +128,7 @@ public class StackDecorator {
                     LOGGER, "Failure policy was validated under {} ms for stack {}", stackName);
         }
 
-        measure(() -> prepareInstanceGroups(subject, request, subject.getCredential(), user),
+        measure(() -> prepareInstanceGroups(subject, request, credential, user),
                 LOGGER, "Instance groups were prepared under {} ms for stack {}", stackName);
 
         measure(() -> validateInstanceGroups(subject),
@@ -152,17 +151,6 @@ public class StackDecorator {
         }
     }
 
-    private void prepareCredential(Stack subject, StackV4Request request, Workspace workspace) {
-        if (subject.getEnvironment() != null) {
-            subject.setCredential(subject.getEnvironment().getCredential());
-        } else if (subject.getCredential() == null) {
-            if (request.getEnvironment().getCredentialName() != null) {
-                Credential credential = credentialService.getByNameForWorkspace(request.getEnvironment().getCredentialName(), workspace);
-                subject.setCredential(credential);
-            }
-        }
-    }
-
     private void prepareInstanceGroups(Stack subject, StackV4Request request, Credential credential, User user) {
         Map<String, InstanceGroupParameterResponse> instanceGroupParameterResponse = cloudParameterService
                 .getInstanceGroupParameters(credential, getInstanceGroupParameterRequests(subject));
@@ -173,7 +161,7 @@ public class StackDecorator {
             if (instanceGroup.getTemplate() != null) {
                 Template template = instanceGroup.getTemplate();
                 if (template.getId() == null) {
-                    template.setCloudPlatform(getCloudPlatform(subject, request, template.cloudPlatform()));
+                    template.setCloudPlatform(credential.cloudPlatform());
                     PlacementSettingsV4Request placement = request.getPlacement();
                     String availabilityZone = placement != null ? placement.getAvailabilityZone() : null;
                     String region = placement != null ? placement.getRegion() : null;
@@ -188,7 +176,7 @@ public class StackDecorator {
             if (instanceGroup.getSecurityGroup() != null) {
                 SecurityGroup securityGroup = instanceGroup.getSecurityGroup();
                 if (securityGroup.getId() == null) {
-                    securityGroup.setCloudPlatform(getCloudPlatform(subject, request, securityGroup.getCloudPlatform()));
+                    securityGroup.setCloudPlatform(credential.cloudPlatform());
                     securityGroup.setWorkspace(subject.getWorkspace());
                     securityGroup = securityGroupService.create(user, securityGroup);
                     instanceGroup.setSecurityGroup(securityGroup);
@@ -219,22 +207,14 @@ public class StackDecorator {
         }
     }
 
-    private void prepareDomainIfDefined(Stack subject, StackV4Request request, User user, Workspace workspace) {
+    private void prepareDomainIfDefined(Stack subject, StackV4Request request, User user, Workspace workspace, Credential credential) {
         if (subject.getNetwork() != null) {
             Network network = subject.getNetwork();
             if (network.getId() == null) {
-                network.setCloudPlatform(getCloudPlatform(subject, request, network.cloudPlatform()));
+                network.setCloudPlatform(credential.cloudPlatform());
                 network = networkService.create(network, subject.getWorkspace());
             }
             subject.setNetwork(network);
-        }
-        if (subject.getCredential() != null) {
-            Credential credentialForStack = subject.getCredential();
-            if (credentialForStack.getId() == null) {
-                credentialForStack.setCloudPlatform(getCloudPlatform(subject, request, credentialForStack.cloudPlatform()));
-                credentialForStack = credentialService.create(credentialForStack, workspace, user);
-            }
-            subject.setCredential(credentialForStack);
         }
     }
 
@@ -276,16 +256,5 @@ public class StackDecorator {
         if (failurePolicy.getThreshold() > stack.getFullNodeCount()) {
             throw new BadRequestException("Threshold can not be higher than the node count of the stack.");
         }
-    }
-
-    private String getCloudPlatform(Stack stack, StackV4Request request, String cloudPlatform) {
-        if (!Strings.isNullOrEmpty(cloudPlatform)) {
-            return cloudPlatform;
-        } else if (stack.getCredential() != null && stack.getCredential().getId() != null) {
-            return stack.getCredential().cloudPlatform();
-        } else if (Strings.isNullOrEmpty(stack.cloudPlatform())) {
-            return stack.cloudPlatform();
-        }
-        return request.getCloudPlatform().name();
     }
 }

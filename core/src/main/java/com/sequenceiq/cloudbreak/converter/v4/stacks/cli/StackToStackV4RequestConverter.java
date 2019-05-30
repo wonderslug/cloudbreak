@@ -108,8 +108,8 @@ public class StackToStackV4RequestConverter extends AbstractConversionServiceAwa
         if (source.getEnvironment() != null) {
             environment.setName(source.getEnvironment().getName());
         }
-        if (source.getCredential() != null) {
-            environment.setCredentialName(source.getCredential().getName());
+        if (source.getCredentialCrn() != null) {
+            environment.setCredentialName(source.getCredentialCrn());
         }
         return environment;
     }

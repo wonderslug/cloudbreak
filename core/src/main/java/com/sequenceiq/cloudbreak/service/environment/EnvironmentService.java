@@ -4,9 +4,6 @@ import static com.sequenceiq.cloudbreak.cloud.model.Region.region;
 import static com.sequenceiq.cloudbreak.workspace.resource.WorkspaceResource.ENVIRONMENT;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
@@ -29,13 +26,10 @@ import com.sequenceiq.cloudbreak.api.endpoint.v4.environment.requests.Environmen
 import com.sequenceiq.cloudbreak.api.endpoint.v4.environment.requests.EnvironmentNetworkV4Request;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.environment.requests.EnvironmentV4Request;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.environment.requests.LocationV4Request;
-import com.sequenceiq.cloudbreak.api.endpoint.v4.environment.requests.RegisterDatalakeV4Request;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.environment.responses.DetailedEnvironmentV4Response;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.environment.responses.SimpleEnvironmentV4Response;
 import com.sequenceiq.cloudbreak.cloud.model.CloudRegions;
 import com.sequenceiq.cloudbreak.cloud.model.Coordinate;
-import com.sequenceiq.cloudbreak.cluster.api.DatalakeConfigApi;
-import com.sequenceiq.cloudbreak.common.json.Json;
 import com.sequenceiq.cloudbreak.common.mappable.CloudPlatform;
 import com.sequenceiq.cloudbreak.common.service.TransactionService;
 import com.sequenceiq.cloudbreak.common.service.TransactionService.TransactionExecutionException;
@@ -47,23 +41,15 @@ import com.sequenceiq.cloudbreak.controller.validation.environment.EnvironmentCr
 import com.sequenceiq.cloudbreak.controller.validation.environment.EnvironmentDetachValidator;
 import com.sequenceiq.cloudbreak.controller.validation.environment.EnvironmentRegionValidator;
 import com.sequenceiq.cloudbreak.converter.v4.environment.network.EnvironmentNetworkConverter;
-import com.sequenceiq.cloudbreak.domain.Credential;
-import com.sequenceiq.cloudbreak.domain.KerberosConfig;
-import com.sequenceiq.cloudbreak.domain.LdapConfig;
 import com.sequenceiq.cloudbreak.domain.PlatformResourceRequest;
-import com.sequenceiq.cloudbreak.domain.RDSConfig;
 import com.sequenceiq.cloudbreak.domain.environment.BaseNetwork;
 import com.sequenceiq.cloudbreak.domain.environment.Environment;
 import com.sequenceiq.cloudbreak.domain.environment.Region;
-import com.sequenceiq.cloudbreak.domain.stack.cluster.DatalakeResources;
-import com.sequenceiq.cloudbreak.domain.view.EnvironmentView;
 import com.sequenceiq.cloudbreak.exception.BadRequestException;
 import com.sequenceiq.cloudbreak.repository.environment.EnvironmentRepository;
 import com.sequenceiq.cloudbreak.service.AbstractArchivistService;
-import com.sequenceiq.cloudbreak.service.CloudbreakServiceException;
 import com.sequenceiq.cloudbreak.service.KubernetesConfigService;
 import com.sequenceiq.cloudbreak.service.cluster.ClusterService;
-import com.sequenceiq.cloudbreak.service.credential.CredentialPrerequisiteService;
 import com.sequenceiq.cloudbreak.service.datalake.DatalakeResourcesService;
 import com.sequenceiq.cloudbreak.service.kerberos.KerberosConfigService;
 import com.sequenceiq.cloudbreak.service.ldapconfig.LdapConfigService;
@@ -72,7 +58,6 @@ import com.sequenceiq.cloudbreak.service.proxy.ProxyConfigDtoService;
 import com.sequenceiq.cloudbreak.service.rdsconfig.RdsConfigService;
 import com.sequenceiq.cloudbreak.service.sharedservice.AmbariDatalakeConfigProvider;
 import com.sequenceiq.cloudbreak.service.sharedservice.DatalakeConfigApiConnector;
-import com.sequenceiq.cloudbreak.service.sharedservice.ServiceDescriptorDefinitionProvider;
 import com.sequenceiq.cloudbreak.service.stack.StackApiViewService;
 import com.sequenceiq.cloudbreak.service.stack.StackService;
 import com.sequenceiq.cloudbreak.workspace.repository.workspace.WorkspaceResourceRepository;
@@ -207,8 +192,7 @@ public class EnvironmentService extends AbstractArchivistService<Environment> {
     }
 
     private Environment initEnvironment(EnvironmentV4Request request, @Nonnull Long workspaceId) {
-        Environment environment = conversionService.convert(request, Environment.class);
-        return environment;
+        return conversionService.convert(request, Environment.class);
     }
 
     private CloudRegions getCloudRegions(Environment environment) {
@@ -315,48 +299,6 @@ public class EnvironmentService extends AbstractArchivistService<Environment> {
                 throw new BadRequestException(String.format("No location found with name %s in the location list. The supported locations are: [%s]",
                         requestedLocation, cloudRegions.locationNames()));
             }
-        }
-    }
-
-    public DetailedEnvironmentV4Response registerExternalDatalake(String environmentName, Long workspaceId, RegisterDatalakeV4Request registerDatalakeRequest) {
-        try {
-            return transactionService.required(() -> {
-                try {
-                    Environment environment = getByNameForWorkspaceId(environmentName, workspaceId);
-                    EnvironmentView envView = environmentViewService.getByNameForWorkspaceId(environmentName, workspaceId);
-                    ValidationResult validationResult = clusterCreationEnvironmentValidator.validate(registerDatalakeRequest, environment);
-                    if (validationResult.hasError()) {
-                        throw new BadRequestException(validationResult.getFormattedErrors());
-                    }
-                    Credential credential = environment.getCredential();
-                    String attributesStr = credential.getAttributes();
-                    Map<String, Object> attributes = isEmpty(attributesStr) ? new HashMap<>() : new Json(attributesStr).getMap();
-                    String datalakeAmbariUrl = (String) attributes.get(CredentialPrerequisiteService.CUMULUS_AMBARI_URL);
-                    String datalakeAmbariUser = (String) attributes.get(CredentialPrerequisiteService.CUMULUS_AMBARI_USER);
-                    String datalakeAmbariPassowrd = (String) attributes.get(CredentialPrerequisiteService.CUMULUS_AMBARI_PASSWORD);
-                    LdapConfig ldapConfig = isEmpty(registerDatalakeRequest.getLdapName()) ? null
-                            : ldapConfigService.getByNameForWorkspaceId(registerDatalakeRequest.getLdapName(), workspaceId);
-                    KerberosConfig kerberosConfig = isEmpty(registerDatalakeRequest.getKerberosName()) ? null
-                            : kerberosConfigService.getByNameForWorkspaceId(registerDatalakeRequest.getKerberosName(), workspaceId);
-                    Set<RDSConfig> rdssConfigs = CollectionUtils.isEmpty(registerDatalakeRequest.getDatabaseNames()) ? null
-                            : rdsConfigService.findByNamesInWorkspace(registerDatalakeRequest.getDatabaseNames(), workspaceId);
-                    URL ambariUrl = new URL(datalakeAmbariUrl);
-
-                    Map<String, Map<String, String>> serviceSecretParamMap = isEmpty(registerDatalakeRequest.getRangerAdminPassword())
-                            ? new HashMap<>() : Map.ofEntries(Map.entry(ServiceDescriptorDefinitionProvider.RANGER_SERVICE, Map.ofEntries(
-                            Map.entry(ServiceDescriptorDefinitionProvider.RANGER_ADMIN_PWD_KEY, registerDatalakeRequest.getRangerAdminPassword()))));
-                    DatalakeConfigApi connector = datalakeConfigApiConnector.getConnector(ambariUrl, datalakeAmbariUser, datalakeAmbariPassowrd);
-                    DatalakeResources datalakeResources = ambariDatalakeConfigProvider.collectAndStoreDatalakeResources(environmentName, envView,
-                            datalakeAmbariUrl, ambariUrl.getHost(), ambariUrl.getHost(), connector, serviceSecretParamMap, ldapConfig, kerberosConfig,
-                            rdssConfigs, environment.getWorkspace());
-                    environment.getDatalakeResources().add(datalakeResources);
-                    return conversionService.convert(environmentRepository.save(environment), DetailedEnvironmentV4Response.class);
-                } catch (MalformedURLException ex) {
-                    throw new CloudbreakServiceException("", ex);
-                }
-            });
-        } catch (TransactionExecutionException e) {
-            throw new TransactionRuntimeExecutionException(e);
         }
     }
 
