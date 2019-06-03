@@ -38,7 +38,6 @@ import com.sequenceiq.cloudbreak.api.endpoint.v4.imagecatalog.ImageCatalogV4Endp
 import com.sequenceiq.cloudbreak.api.endpoint.v4.info.CloudbreakInfoV4Endpoint;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.kerberos.KerberosConfigV4Endpoint;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.kubernetes.KubernetesV4Endpoint;
-import com.sequenceiq.cloudbreak.api.endpoint.v4.ldaps.LdapConfigV4Endpoint;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.mpacks.ManagementPackV4Endpoint;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.recipes.RecipeV4Endpoint;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.user.UserV4Endpoint;
@@ -64,7 +63,6 @@ public class CloudbreakIdentityClient {
             DatabaseV4Endpoint.class,
             ImageCatalogV4Endpoint.class,
             KerberosConfigV4Endpoint.class,
-            LdapConfigV4Endpoint.class,
             ManagementPackV4Endpoint.class,
             KubernetesV4Endpoint.class,
             WorkspaceV4Endpoint.class,
@@ -145,10 +143,6 @@ public class CloudbreakIdentityClient {
 
     public ImageCatalogV4Endpoint imageCatalogV4Endpoint() {
         return getEndpoint(ImageCatalogV4Endpoint.class);
-    }
-
-    public LdapConfigV4Endpoint ldapConfigV3Endpoint() {
-        return getEndpoint(LdapConfigV4Endpoint.class);
     }
 
     public ManagementPackV4Endpoint managementPackV3Endpoint() {

@@ -18,13 +18,9 @@ import com.sequenceiq.cloudbreak.api.endpoint.v4.environment.requests.DatalakePr
 import com.sequenceiq.cloudbreak.api.endpoint.v4.environment.responses.DatalakePrerequisiteV4Response;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.kerberos.requests.KerberosV4Request;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.kerberos.responses.KerberosV4Response;
-import com.sequenceiq.cloudbreak.api.endpoint.v4.ldaps.requests.LdapV4Request;
-import com.sequenceiq.cloudbreak.api.endpoint.v4.ldaps.responses.LdapV4Response;
 import com.sequenceiq.cloudbreak.common.type.ResourceEvent;
-import com.sequenceiq.cloudbreak.controller.validation.ldapconfig.LdapConfigValidator;
 import com.sequenceiq.cloudbreak.controller.validation.rds.RdsConnectionValidator;
 import com.sequenceiq.cloudbreak.domain.KerberosConfig;
-import com.sequenceiq.cloudbreak.domain.LdapConfig;
 import com.sequenceiq.cloudbreak.domain.RDSConfig;
 import com.sequenceiq.cloudbreak.exception.BadRequestException;
 import com.sequenceiq.cloudbreak.service.CloudbreakRestRequestThreadLocalService;
@@ -32,7 +28,6 @@ import com.sequenceiq.cloudbreak.service.kerberos.KerberosConfigService;
 import com.sequenceiq.cloudbreak.service.rdsconfig.RdsConfigService;
 import com.sequenceiq.cloudbreak.service.user.UserService;
 import com.sequenceiq.cloudbreak.structuredevent.event.CloudbreakEventService;
-import com.sequenceiq.cloudbreak.structuredevent.event.LdapDetails;
 import com.sequenceiq.cloudbreak.structuredevent.event.RdsDetails;
 import com.sequenceiq.cloudbreak.workspace.model.User;
 
@@ -52,8 +47,8 @@ public class DatalakePrerequisiteService {
     @Inject
     private RdsConnectionValidator rdsConnectionValidator;
 
-    @Inject
-    private LdapConfigValidator ldapConfigValidator;
+//    @Inject
+//    private LdapConfigValidator ldapConfigValidator;
 
     @Inject
     private CloudbreakEventService defaultCloudbreakEventService;
@@ -79,15 +74,16 @@ public class DatalakePrerequisiteService {
     }
 
     private boolean testConnections(DatalakePrerequisiteV4Request datalakePrerequisiteV4Request) {
-        LdapConfig ldapConfig = conversionService.convert(datalakePrerequisiteV4Request.getLdap(), LdapConfig.class);
+        // TODO Ldap connection test using freeipa service, ldap identified by environment...
+//        LdapConfig ldapConfig = conversionService.convert(datalakePrerequisiteV4Request.getLdap(), LdapConfig.class);
         boolean ret = true;
-        try {
-            ldapConfigValidator.validateLdapConnection(ldapConfig);
-            fireLdapEvent(ldapConfig, ResourceEvent.TEST_CONNECTION_SUCCESS, "Connection successfully established with the LDAP server", NOTIFY_WORKSPACE);
-        } catch (Exception ex) {
-            fireLdapEvent(ldapConfig, ResourceEvent.TEST_CONNECTION_FAILED, "Connection failed to established with the LDAP server", NOTIFY_WORKSPACE);
-            ret = false;
-        }
+//        try {
+//            ldapConfigValidator.validateLdapConnection(ldapConfig);
+//            fireLdapEvent(ldapConfig, ResourceEvent.TEST_CONNECTION_SUCCESS, "Connection successfully established with the LDAP server", NOTIFY_WORKSPACE);
+//        } catch (Exception ex) {
+//            fireLdapEvent(ldapConfig, ResourceEvent.TEST_CONNECTION_FAILED, "Connection failed to established with the LDAP server", NOTIFY_WORKSPACE);
+//            ret = false;
+//        }
 
         for (DatabaseV4Request rdsConfigRequest : datalakePrerequisiteV4Request.getDatabases()) {
             RDSConfig rdsConfig = conversionService.convert(rdsConfigRequest, RDSConfig.class);
@@ -106,12 +102,12 @@ public class DatalakePrerequisiteService {
 
     private DatalakePrerequisiteV4Response prepareResources(Long workspaceId, String environment, DatalakePrerequisiteV4Request datalakePrerequisiteV4Request) {
         KerberosConfig kerberosConfig = createKerberosConfig(workspaceId, environment, datalakePrerequisiteV4Request);
-        LdapConfig ldapConfig = createLdapConfig(workspaceId, environment, datalakePrerequisiteV4Request);
+//        LdapConfig ldapConfig = createLdapConfig(workspaceId, environment, datalakePrerequisiteV4Request);
         Set<RDSConfig> rdsConfigs = createRdsConfig(workspaceId, environment, datalakePrerequisiteV4Request);
 
         DatalakePrerequisiteV4Response datalakePrerequisiteV4Response = new DatalakePrerequisiteV4Response();
         datalakePrerequisiteV4Response.setKerberos(prepareKerberosResponse(kerberosConfig));
-        datalakePrerequisiteV4Response.setLdap(prepareLdapResponse(ldapConfig));
+//        datalakePrerequisiteV4Response.setLdap(prepareLdapResponse(ldapConfig));
         datalakePrerequisiteV4Response.setDatabases(prepareRdsResponse(rdsConfigs));
         return datalakePrerequisiteV4Response;
     }
@@ -125,11 +121,10 @@ public class DatalakePrerequisiteService {
         return rdsConfigSet;
     }
 
-    private LdapConfig createLdapConfig(Long workspaceId, String environment, DatalakePrerequisiteV4Request datalakePrerequisiteV4Request) {
+//    private LdapConfig createLdapConfig(Long workspaceId, String environment, DatalakePrerequisiteV4Request datalakePrerequisiteV4Request) {
 //        LdapConfig ldapConfig = prepareLdapConfig(environment, datalakePrerequisiteV4Request.getLdap());
 //        return ldapConfigService.createForLoggedInUser(ldapConfig, workspaceId);
-        return null;
-    }
+//    }
 
     private KerberosConfig createKerberosConfig(Long workspaceId, String environment, DatalakePrerequisiteV4Request datalakePrerequisiteV4Request) {
         KerberosConfig kerberosConfig = prepareKerberosConfig(environment, datalakePrerequisiteV4Request.getKerberos());
@@ -137,23 +132,23 @@ public class DatalakePrerequisiteService {
         return kerberosConfigService.create(kerberosConfig, workspaceId, user);
     }
 
-    private LdapDetails prepareLdapDetails(LdapConfig ldapConfig) {
-        return conversionService.convert(ldapConfig, LdapDetails.class);
-    }
+//    private LdapDetails prepareLdapDetails(LdapConfig ldapConfig) {
+//        return conversionService.convert(ldapConfig, LdapDetails.class);
+//    }
 
-    private LdapConfig prepareLdapConfig(String environment, LdapV4Request ldapConfigRequest) {
-        LdapConfig ldapConfig = conversionService.convert(ldapConfigRequest, LdapConfig.class);
-        ldapConfig.setName(String.format("%s-%s-%s", environment, ldapConfigRequest.getName(), getHash()));
-        return ldapConfig;
-    }
+//    private LdapConfig prepareLdapConfig(String environment, LdapV4Request ldapConfigRequest) {
+//        LdapConfig ldapConfig = conversionService.convert(ldapConfigRequest, LdapConfig.class);
+//        ldapConfig.setName(String.format("%s-%s-%s", environment, ldapConfigRequest.getName(), getHash()));
+//        return ldapConfig;
+//    }
 
-    private LdapV4Response prepareLdapResponse(LdapConfig ldapConfig) {
-        return conversionService.convert(ldapConfig, LdapV4Response.class);
-    }
+//    private LdapV4Response prepareLdapResponse(LdapConfig ldapConfig) {
+//        return conversionService.convert(ldapConfig, LdapV4Response.class);
+//    }
 
-    private void fireLdapEvent(LdapConfig ldapConfig, ResourceEvent event, String message, boolean notifyWorkspace) {
-        defaultCloudbreakEventService.fireLdapEvent(prepareLdapDetails(ldapConfig), event.name(), message, notifyWorkspace);
-    }
+//    private void fireLdapEvent(LdapConfig ldapConfig, ResourceEvent event, String message, boolean notifyWorkspace) {
+//        defaultCloudbreakEventService.fireLdapEvent(prepareLdapDetails(ldapConfig), event.name(), message, notifyWorkspace);
+//    }
 
     private void fireRdsEvent(RDSConfig rdsConfig, ResourceEvent event, String message, boolean notifyWorkspace) {
         defaultCloudbreakEventService.fireRdsEvent(prepareRdsDetails(rdsConfig), event.name(), message, notifyWorkspace);

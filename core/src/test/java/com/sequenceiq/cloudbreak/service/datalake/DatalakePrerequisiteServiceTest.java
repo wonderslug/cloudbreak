@@ -28,19 +28,14 @@ import com.sequenceiq.cloudbreak.api.endpoint.v4.environment.requests.DatalakePr
 import com.sequenceiq.cloudbreak.api.endpoint.v4.kerberos.requests.FreeIPAKerberosDescriptor;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.kerberos.requests.KerberosV4Request;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.kerberos.responses.KerberosV4Response;
-import com.sequenceiq.cloudbreak.api.endpoint.v4.ldaps.requests.LdapV4Request;
-import com.sequenceiq.cloudbreak.api.endpoint.v4.ldaps.responses.LdapV4Response;
 import com.sequenceiq.cloudbreak.common.user.CloudbreakUser;
-import com.sequenceiq.cloudbreak.controller.validation.ldapconfig.LdapConfigValidator;
 import com.sequenceiq.cloudbreak.controller.validation.rds.RdsConnectionValidator;
 import com.sequenceiq.cloudbreak.domain.KerberosConfig;
-import com.sequenceiq.cloudbreak.domain.LdapConfig;
 import com.sequenceiq.cloudbreak.domain.RDSConfig;
 import com.sequenceiq.cloudbreak.exception.BadRequestException;
 import com.sequenceiq.cloudbreak.service.CloudbreakRestRequestThreadLocalService;
 import com.sequenceiq.cloudbreak.service.events.DefaultCloudbreakEventService;
 import com.sequenceiq.cloudbreak.service.kerberos.KerberosConfigService;
-import com.sequenceiq.cloudbreak.service.ldapconfig.LdapConfigService;
 import com.sequenceiq.cloudbreak.service.rdsconfig.RdsConfigService;
 import com.sequenceiq.cloudbreak.service.user.UserService;
 import com.sequenceiq.cloudbreak.structuredevent.event.LdapDetails;
@@ -66,8 +61,8 @@ public class DatalakePrerequisiteServiceTest {
     @Mock
     private RdsConfigService rdsConfigService;
 
-    @Mock
-    private LdapConfigService ldapConfigService;
+//    @Mock
+//    private LdapConfigService ldapConfigService;
 
     @Mock
     private KerberosConfigService kerberosConfigService;
@@ -75,8 +70,8 @@ public class DatalakePrerequisiteServiceTest {
     @Mock
     private RdsConnectionValidator rdsConnectionValidator;
 
-    @Mock
-    private LdapConfigValidator ldapConfigValidator;
+//    @Mock
+//    private LdapConfigValidator ldapConfigValidator;
 
     @Mock
     private DefaultCloudbreakEventService defaultCloudbreakEventService;
@@ -95,9 +90,9 @@ public class DatalakePrerequisiteServiceTest {
 
     @Before
     public void before() {
-        when(conversionService.convert(any(LdapV4Request.class), eq(LdapConfig.class))).thenReturn(ldapConfig());
-        when(conversionService.convert(any(LdapConfig.class), eq(LdapDetails.class))).thenReturn(ldapDetails());
-        when(conversionService.convert(any(LdapConfig.class), eq(LdapV4Response.class))).thenReturn(ldapConfigResponse());
+//        when(conversionService.convert(any(LdapV4Request.class), eq(LdapConfig.class))).thenReturn(ldapConfig());
+//        when(conversionService.convert(any(LdapConfig.class), eq(LdapDetails.class))).thenReturn(ldapDetails());
+//        when(conversionService.convert(any(LdapConfig.class), eq(LdapV4Response.class))).thenReturn(ldapConfigResponse());
 
         when(conversionService.convert(any(DatabaseV4Request.class), eq(RDSConfig.class))).thenReturn(rdsConfig());
         when(conversionService.convert(any(RDSConfig.class), eq(DatabaseV4Response.class))).thenReturn(rdsConfigResponse());
@@ -111,7 +106,7 @@ public class DatalakePrerequisiteServiceTest {
 
     @Test
     public void testTestConnectionWhenLdapIsNotAvailableShouldThrowBadRequestException() {
-        doThrow(new BadRequestException(errorMessage)).when(ldapConfigValidator).validateLdapConnection(any(LdapConfig.class));
+//        doThrow(new BadRequestException(errorMessage)).when(ldapConfigValidator).validateLdapConnection(any(LdapConfig.class));
         doNothing().when(defaultCloudbreakEventService).fireLdapEvent(any(LdapDetails.class), anyString(), anyString(), anyBoolean());
 
         thrown.expect(BadRequestException.class);
@@ -124,7 +119,7 @@ public class DatalakePrerequisiteServiceTest {
     public void testTestConnectionWhenRdsIsNotAvailableShouldThrowBadRequestException() {
         doThrow(new BadRequestException(errorMessage)).when(rdsConnectionValidator).validateRdsConnection(any(RDSConfig.class));
         doNothing().when(defaultCloudbreakEventService).fireLdapEvent(any(LdapDetails.class), anyString(), anyString(), anyBoolean());
-        doNothing().when(ldapConfigValidator).validateLdapConnection(any(LdapConfig.class));
+//        doNothing().when(ldapConfigValidator).validateLdapConnection(any(LdapConfig.class));
         doNothing().when(defaultCloudbreakEventService).fireRdsEvent(any(RdsDetails.class), anyString(), anyString(), anyBoolean());
 
         thrown.expect(BadRequestException.class);
@@ -136,7 +131,7 @@ public class DatalakePrerequisiteServiceTest {
     @Test
     public void testPrepareResourceWhenTestIsOkAndShouldPersistResources() {
         doNothing().when(defaultCloudbreakEventService).fireLdapEvent(any(LdapDetails.class), anyString(), anyString(), anyBoolean());
-        doNothing().when(ldapConfigValidator).validateLdapConnection(any(LdapConfig.class));
+//        doNothing().when(ldapConfigValidator).validateLdapConnection(any(LdapConfig.class));
         doNothing().when(rdsConnectionValidator).validateRdsConnection(any(RDSConfig.class));
         doNothing().when(defaultCloudbreakEventService).fireRdsEvent(any(RdsDetails.class), anyString(), anyString(), anyBoolean());
 
@@ -147,7 +142,7 @@ public class DatalakePrerequisiteServiceTest {
     private DatalakePrerequisiteV4Request datalakePrerequisiteRequest() {
         DatalakePrerequisiteV4Request datalakePrerequisiteV4Request = new DatalakePrerequisiteV4Request();
         datalakePrerequisiteV4Request.setKerberos(kerberosRequest());
-        datalakePrerequisiteV4Request.setLdap(ldapConfigRequest());
+//        datalakePrerequisiteV4Request.setLdap(ldapConfigRequest());
         datalakePrerequisiteV4Request.setDatabases(rdsConfigRequests());
         return datalakePrerequisiteV4Request;
     }
@@ -169,33 +164,33 @@ public class DatalakePrerequisiteServiceTest {
         return rdsConfigRequest;
     }
 
-    private LdapV4Request ldapConfigRequest() {
-        LdapV4Request ldapConfigRequest = new LdapV4Request();
-        ldapConfigRequest.setName("demo-ldap");
-        ldapConfigRequest.setDescription("ldap description");
-        return ldapConfigRequest;
-    }
+//    private LdapV4Request ldapConfigRequest() {
+//        LdapV4Request ldapConfigRequest = new LdapV4Request();
+//        ldapConfigRequest.setName("demo-ldap");
+//        ldapConfigRequest.setDescription("ldap description");
+//        return ldapConfigRequest;
+//    }
 
-    private LdapConfig ldapConfig() {
-        LdapConfig ldapConfigRequest = new LdapConfig();
-        ldapConfigRequest.setName("demo-ldap");
-        ldapConfigRequest.setDescription("ldap description");
-        return ldapConfigRequest;
-    }
+//    private LdapConfig ldapConfig() {
+//        LdapConfig ldapConfigRequest = new LdapConfig();
+//        ldapConfigRequest.setName("demo-ldap");
+//        ldapConfigRequest.setDescription("ldap description");
+//        return ldapConfigRequest;
+//    }
 
-    private LdapV4Response ldapConfigResponse() {
-        LdapV4Response ldapConfigResponse = new LdapV4Response();
-        ldapConfigResponse.setName("demo-ldap");
-        ldapConfigResponse.setDescription("ldap description");
-        return ldapConfigResponse;
-    }
+//    private LdapV4Response ldapConfigResponse() {
+//        LdapV4Response ldapConfigResponse = new LdapV4Response();
+//        ldapConfigResponse.setName("demo-ldap");
+//        ldapConfigResponse.setDescription("ldap description");
+//        return ldapConfigResponse;
+//    }
 
-    private LdapDetails ldapDetails() {
-        LdapDetails ldapDetails = new LdapDetails();
-        ldapDetails.setName("demo-ldap");
-        ldapDetails.setDescription("ldap description");
-        return ldapDetails;
-    }
+//    private LdapDetails ldapDetails() {
+//        LdapDetails ldapDetails = new LdapDetails();
+//        ldapDetails.setName("demo-ldap");
+//        ldapDetails.setDescription("ldap description");
+//        return ldapDetails;
+//    }
 
     private RDSConfig rdsConfig() {
         RDSConfig rdsConfig = new RDSConfig();
