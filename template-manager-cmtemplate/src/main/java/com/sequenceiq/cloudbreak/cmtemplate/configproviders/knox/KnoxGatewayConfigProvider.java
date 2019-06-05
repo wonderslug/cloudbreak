@@ -5,6 +5,7 @@ import static com.sequenceiq.cloudbreak.cmtemplate.configproviders.ConfigUtils.c
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -16,6 +17,7 @@ import com.cloudera.api.swagger.model.ApiClusterTemplateService;
 import com.sequenceiq.cloudbreak.cmtemplate.CmTemplateProcessor;
 import com.sequenceiq.cloudbreak.cmtemplate.configproviders.AbstractRoleConfigConfigProvider;
 import com.sequenceiq.cloudbreak.common.type.InstanceGroupType;
+import com.sequenceiq.cloudbreak.domain.KerberosConfig;
 import com.sequenceiq.cloudbreak.template.TemplatePreparationObject;
 import com.sequenceiq.cloudbreak.template.views.GatewayView;
 import com.sequenceiq.cloudbreak.template.views.HostgroupView;
@@ -35,15 +37,24 @@ public class KnoxGatewayConfigProvider extends AbstractRoleConfigConfigProvider 
 
     private static final String GATEWAY_PATH = "gateway_path";
 
+    private static final String GATEWAY_WHITELIST = "gateway_dispatch_whitelist";
+
     @Override
     protected List<ApiClusterTemplateConfig> getRoleConfig(String roleType, HostgroupView hostGroupView, TemplatePreparationObject source) {
         switch (roleType) {
             case "KNOX_GATEWAY":
                 List<ApiClusterTemplateConfig> config = new ArrayList<>();
                 GatewayView gateway = source.getGatewayView();
+                Optional<KerberosConfig> kerberosConfig = source.getKerberosConfig();
                 if (gateway != null) {
                     config.add(config(KNOX_MASTER_SECRET, gateway.getMasterSecret()));
                     config.add(config(GATEWAY_PATH, gateway.getPath()));
+                    if (kerberosConfig.isPresent()) {
+                        String domain = kerberosConfig.get().getDomain();
+                        config.add(config(GATEWAY_WHITELIST, "^/.*$;^https?://(.+." + domain + "):[0-9]+/?.*$"));
+                    } else {
+                        config.add(config(GATEWAY_WHITELIST, "^*.*$"));
+                    }
                 }
                 return config;
             default:

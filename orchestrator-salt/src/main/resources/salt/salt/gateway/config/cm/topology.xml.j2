@@ -97,7 +97,7 @@
     <service>
         <role>HIVE</role>
         {% for hostloc in salt['pillar.get']('gateway:location')['HIVESERVER2'] -%}
-        <url>http://{{ hostloc }}:{{ ports['HIVE'] }}/cliservice</url>
+        <url>http://{{ hostloc }}:{{ ports['HIVE'] }}</url>
         {%- endfor %}
     </service>
     {%- endif %}
@@ -156,17 +156,17 @@
     {%- endif %}
     {%- endif %}
 
-    {% if 'ZEPPELIN_MASTER' in salt['pillar.get']('gateway:location') -%}
+    {% if 'ZEPPELIN_SERVER' in salt['pillar.get']('gateway:location') -%}
     {% if 'ZEPPELIN' in exposed -%}
     <service>
         <role>ZEPPELINUI</role>
-        {% for hostloc in salt['pillar.get']('gateway:location')['ZEPPELIN_MASTER'] -%}
+        {% for hostloc in salt['pillar.get']('gateway:location')['ZEPPELIN_SERVER'] -%}
         <url>http://{{ hostloc }}:{{ ports['ZEPPELIN'] }}</url>
         {%- endfor %}
     </service>
     <service>
         <role>ZEPPELINWS</role>
-        {% for hostloc in salt['pillar.get']('gateway:location')['ZEPPELIN_MASTER'] -%}
+        {% for hostloc in salt['pillar.get']('gateway:location')['ZEPPELIN_SERVER'] -%}
         <url>ws://{{ hostloc }}:9995/ws</url>
         {%- endfor %}
     </service>
@@ -179,6 +179,17 @@
         <role>RANGERUI</role>
         {% for hostloc in salt['pillar.get']('gateway:location')['RANGER_ADMIN'] -%}
         <url>http://{{ hostloc }}:{{ ports['RANGER'] }}</url>
+        {%- endfor %}
+    </service>
+    {%- endif %}
+    {%- endif %}
+
+    {% if 'OOZIE_SERVER' in salt['pillar.get']('gateway:location') -%}
+    {% if 'OOZIE' in exposed -%}
+    <service>
+        <role>OOZIEUI</role>
+        {% for hostloc in salt['pillar.get']('gateway:location')['OOZIE_SERVER'] -%}
+        <url>http://{{ hostloc }}:{{ ports['OOZIE'] }}</url>
         {%- endfor %}
     </service>
     {%- endif %}
