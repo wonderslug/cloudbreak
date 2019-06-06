@@ -1,0 +1,29 @@
+package com.sequenceiq.redbeams.flow.stack.termination;
+
+import com.sequenceiq.flow.core.FlowState;
+import com.sequenceiq.freeipa.flow.stack.AbstractStackAction;
+import com.sequenceiq.freeipa.flow.stack.termination.action.StackTerminationAction;
+import com.sequenceiq.freeipa.flow.stack.termination.action.StackTerminationFailureAction;
+import com.sequenceiq.freeipa.flow.stack.termination.action.StackTerminationFinishedAction;
+
+public enum StackTerminationState implements FlowState {
+    INIT_STATE,
+    TERMINATION_STATE(StackTerminationAction.class),
+    TERMINATION_FAILED_STATE(StackTerminationFailureAction.class),
+    TERMINATION_FINISHED_STATE(StackTerminationFinishedAction.class),
+    FINAL_STATE;
+
+    private Class<? extends AbstractStackAction<?, ?, ?, ?>> action;
+
+    StackTerminationState() {
+    }
+
+    StackTerminationState(Class<? extends AbstractStackAction<?, ?, ?, ?>> action) {
+        this.action = action;
+    }
+
+    @Override
+    public Class<? extends AbstractStackAction<?, ?, ?, ?>> action() {
+        return action;
+    }
+}

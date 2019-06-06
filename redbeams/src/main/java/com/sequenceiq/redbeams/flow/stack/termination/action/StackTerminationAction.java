@@ -1,0 +1,36 @@
+package com.sequenceiq.redbeams.flow.stack.termination.action;
+
+import com.sequenceiq.cloudbreak.cloud.event.resource.TerminateStackRequest;
+import com.sequenceiq.freeipa.api.v1.freeipa.stack.model.common.DetailedStackStatus;
+import com.sequenceiq.freeipa.flow.stack.termination.StackTerminationContext;
+import com.sequenceiq.freeipa.flow.stack.termination.event.TerminationEvent;
+import com.sequenceiq.freeipa.service.stack.StackUpdater;
+
+import java.util.Map;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Component;
+
+@Component("StackTerminationAction")
+public class StackTerminationAction extends AbstractStackTerminationAction<TerminationEvent> {
+
+    @Inject
+    private StackUpdater stackUpdater;
+
+    public StackTerminationAction() {
+        super(TerminationEvent.class);
+    }
+
+    @Override
+    protected void doExecute(StackTerminationContext context, TerminationEvent payload, Map<Object, Object> variables) {
+        stackUpdater.updateStackStatus(context.getStack().getId(), DetailedStackStatus.DELETE_IN_PROGRESS, "Terminating FreeIPA and its infrastructure.");
+        TerminateStackRequest<?> terminateRequest = createRequest(context);
+        sendEvent(context, terminateRequest.selector(), terminateRequest);
+    }
+
+    @Override
+    protected TerminateStackRequest<?> createRequest(StackTerminationContext context) {
+        return new TerminateStackRequest<>(context.getCloudContext(), context.getCloudStack(), context.getCloudCredential(), context.getCloudResources());
+    }
+}

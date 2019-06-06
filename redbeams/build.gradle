@@ -74,6 +74,7 @@ dependencies {
     testRuntime        group: 'org.junit.vintage',         name: 'junit-vintage-engine',           version: junitJupiterVersion
   }
 
+  compile project(':flow')
   compile project(':cloud-common')
   compile project(':secret-engine')
   compile project(':common')
