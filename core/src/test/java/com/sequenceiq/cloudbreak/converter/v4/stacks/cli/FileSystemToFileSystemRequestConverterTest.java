@@ -134,7 +134,7 @@ public class FileSystemToFileSystemRequestConverterTest {
 
         CloudStorageV4Request result = underTest.convert(fileSystem);
 
-        assertEquals(expected, result.getAdls());
+        assertEquals(expected, result.getIdentity().getAdls());
         verify(conversionService, times(1)).convert(any(AdlsFileSystem.class), eq(AdlsCloudStorageV4Parameters.class));
         verify(conversionService, times(0)).convert(any(GcsFileSystem.class), eq(GcsCloudStorageV4Parameters.class));
         verify(conversionService, times(0)).convert(any(S3FileSystem.class), eq(S3CloudStorageV4Parameters.class));
@@ -152,7 +152,7 @@ public class FileSystemToFileSystemRequestConverterTest {
 
         CloudStorageV4Request result = underTest.convert(fileSystem);
 
-        assertEquals(expected, result.getGcs());
+        assertEquals(expected, result.getIdentity().getGcs());
         verify(conversionService, times(1)).convert(any(GcsFileSystem.class), eq(GcsCloudStorageV4Parameters.class));
         verify(conversionService, times(0)).convert(any(AdlsFileSystem.class), eq(AdlsCloudStorageV4Parameters.class));
         verify(conversionService, times(0)).convert(any(S3FileSystem.class), eq(S3CloudStorageV4Parameters.class));
@@ -170,7 +170,7 @@ public class FileSystemToFileSystemRequestConverterTest {
 
         CloudStorageV4Request result = underTest.convert(fileSystem);
 
-        assertEquals(expected, result.getS3());
+        assertEquals(expected, result.getIdentity().getS3());
         verify(conversionService, times(1)).convert(any(S3FileSystem.class), eq(S3CloudStorageV4Parameters.class));
         verify(conversionService, times(0)).convert(any(GcsFileSystem.class), eq(GcsCloudStorageV4Parameters.class));
         verify(conversionService, times(0)).convert(any(AdlsFileSystem.class), eq(AdlsCloudStorageV4Parameters.class));
@@ -188,7 +188,7 @@ public class FileSystemToFileSystemRequestConverterTest {
 
         CloudStorageV4Request result = underTest.convert(fileSystem);
 
-        assertEquals(expected, result.getWasb());
+        assertEquals(expected, result.getIdentity().getWasb());
         verify(conversionService, times(1)).convert(any(WasbFileSystem.class), eq(WasbCloudStorageV4Parameters.class));
         verify(conversionService, times(0)).convert(any(S3FileSystem.class), eq(S3CloudStorageV4Parameters.class));
         verify(conversionService, times(0)).convert(any(GcsFileSystem.class), eq(GcsCloudStorageV4Parameters.class));
@@ -206,7 +206,7 @@ public class FileSystemToFileSystemRequestConverterTest {
 
         CloudStorageV4Request result = underTest.convert(fileSystem);
 
-        assertEquals(expected, result.getAdlsGen2());
+        assertEquals(expected, result.getIdentity().getAdlsGen2());
         verify(conversionService, times(1)).convert(any(AdlsGen2FileSystem.class), eq(AdlsGen2CloudStorageV4Parameters.class));
         verify(conversionService, times(0)).convert(any(WasbFileSystem.class), eq(WasbCloudStorageV4Parameters.class));
         verify(conversionService, times(0)).convert(any(S3FileSystem.class), eq(S3CloudStorageV4Parameters.class));
@@ -222,11 +222,11 @@ public class FileSystemToFileSystemRequestConverterTest {
 
         CloudStorageV4Request result = underTest.convert(fileSystem);
 
-        assertNull(result.getAdls());
-        assertNull(result.getGcs());
-        assertNull(result.getS3());
-        assertNull(result.getWasb());
-        assertNull(result.getAdlsGen2());
+        assertNull(result.getIdentity().getAdls());
+        assertNull(result.getIdentity().getGcs());
+        assertNull(result.getIdentity().getS3());
+        assertNull(result.getIdentity().getWasb());
+        assertNull(result.getIdentity().getAdlsGen2());
     }
 
 }

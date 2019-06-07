@@ -9,6 +9,7 @@ import javax.inject.Inject;
 
 import org.springframework.stereotype.Component;
 
+import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.base.StorageIdentityV4;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.base.parameter.storage.CloudStorageV4Parameters;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.request.cluster.storage.CloudStorageV4Request;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.request.cluster.storage.location.StorageLocationV4Request;
@@ -57,16 +58,19 @@ public class CloudStorageV4RequestToFileSystemConverter extends AbstractConversi
             throw new BadRequestException(String.format("Storage locations could not be parsed: %s", source));
         }
         BaseFileSystem baseFileSystem = null;
-        if (source.getAdls() != null) {
-            baseFileSystem = getConversionService().convert(source.getAdls(), AdlsFileSystem.class);
-        } else if (source.getGcs() != null) {
-            baseFileSystem = getConversionService().convert(source.getGcs(), GcsFileSystem.class);
-        } else if (source.getS3() != null) {
-            baseFileSystem = getConversionService().convert(source.getS3(), S3FileSystem.class);
-        } else if (source.getWasb() != null) {
-            baseFileSystem = getConversionService().convert(source.getWasb(), WasbFileSystem.class);
-        } else if (source.getAdlsGen2() != null) {
-            baseFileSystem = getConversionService().convert(source.getAdlsGen2(), AdlsGen2FileSystem.class);
+        StorageIdentityV4 identity = source.getIdentity();
+        if(identity != null ) {
+            if (identity.getAdls() != null) {
+                baseFileSystem = getConversionService().convert(identity.getAdls(), AdlsFileSystem.class);
+            } else if (identity.getGcs() != null) {
+                baseFileSystem = getConversionService().convert(identity.getGcs(), GcsFileSystem.class);
+            } else if (identity.getS3() != null) {
+                baseFileSystem = getConversionService().convert(identity.getS3(), S3FileSystem.class);
+            } else if (identity.getWasb() != null) {
+                baseFileSystem = getConversionService().convert(identity.getWasb(), WasbFileSystem.class);
+            } else if (identity.getAdlsGen2() != null) {
+                baseFileSystem = getConversionService().convert(identity.getAdlsGen2(), AdlsGen2FileSystem.class);
+            }
         }
         try {
             fileSystem.setConfigurations(new Json(baseFileSystem));

@@ -20,21 +20,23 @@ public class CloudStorageV4RequestToSpiFileSystemConverter extends AbstractConve
     public SpiFileSystem convert(CloudStorageV4Request source) {
         CloudFileSystemView baseFileSystem = null;
         FileSystemType type = null;
-        if (source.getAdls() != null) {
-            baseFileSystem = getConversionService().convert(source.getAdls(), CloudAdlsView.class);
-            type = FileSystemType.ADLS;
-        } else if (source.getGcs() != null) {
-            baseFileSystem = getConversionService().convert(source.getGcs(), CloudGcsView.class);
-            type = FileSystemType.GCS;
-        } else if (source.getS3() != null) {
-            baseFileSystem = getConversionService().convert(source.getS3(), CloudS3View.class);
-            type = FileSystemType.S3;
-        } else if (source.getWasb() != null) {
-            baseFileSystem = getConversionService().convert(source.getWasb(), CloudWasbView.class);
-            type = FileSystemType.WASB;
-        } else if (source.getAdlsGen2() != null) {
-            baseFileSystem = getConversionService().convert(source.getAdlsGen2(), CloudAdlsGen2View.class);
-            type = FileSystemType.ADLS_GEN_2;
+        if(source.getIdentity() != null) {
+            if (source.getIdentity().getAdls() != null) {
+                baseFileSystem = getConversionService().convert(source.getIdentity().getAdls(), CloudAdlsView.class);
+                type = FileSystemType.ADLS;
+            } else if (source.getIdentity().getGcs() != null) {
+                baseFileSystem = getConversionService().convert(source.getIdentity().getGcs(), CloudGcsView.class);
+                type = FileSystemType.GCS;
+            } else if (source.getIdentity().getS3() != null) {
+                baseFileSystem = getConversionService().convert(source.getIdentity().getS3(), CloudS3View.class);
+                type = FileSystemType.S3;
+            } else if (source.getIdentity().getWasb() != null) {
+                baseFileSystem = getConversionService().convert(source.getIdentity().getWasb(), CloudWasbView.class);
+                type = FileSystemType.WASB;
+            } else if (source.getIdentity().getAdlsGen2() != null) {
+                baseFileSystem = getConversionService().convert(source.getIdentity().getAdlsGen2(), CloudAdlsGen2View.class);
+                type = FileSystemType.ADLS_GEN_2;
+            }
         }
         return new SpiFileSystem("", type, baseFileSystem);
     }

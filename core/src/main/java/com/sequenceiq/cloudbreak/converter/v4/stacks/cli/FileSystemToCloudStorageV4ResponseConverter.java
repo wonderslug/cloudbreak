@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.base.StorageIdentityV4;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.base.parameter.storage.AdlsCloudStorageV4Parameters;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.base.parameter.storage.AdlsGen2CloudStorageV4Parameters;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.base.parameter.storage.GcsCloudStorageV4Parameters;
@@ -37,19 +38,21 @@ public class FileSystemToCloudStorageV4ResponseConverter extends AbstractConvers
         response.setName(source.getName());
         response.setLocations(getStorageLocationRequests(source));
         try {
+            StorageIdentityV4 identity = new StorageIdentityV4();
+            response.setIdentity(identity);
             if (source.getType().isAdls()) {
                 AdlsCloudStorageV4Parameters adls = getConversionService()
                         .convert(source.getConfigurations().get(AdlsFileSystem.class), AdlsCloudStorageV4Parameters.class);
                 adls.setCredential(null);
-                response.setAdls(adls);
+                identity.setAdls(adls);
             } else if (source.getType().isGcs()) {
-                response.setGcs(getConversionService().convert(source.getConfigurations().get(GcsFileSystem.class), GcsCloudStorageV4Parameters.class));
+                identity.setGcs(getConversionService().convert(source.getConfigurations().get(GcsFileSystem.class), GcsCloudStorageV4Parameters.class));
             } else if (source.getType().isS3()) {
-                response.setS3(getConversionService().convert(source.getConfigurations().get(S3FileSystem.class), S3CloudStorageV4Parameters.class));
+                identity.setS3(getConversionService().convert(source.getConfigurations().get(S3FileSystem.class), S3CloudStorageV4Parameters.class));
             } else if (source.getType().isWasb()) {
-                response.setWasb(getConversionService().convert(source.getConfigurations().get(WasbFileSystem.class), WasbCloudStorageV4Parameters.class));
+                identity.setWasb(getConversionService().convert(source.getConfigurations().get(WasbFileSystem.class), WasbCloudStorageV4Parameters.class));
             } else if (source.getType().isAdlsGen2()) {
-                response.setAdlsGen2(getConversionService().convert(source.getConfigurations().get(AdlsGen2FileSystem.class),
+                identity.setAdlsGen2(getConversionService().convert(source.getConfigurations().get(AdlsGen2FileSystem.class),
                         AdlsGen2CloudStorageV4Parameters.class));
             }
         } catch (IOException ioe) {

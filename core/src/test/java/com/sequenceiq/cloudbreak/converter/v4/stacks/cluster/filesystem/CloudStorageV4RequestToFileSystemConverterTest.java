@@ -80,7 +80,7 @@ public class CloudStorageV4RequestToFileSystemConverterTest {
         adlsFileSystemParameters.setClientId("1234");
         adlsFileSystemParameters.setCredential("123456");
         adlsFileSystemParameters.setTenantId("1111111");
-        request.setAdls(adlsFileSystemParameters);
+        request.getIdentity().setAdls(adlsFileSystemParameters);
         AdlsCloudStorageV4Parameters adlsCloudStorageParameters = new AdlsCloudStorageV4Parameters();
         when(fileSystemResolver.propagateConfiguration(request)).thenReturn(adlsCloudStorageParameters);
         when(underTest.getConversionService()).thenReturn(conversionService);
@@ -98,7 +98,7 @@ public class CloudStorageV4RequestToFileSystemConverterTest {
         CloudStorageV4Request request = createV4Request();
         GcsCloudStorageV4Parameters gcsFileSystemParameters = new GcsCloudStorageV4Parameters();
         gcsFileSystemParameters.setServiceAccountEmail("some@email.com");
-        request.setGcs(gcsFileSystemParameters);
+        request.getIdentity().setGcs(gcsFileSystemParameters);
         GcsCloudStorageV4Parameters gcsCloudStorageParameters = new GcsCloudStorageV4Parameters();
         when(fileSystemResolver.propagateConfiguration(request)).thenReturn(gcsCloudStorageParameters);
         when(underTest.getConversionService()).thenReturn(conversionService);
@@ -118,7 +118,7 @@ public class CloudStorageV4RequestToFileSystemConverterTest {
         WasbCloudStorageV4Parameters wasbFileSystemParameters = new WasbCloudStorageV4Parameters();
         wasbFileSystemParameters.setAccountKey("123456789");
         wasbFileSystemParameters.setAccountName("accountNameValue");
-        request.setWasb(wasbFileSystemParameters);
+        request.getIdentity().setWasb(wasbFileSystemParameters);
         WasbCloudStorageV4Parameters wasbCloudStorageParameters = new WasbCloudStorageV4Parameters();
         when(fileSystemResolver.propagateConfiguration(request)).thenReturn(wasbCloudStorageParameters);
         when(underTest.getConversionService()).thenReturn(conversionService);
@@ -138,7 +138,7 @@ public class CloudStorageV4RequestToFileSystemConverterTest {
         AdlsGen2CloudStorageV4Parameters adlsGen2FileSystemParameters = new AdlsGen2CloudStorageV4Parameters();
         adlsGen2FileSystemParameters.setAccountKey("123456789");
         adlsGen2FileSystemParameters.setAccountName("accountNameValue");
-        request.setAdlsGen2(adlsGen2FileSystemParameters);
+        request.getIdentity().setAdlsGen2(adlsGen2FileSystemParameters);
         AdlsGen2CloudStorageV4Parameters adlsGen2CloudStorageParameters = new AdlsGen2CloudStorageV4Parameters();
         when(fileSystemResolver.propagateConfiguration(request)).thenReturn(adlsGen2CloudStorageParameters);
         when(underTest.getConversionService()).thenReturn(conversionService);

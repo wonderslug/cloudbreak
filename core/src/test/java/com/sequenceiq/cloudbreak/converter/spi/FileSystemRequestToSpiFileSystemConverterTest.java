@@ -53,7 +53,7 @@ public class FileSystemRequestToSpiFileSystemConverterTest {
     public void testConvertWhenAdlsNotNullThenCloudAdlsShouldBeInReturningObject() {
         AdlsCloudStorageV4Parameters adls = mock(AdlsCloudStorageV4Parameters.class);
         CloudAdlsView expected = mock(CloudAdlsView.class);
-        when(request.getAdls()).thenReturn(adls);
+        when(request.getIdentity().getAdls()).thenReturn(adls);
         when(conversionService.convert(adls, CloudAdlsView.class)).thenReturn(expected);
 
         SpiFileSystem result = underTest.convert(request);
@@ -70,7 +70,7 @@ public class FileSystemRequestToSpiFileSystemConverterTest {
     public void testConvertWhenGcsNotNullThenCloudGcsShouldBeInReturningObject() {
         GcsCloudStorageV4Parameters gcs = mock(GcsCloudStorageV4Parameters.class);
         CloudGcsView expected = mock(CloudGcsView.class);
-        when(request.getGcs()).thenReturn(gcs);
+        when(request.getIdentity().getGcs()).thenReturn(gcs);
         when(conversionService.convert(gcs, CloudGcsView.class)).thenReturn(expected);
 
         SpiFileSystem result = underTest.convert(request);
@@ -87,7 +87,7 @@ public class FileSystemRequestToSpiFileSystemConverterTest {
     public void testConvertWhenS3NotNullThenCloudS3ShouldBeInReturningObject() {
         S3CloudStorageV4Parameters s3 = mock(S3CloudStorageV4Parameters.class);
         CloudS3View expected = mock(CloudS3View.class);
-        when(request.getS3()).thenReturn(s3);
+        when(request.getIdentity().getS3()).thenReturn(s3);
         when(conversionService.convert(s3, CloudS3View.class)).thenReturn(expected);
 
         SpiFileSystem result = underTest.convert(request);
@@ -104,7 +104,7 @@ public class FileSystemRequestToSpiFileSystemConverterTest {
     public void testConvertWhenWasbNotNullThenCloudWasbShouldBeInReturningObject() {
         WasbCloudStorageV4Parameters wasb = mock(WasbCloudStorageV4Parameters.class);
         CloudWasbView expected = mock(CloudWasbView.class);
-        when(request.getWasb()).thenReturn(wasb);
+        when(request.getIdentity().getWasb()).thenReturn(wasb);
         when(conversionService.convert(wasb, CloudWasbView.class)).thenReturn(expected);
 
         SpiFileSystem result = underTest.convert(request);
@@ -119,10 +119,10 @@ public class FileSystemRequestToSpiFileSystemConverterTest {
 
     @Test
     public void testConvertWhenAllCloudStorageParametersAreNullThenNullCloudFileSystemViewShouldPlacedInResultInstance() {
-        when(request.getWasb()).thenReturn(null);
-        when(request.getAdls()).thenReturn(null);
-        when(request.getS3()).thenReturn(null);
-        when(request.getGcs()).thenReturn(null);
+        when(request.getIdentity().getWasb()).thenReturn(null);
+        when(request.getIdentity().getAdls()).thenReturn(null);
+        when(request.getIdentity().getS3()).thenReturn(null);
+        when(request.getIdentity().getGcs()).thenReturn(null);
 
         SpiFileSystem result = underTest.convert(request);
 

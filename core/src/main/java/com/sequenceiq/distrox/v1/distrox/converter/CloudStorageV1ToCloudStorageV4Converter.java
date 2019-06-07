@@ -21,10 +21,10 @@ public class CloudStorageV1ToCloudStorageV4Converter {
     public CloudStorageV4Request convert(CloudStorageV1Request source) {
         CloudStorageV4Request response = new CloudStorageV4Request();
         response.setLocations(ifNotNullF(source.getLocations(), locationConverter::convert));
-        response.setS3(ifNotNullF(source.getS3(), cloudStorageConverter::convert));
-        response.setAdls(ifNotNullF(source.getAdls(), cloudStorageConverter::convert));
-        response.setAdlsGen2(ifNotNullF(source.getAdlsGen2(), cloudStorageConverter::convert));
-        response.setAdlsGen2(ifNotNullF(source.getAdlsGen2(), cloudStorageConverter::convert));
-        return response;
+//        response.setS3(ifNotNullF(source.getS3(), cloudStorageConverter::convert));
+//        response.setAdls(ifNotNullF(source.getAdls(), cloudStorageConverter::convert));
+//        response.setAdlsGen2(ifNotNullF(source.getAdlsGen2(), cloudStorageConverter::convert));
+//        response.setAdlsGen2(ifNotNullF(source.getAdlsGen2(), cloudStorageConverter::convert));
+       return response;
     }
 }
