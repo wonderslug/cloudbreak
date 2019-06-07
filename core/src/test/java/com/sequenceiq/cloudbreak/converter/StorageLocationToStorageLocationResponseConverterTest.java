@@ -5,8 +5,8 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.response.cluster.storage.location.StorageLocationV4Response;
-import com.sequenceiq.cloudbreak.converter.v4.stacks.cluster.filesystem.StorageLocationToStorageLocationV4ResponseConverter;
+import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.base.StorageLocationV4;
+import com.sequenceiq.cloudbreak.converter.v4.stacks.cluster.filesystem.StorageLocationToStorageLocationV4Converter;
 import com.sequenceiq.cloudbreak.domain.StorageLocation;
 
 public class StorageLocationToStorageLocationResponseConverterTest {
@@ -17,21 +17,21 @@ public class StorageLocationToStorageLocationResponseConverterTest {
 
     private static final String VALUE = "propertyValue";
 
-    private StorageLocationToStorageLocationV4ResponseConverter underTest;
+    private StorageLocationToStorageLocationV4Converter underTest;
 
     @Before
     public void setUp() {
-        underTest = new StorageLocationToStorageLocationV4ResponseConverter();
+        underTest = new StorageLocationToStorageLocationV4Converter();
     }
 
     @Test
     public void testConvertWhenPassingStorageLocationThenAllNecessaryParametersShouldBePassed() {
-        StorageLocationV4Response expected = new StorageLocationV4Response();
+        StorageLocationV4 expected = new StorageLocationV4();
         expected.setValue(VALUE);
         expected.setPropertyName(PROPERTY_NAME);
         expected.setPropertyFile(PROPERTY_FILE);
 
-        StorageLocationV4Response result = underTest.convert(createSource());
+        StorageLocationV4 result = underTest.convert(createSource());
 
         assertEquals(expected, result);
     }

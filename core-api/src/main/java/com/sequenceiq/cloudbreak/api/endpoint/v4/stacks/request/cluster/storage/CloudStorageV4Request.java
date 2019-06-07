@@ -9,7 +9,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.base.CloudStorageV4Base;
-import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.request.cluster.storage.location.StorageLocationV4Request;
+import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.base.StorageLocationV4;
 import com.sequenceiq.cloudbreak.doc.ModelDescriptions.ClusterModelDescription;
 
 import io.swagger.annotations.ApiModel;
@@ -22,13 +22,13 @@ public class CloudStorageV4Request extends CloudStorageV4Base {
 
     @Valid
     @ApiModelProperty(ClusterModelDescription.LOCATIONS)
-    private Set<StorageLocationV4Request> locations = new HashSet<>();
+    private Set<StorageLocationV4> locations = new HashSet<>();
 
-    public Set<StorageLocationV4Request> getLocations() {
+    public Set<StorageLocationV4> getLocations() {
         return locations;
     }
 
-    public void setLocations(Set<StorageLocationV4Request> locations) {
+    public void setLocations(Set<StorageLocationV4> locations) {
         this.locations = locations;
     }
 }

@@ -9,22 +9,22 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.base.StorageIdentityV4;
+import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.base.StorageLocationV4;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.base.parameter.storage.AdlsCloudStorageV4Parameters;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.base.parameter.storage.AdlsGen2CloudStorageV4Parameters;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.base.parameter.storage.GcsCloudStorageV4Parameters;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.base.parameter.storage.S3CloudStorageV4Parameters;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.base.parameter.storage.WasbCloudStorageV4Parameters;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.response.cluster.storage.CloudStorageV4Response;
-import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.response.cluster.storage.location.StorageLocationV4Response;
-import com.sequenceiq.cloudbreak.converter.AbstractConversionServiceAwareConverter;
-import com.sequenceiq.cloudbreak.domain.FileSystem;
-import com.sequenceiq.cloudbreak.domain.StorageLocation;
-import com.sequenceiq.cloudbreak.domain.StorageLocations;
 import com.sequenceiq.cloudbreak.common.type.filesystem.AdlsFileSystem;
 import com.sequenceiq.cloudbreak.common.type.filesystem.AdlsGen2FileSystem;
 import com.sequenceiq.cloudbreak.common.type.filesystem.GcsFileSystem;
 import com.sequenceiq.cloudbreak.common.type.filesystem.S3FileSystem;
 import com.sequenceiq.cloudbreak.common.type.filesystem.WasbFileSystem;
+import com.sequenceiq.cloudbreak.converter.AbstractConversionServiceAwareConverter;
+import com.sequenceiq.cloudbreak.domain.FileSystem;
+import com.sequenceiq.cloudbreak.domain.StorageLocation;
+import com.sequenceiq.cloudbreak.domain.StorageLocations;
 
 @Component
 public class FileSystemToCloudStorageV4ResponseConverter extends AbstractConversionServiceAwareConverter<FileSystem, CloudStorageV4Response> {
@@ -62,14 +62,14 @@ public class FileSystemToCloudStorageV4ResponseConverter extends AbstractConvers
         return response;
     }
 
-    private Set<StorageLocationV4Response> getStorageLocationRequests(FileSystem source) {
-        Set<StorageLocationV4Response> locations = new HashSet<>();
+    private Set<StorageLocationV4> getStorageLocationRequests(FileSystem source) {
+        Set<StorageLocationV4> locations = new HashSet<>();
         try {
             if (source.getLocations() != null && source.getLocations().getValue() != null) {
                 StorageLocations storageLocations = source.getLocations().get(StorageLocations.class);
                 if (storageLocations != null) {
                     for (StorageLocation storageLocation : storageLocations.getLocations()) {
-                        locations.add(getConversionService().convert(storageLocation, StorageLocationV4Response.class));
+                        locations.add(getConversionService().convert(storageLocation, StorageLocationV4.class));
                     }
                 }
             } else {

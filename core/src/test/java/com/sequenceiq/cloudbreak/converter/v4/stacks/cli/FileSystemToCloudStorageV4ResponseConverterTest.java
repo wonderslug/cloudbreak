@@ -27,16 +27,13 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.core.convert.ConversionService;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.base.StorageLocationV4;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.base.parameter.storage.AdlsCloudStorageV4Parameters;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.base.parameter.storage.AdlsGen2CloudStorageV4Parameters;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.base.parameter.storage.GcsCloudStorageV4Parameters;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.base.parameter.storage.S3CloudStorageV4Parameters;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.base.parameter.storage.WasbCloudStorageV4Parameters;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.response.cluster.storage.CloudStorageV4Response;
-import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.response.cluster.storage.location.StorageLocationV4Response;
-import com.sequenceiq.cloudbreak.domain.FileSystem;
-import com.sequenceiq.cloudbreak.domain.StorageLocation;
-import com.sequenceiq.cloudbreak.domain.StorageLocations;
 import com.sequenceiq.cloudbreak.common.json.Json;
 import com.sequenceiq.cloudbreak.common.type.filesystem.AdlsFileSystem;
 import com.sequenceiq.cloudbreak.common.type.filesystem.AdlsGen2FileSystem;
@@ -45,6 +42,9 @@ import com.sequenceiq.cloudbreak.common.type.filesystem.FileSystemType;
 import com.sequenceiq.cloudbreak.common.type.filesystem.GcsFileSystem;
 import com.sequenceiq.cloudbreak.common.type.filesystem.S3FileSystem;
 import com.sequenceiq.cloudbreak.common.type.filesystem.WasbFileSystem;
+import com.sequenceiq.cloudbreak.domain.FileSystem;
+import com.sequenceiq.cloudbreak.domain.StorageLocation;
+import com.sequenceiq.cloudbreak.domain.StorageLocations;
 
 public class FileSystemToCloudStorageV4ResponseConverterTest {
 
@@ -139,13 +139,13 @@ public class FileSystemToCloudStorageV4ResponseConverterTest {
         when(locations.getValue()).thenReturn("some value");
         when(locations.get(StorageLocations.class)).thenReturn(storageLocations);
         when(fileSystem.getLocations()).thenReturn(locations);
-        when(conversionService.convert(location, StorageLocationV4Response.class)).thenReturn(new StorageLocationV4Response());
+        when(conversionService.convert(location, StorageLocationV4.class)).thenReturn(new StorageLocationV4());
 
         CloudStorageV4Response result = underTest.convert(fileSystem);
 
         assertNotNull(result.getLocations());
         assertEquals(1L, result.getLocations().size());
-        verify(conversionService, times(1)).convert(any(StorageLocation.class), eq(StorageLocationV4Response.class));
+        verify(conversionService, times(1)).convert(any(StorageLocation.class), eq(StorageLocationV4.class));
     }
 
     @Test

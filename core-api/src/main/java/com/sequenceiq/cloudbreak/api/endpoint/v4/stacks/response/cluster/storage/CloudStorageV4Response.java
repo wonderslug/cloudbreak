@@ -10,7 +10,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.base.CloudStorageV4Base;
-import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.response.cluster.storage.location.StorageLocationV4Response;
+import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.base.StorageLocationV4;
 import com.sequenceiq.cloudbreak.doc.ModelDescriptions;
 import com.sequenceiq.cloudbreak.doc.ModelDescriptions.ClusterModelDescription;
 import com.sequenceiq.cloudbreak.doc.ModelDescriptions.FileSystem;
@@ -29,7 +29,7 @@ public class CloudStorageV4Response extends CloudStorageV4Base {
 
     @Valid
     @ApiModelProperty(ClusterModelDescription.LOCATIONS)
-    private Set<StorageLocationV4Response> locations = new HashSet<>();
+    private Set<StorageLocationV4> locations = new HashSet<>();
 
     @NotNull
     @ApiModelProperty(value = FileSystem.NAME, required = true)
@@ -46,11 +46,11 @@ public class CloudStorageV4Response extends CloudStorageV4Base {
         this.id = id;
     }
 
-    public Set<StorageLocationV4Response> getLocations() {
+    public Set<StorageLocationV4> getLocations() {
         return locations;
     }
 
-    public void setLocations(Set<StorageLocationV4Response> locations) {
+    public void setLocations(Set<StorageLocationV4> locations) {
         this.locations = locations;
     }
 

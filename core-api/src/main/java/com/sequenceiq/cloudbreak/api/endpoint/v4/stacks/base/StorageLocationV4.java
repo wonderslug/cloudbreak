@@ -11,7 +11,7 @@ import com.sequenceiq.cloudbreak.api.endpoint.v4.JsonEntity;
 import io.swagger.annotations.ApiModelProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public abstract class StorageLocationV4Base implements JsonEntity {
+public class StorageLocationV4 implements JsonEntity {
 
     @ApiModelProperty
     @NotNull
@@ -54,10 +54,10 @@ public abstract class StorageLocationV4Base implements JsonEntity {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof StorageLocationV4Base)) {
+        if (!(o instanceof StorageLocationV4)) {
             return false;
         }
-        StorageLocationV4Base that = (StorageLocationV4Base) o;
+        StorageLocationV4 that = (StorageLocationV4) o;
         return Objects.equals(propertyFile, that.propertyFile)
                 && Objects.equals(propertyName, that.propertyName)
                 && Objects.equals(value, that.value);

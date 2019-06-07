@@ -15,6 +15,9 @@ import io.swagger.annotations.ApiModelProperty;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class StorageIdentityV4 implements JsonEntity {
 
+    @ApiModelProperty
+    private String type;
+
     @Valid
     @ApiModelProperty
     private AdlsCloudStorageV4Parameters adls;
@@ -34,6 +37,14 @@ public class StorageIdentityV4 implements JsonEntity {
     @Valid
     @ApiModelProperty
     private AdlsGen2CloudStorageV4Parameters adlsGen2;
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
 
     public AdlsCloudStorageV4Parameters getAdls() {
         return adls;

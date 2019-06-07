@@ -10,9 +10,9 @@ import javax.inject.Inject;
 import org.springframework.stereotype.Component;
 
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.base.StorageIdentityV4;
+import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.base.StorageLocationV4;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.base.parameter.storage.CloudStorageV4Parameters;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.request.cluster.storage.CloudStorageV4Request;
-import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.request.cluster.storage.location.StorageLocationV4Request;
 import com.sequenceiq.cloudbreak.common.converter.MissingResourceNameGenerator;
 import com.sequenceiq.cloudbreak.common.json.Json;
 import com.sequenceiq.cloudbreak.common.type.filesystem.AdlsFileSystem;
@@ -46,8 +46,8 @@ public class CloudStorageV4RequestToFileSystemConverter extends AbstractConversi
 
         Set<StorageLocation> locations = new HashSet<>();
         if (source.getLocations() != null) {
-            for (StorageLocationV4Request storageLocationRequest : source.getLocations()) {
-                locations.add(getConversionService().convert(storageLocationRequest, StorageLocation.class));
+            for (StorageLocationV4 storageLocationV4 : source.getLocations()) {
+                locations.add(getConversionService().convert(storageLocationV4, StorageLocation.class));
             }
         }
         try {
