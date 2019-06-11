@@ -1,6 +1,7 @@
 package com.sequenceiq.environment.environment.service;
 
 import static com.sequenceiq.cloudbreak.cloud.model.Region.region;
+import static com.sequenceiq.environment.environment.flow.delete.event.EnvDeleteStateSelectors.START_NETWORK_DELETE_EVENT;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 import java.util.HashSet;
@@ -25,10 +26,12 @@ import com.sequenceiq.environment.api.v1.environment.model.response.SimpleEnviro
 import com.sequenceiq.environment.environment.domain.Environment;
 import com.sequenceiq.environment.environment.domain.Region;
 import com.sequenceiq.environment.environment.dto.LocationDto;
+import com.sequenceiq.environment.environment.flow.delete.event.EnvDeleteEvent;
 import com.sequenceiq.environment.environment.repository.EnvironmentRepository;
 import com.sequenceiq.environment.environment.validation.EnvironmentValidatorService;
 import com.sequenceiq.environment.platformresource.PlatformParameterService;
 import com.sequenceiq.environment.platformresource.PlatformResourceRequest;
+import com.sequenceiq.flow.reactor.api.event.EventSender;
 
 @Service
 public class EnvironmentService {
@@ -43,15 +46,18 @@ public class EnvironmentService {
 
     private final PlatformParameterService platformParameterService;
 
+    private final EventSender eventSender;
+
     public EnvironmentService(
             EnvironmentValidatorService validatorService,
             EnvironmentRepository environmentRepository,
             ConversionService conversionService,
-            PlatformParameterService platformParameterService) {
+            PlatformParameterService platformParameterService, EventSender eventSender) {
         this.validatorService = validatorService;
         this.environmentRepository = environmentRepository;
         this.conversionService = conversionService;
         this.platformParameterService = platformParameterService;
+        this.eventSender = eventSender;
     }
 
     public Environment save(Environment environment) {
@@ -94,11 +100,12 @@ public class EnvironmentService {
         return conversionService.convert(environment, SimpleEnvironmentResponse.class);
     }
 
-    public Environment delete(Environment resource) {
-        MDCBuilder.buildMdcContext(resource);
-        LOGGER.debug("Deleting environment with name: {}", resource.getName());
-        environmentRepository.delete(resource);
-        return resource;
+    public Environment delete(Environment env) {
+        checkForDeletePermit(env);
+        MDCBuilder.buildMdcContext(env);
+        LOGGER.debug("Deleting environment with name: {}", env.getName());
+        triggerDeleteFlow(env.getId(), env.getName());
+        return env;
     }
 
     public SimpleEnvironmentResponses deleteMultipleByNames(Set<String> environmentNames, String accountId) {
@@ -175,6 +182,20 @@ public class EnvironmentService {
         platformResourceRequest.setCredential(environment.getCredential());
         platformResourceRequest.setCloudPlatform(environment.getCloudPlatform());
         return platformParameterService.getRegionsByCredential(platformResourceRequest);
+    }
+
+    private void triggerDeleteFlow(long envId, String envName) {
+        EnvDeleteEvent envDeleteEvent = EnvDeleteEvent.EnvDeleteEventBuilder.anEnvDeleteEvent()
+                .withSelector(START_NETWORK_DELETE_EVENT.selector())
+                .withResourceId(envId)
+                .withResourceName(envName)
+                .build();
+        eventSender.sendEvent(envDeleteEvent);
+    }
+
+    private void checkForDeletePermit(Environment env) {
+        // TODO: 2019. 06. 11. check for sdx/distrox if there any attached ones
+        LOGGER.debug("Checking if environment [name: {}] is deletable", env.getName());
     }
 
 }
