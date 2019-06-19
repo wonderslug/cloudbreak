@@ -1,7 +1,9 @@
 package com.sequenceiq.redbeams.domain.stack;
 
+import com.sequenceiq.cloudbreak.auth.altus.Crn;
 import com.sequenceiq.cloudbreak.common.json.Json;
 import com.sequenceiq.cloudbreak.common.json.JsonToString;
+import com.sequenceiq.redbeams.converter.CrnConverter;
 
 import java.util.Map;
 
@@ -37,6 +39,11 @@ public class DBStack {
     @Column(length = 1000000, columnDefinition = "TEXT")
     private String description;
 
+    // these two are for making a location for CloudContext, but why?
+    private String region;
+
+    private String availabilityZone;
+
     @ManyToOne
     private Network network;
 
@@ -52,8 +59,20 @@ public class DBStack {
     @Column(name = "value", columnDefinition = "TEXT", length = 100000)
     private Map<String, String> parameters;
 
+    @Column(columnDefinition = "TEXT")
+    private String cloudPlatform;
+
+    @Column(columnDefinition = "TEXT")
+    private String platformVariant;
+
     @Column(nullable = false, name = "environment_id")
     private String environmentId;
+
+    @Column(columnDefinition = "TEXT")
+    private String template;
+
+    @Convert(converter = CrnConverter.class)
+    private Crn ownerCrn;
 
     public Long getId() {
         return id;
@@ -85,6 +104,22 @@ public class DBStack {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getRegion() {
+        return region;
+    }
+
+    public void setRegion(String region) {
+        this.region = region;
+    }
+
+    public String getAvailabilityZone() {
+        return availabilityZone;
+    }
+
+    public void setAvailabilityZone(String availabilityZone) {
+        this.availabilityZone = availabilityZone;
     }
 
     public Network getNetwork() {
@@ -119,11 +154,43 @@ public class DBStack {
         this.parameters = parameters;
     }
 
+    public String getCloudPlatform() {
+        return cloudPlatform;
+    }
+
+    public void setCloudPlatform(String cloudPlatform) {
+        this.cloudPlatform = cloudPlatform;
+    }
+
+    public String getPlatformVariant() {
+        return platformVariant;
+    }
+
+    public void setPlatformVariant(String platformVariant) {
+        this.platformVariant = platformVariant;
+    }
+
     public String getEnvironmentId() {
         return environmentId;
     }
 
     public void setEnvironmentId(String environment) {
         this.environmentId = environment;
+    }
+
+    public String getTemplate() {
+        return template;
+    }
+
+    public void setTemplate(String template) {
+        this.template = template;
+    }
+
+    public Crn getOwnerCrn() {
+        return ownerCrn;
+    }
+
+    public void setOwnerCrn(Crn ownerCrn) {
+        this.ownerCrn = ownerCrn;
     }
 }

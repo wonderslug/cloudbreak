@@ -31,8 +31,7 @@ public class DBStackToDatabaseStackConverter {
     public DatabaseStack convert(DBStack dbStack) {
         Network network = buildNetwork(dbStack);
         DatabaseServer databaseServer = buildDatabaseServer(dbStack);
-        // FIXME need to retrieve template
-        return new DatabaseStack(network, databaseServer, getUserDefinedTags(dbStack), null);
+        return new DatabaseStack(network, databaseServer, getUserDefinedTags(dbStack), dbStack.getTemplate());
     }
 
     private Network buildNetwork(DBStack dbStack) {
