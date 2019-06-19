@@ -50,20 +50,40 @@ public class DatabaseServerV4Base extends ProviderParametersBase {
         return instanceType;
     }
 
+    public void setInstanceType(String instanceType) {
+        this.instanceType = instanceType;
+    }
+
     public String getDatabaseVendor() {
         return databaseVendor;
+    }
+
+    public void setDatabaseVendor(String databaseVendor) {
+        this.databaseVendor = databaseVendor;
     }
 
     public Long getStorageSize() {
         return storageSize;
     }
 
+    public void setStorageSize(Long storageSize) {
+        this.storageSize = storageSize;
+    }
+
     public String getRootUserName() {
         return rootUserName;
     }
 
+    public void setRootUserName(String rootUserName) {
+        this.rootUserName = rootUserName;
+    }
+
     public String getRootUserPassword() {
         return rootUserPassword;
+    }
+
+    public void setRootUserPassword(String rootUserPassword) {
+        this.rootUserPassword = rootUserPassword;
     }
 
     public AwsDatabaseServerV4Parameters createAws() {

@@ -21,4 +21,8 @@ public class DatabaseServerV4Request extends DatabaseServerV4Base {
         return securityGroup;
     }
 
+    public void setSecurityGroup(SecurityGroupV4Request securityGroup) {
+        this.securityGroup = securityGroup;
+    }
+
 }

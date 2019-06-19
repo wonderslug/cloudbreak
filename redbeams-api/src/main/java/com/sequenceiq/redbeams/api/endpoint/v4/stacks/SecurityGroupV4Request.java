@@ -24,7 +24,7 @@ public class SecurityGroupV4Request {
         return securityGroupIds;
     }
 
-    // public void setSecurityGroupIds(Set<String> securityGroupIds) {
-    //     this.securityGroupIds = securityGroupIds;
-    // }
+    public void setSecurityGroupIds(Set<String> securityGroupIds) {
+        this.securityGroupIds = securityGroupIds;
+    }
 }
