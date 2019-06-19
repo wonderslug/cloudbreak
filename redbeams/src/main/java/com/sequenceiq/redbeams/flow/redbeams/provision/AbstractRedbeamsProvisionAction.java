@@ -68,7 +68,8 @@ public abstract class AbstractRedbeamsProvisionAction<P extends Payload>
         String accountId = dbStack.getOwnerCrn().getAccountId();
         CloudContext cloudContext = new CloudContext(dbStack.getId(), dbStack.getName(), dbStack.getCloudPlatform(), dbStack.getPlatformVariant(),
                 location, userName, accountId);
-        Credential credential = credentialService.getCredentialByEnvCrn(dbStack.getEnvironmentId()); // FIXME always CRN?
+        // FIXME always CRN?
+        Credential credential = credentialService.getCredentialByEnvCrn(dbStack.getEnvironmentId());
         CloudCredential cloudCredential = credentialConverter.convert(credential);
         DatabaseStack databaseStack = databaseStackConverter.convert(dbStack);
         return new RedbeamsContext(flowParameters, cloudContext, cloudCredential, databaseStack);
