@@ -1,15 +1,18 @@
 package com.sequenceiq.redbeams.converter.stack;
 
-import com.sequenceiq.cloudbreak.cloud.model.StackTags;
+import com.sequenceiq.cloudbreak.api.endpoint.v4.common.DatabaseVendor;
+// import com.sequenceiq.cloudbreak.cloud.model.StackTags;
 import com.sequenceiq.cloudbreak.common.json.Json;
 import com.sequenceiq.cloudbreak.common.mappable.ProviderParameterCalculator;
 import com.sequenceiq.cloudbreak.exception.BadRequestException;
 import com.sequenceiq.redbeams.api.endpoint.v4.databaseserver.requests.AllocateDatabaseServerV4Request;
 import com.sequenceiq.redbeams.api.endpoint.v4.stacks.DatabaseServerV4Request;
 import com.sequenceiq.redbeams.api.endpoint.v4.stacks.NetworkV4Request;
+import com.sequenceiq.redbeams.api.endpoint.v4.stacks.SecurityGroupV4Request;
 import com.sequenceiq.redbeams.domain.stack.DBStack;
 import com.sequenceiq.redbeams.domain.stack.DatabaseServer;
 import com.sequenceiq.redbeams.domain.stack.Network;
+import com.sequenceiq.redbeams.domain.stack.SecurityGroup;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -71,7 +74,33 @@ public class AllocateDatabaseServerV4RequestToDBStackConverter {
     private DatabaseServer buildDatabaseServer(DatabaseServerV4Request source) {
         DatabaseServer server = new DatabaseServer();
 
+        // server.setName(missingResourceNameGenerator.generateName(APIResourceType.DATABASE_SERVER));
+        server.setInstanceType(source.getInstanceType());
+        DatabaseVendor databaseVendor = DatabaseVendor.fromValue(source.getDatabaseVendor());
+        server.setDatabaseVendor(databaseVendor);
+        server.setStorageSize(source.getStorageSize());
+        server.setRootUserName(source.getRootUserName());
+        server.setRootPassword(source.getRootUserPassword());
+        server.setSecurityGroup(buildSecurityGroup(source.getSecurityGroup()));
+
+        Map<String, Object> parameters = providerParameterCalculator.get(source).asMap();
+        if (parameters != null) {
+            try {
+                server.setAttributes(new Json(parameters));
+            } catch (IllegalArgumentException e) {
+                throw new BadRequestException("Invalid database server parameters", e);
+            }
+        }
+
         return server;
+    }
+
+    private SecurityGroup buildSecurityGroup(SecurityGroupV4Request source) {
+        SecurityGroup securityGroup = new SecurityGroup();
+
+        securityGroup.setSecurityGroupIds(source.getSecurityGroupIds());
+
+        return securityGroup;
     }
 
     // private Json getTags(String owner, String cloudPlatform) {
