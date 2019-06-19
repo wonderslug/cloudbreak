@@ -1,0 +1,67 @@
+package com.sequenceiq.redbeams.api.endpoint.v4.stacks;
+
+import com.sequenceiq.cloudbreak.common.mappable.Mappable;
+import com.sequenceiq.cloudbreak.common.mappable.ProviderParametersBase;
+// import com.sequenceiq.redbeams.doc.ModelDescriptions.NetworkModelDescription;
+
+import io.swagger.annotations.ApiModelProperty;
+
+public class NetworkV4Base extends ProviderParametersBase {
+
+    // FIXME define NetworkModelDescription
+
+    // @ApiModelProperty(NetworkModelDescription.AWS_PARAMETERS)
+    @ApiModelProperty("AWS parameters")
+    private AwsNetworkV4Parameters aws;
+
+    // @ApiModelProperty(NetworkModelDescription.GCP_PARAMETERS)
+    // private GcpNetworkV4Parameters gcp;
+
+    // @ApiModelProperty(NetworkModelDescription.AZURE_PARAMETERS)
+    // private AzureNetworkV4Parameters azure;
+
+    // @ApiModelProperty(NetworkModelDescription.OPEN_STACK_PARAMETERS)
+    // private OpenStackNetworkV4Parameters openstack;
+
+    // @ApiModelProperty(hidden = true)
+    // private MockNetworkV4Parameters mock;
+
+    // @ApiModelProperty(hidden = true)
+    // private YarnNetworkV4Parameters yarn;
+
+    public AwsNetworkV4Parameters createAws() {
+        if (aws == null) {
+            aws = new AwsNetworkV4Parameters();
+        }
+        return aws;
+    }
+
+    public void setAws(AwsNetworkV4Parameters aws) {
+        this.aws = aws;
+    }
+
+    public Mappable createGcp() {
+        return null;
+    }
+
+    public Mappable createAzure() {
+        return null;
+    }
+
+    public Mappable createOpenstack() {
+        return null;
+    }
+
+    public Mappable createYarn() {
+        return null;
+    }
+
+    public Mappable createMock() {
+        return null;
+    }
+
+    public AwsNetworkV4Parameters getAws() {
+        return aws;
+    }
+
+}

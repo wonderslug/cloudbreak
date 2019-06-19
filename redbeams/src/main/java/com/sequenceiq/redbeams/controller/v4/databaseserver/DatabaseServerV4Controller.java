@@ -22,8 +22,8 @@ import com.sequenceiq.redbeams.api.endpoint.v4.databaseserver.responses.Database
 import com.sequenceiq.redbeams.api.endpoint.v4.databaseserver.responses.DatabaseServerV4Responses;
 import com.sequenceiq.redbeams.api.endpoint.v4.databaseserver.responses.DatabaseServerAllocationOutcomeV4Response;
 import com.sequenceiq.redbeams.domain.DatabaseServerConfig;
-import com.sequenceiq.redbeams.flow.redbeams.provision.event.allocate.AllocateDatabaseServerRequest;
 import com.sequenceiq.redbeams.flow.redbeams.termination.event.terminate.TerminateDatabaseServerRequest;
+import com.sequenceiq.redbeams.domain.stack.DBStack;
 import com.sequenceiq.redbeams.service.dbserverconfig.DatabaseServerConfigService;
 import com.sequenceiq.redbeams.service.stack.RedbeamsCreationService;
 import com.sequenceiq.redbeams.service.stack.RedbeamsTerminationService;
@@ -60,8 +60,9 @@ public class DatabaseServerV4Controller implements DatabaseServerV4Endpoint {
 
     @Override
     public DatabaseServerAllocationOutcomeV4Response create(AllocateDatabaseServerV4Request request) {
-        // Dummy launch database call
-        return redbeamsCreationService.launchDatabase(new AllocateDatabaseServerRequest(0L), "");
+        DBStack dbStack = converterUtil.convert(request, DBStack.class);
+        DatabaseServerConfig server = redbeamsCreationService.launchDatabase(dbStack);
+        return converterUtil.convert(server, DatabaseServerAllocationOutcomeV4Response.class);
     }
 
     @Override
