@@ -47,16 +47,32 @@ public class AllocateDatabaseServerV4Request extends ProviderParametersBase {
         return name;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public String getEnvironmentId() {
         return environmentId;
+    }
+
+    public void setEnvironmentId(String environmentId) {
+        this.environmentId = environmentId;
     }
 
     public NetworkV4Request getNetwork() {
         return network;
     }
 
+    public void setNetwork(NetworkV4Request network) {
+        this.network = network;
+    }
+
     public DatabaseServerV4Request getDatabaseServer() {
         return databaseServer;
+    }
+
+    public void setDatabaseServer(DatabaseServerV4Request databaseServer) {
+        this.databaseServer = databaseServer;
     }
 
     public Mappable createAws() {

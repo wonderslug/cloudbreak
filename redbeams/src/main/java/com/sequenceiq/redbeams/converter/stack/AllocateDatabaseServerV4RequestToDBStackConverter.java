@@ -1,6 +1,7 @@
 package com.sequenceiq.redbeams.converter.stack;
 
 import com.sequenceiq.cloudbreak.api.endpoint.v4.common.DatabaseVendor;
+import com.sequenceiq.cloudbreak.auth.altus.Crn;
 // import com.sequenceiq.cloudbreak.cloud.model.StackTags;
 import com.sequenceiq.cloudbreak.common.json.Json;
 import com.sequenceiq.cloudbreak.common.mappable.ProviderParameterCalculator;
@@ -28,17 +29,17 @@ public class AllocateDatabaseServerV4RequestToDBStackConverter {
     private ProviderParameterCalculator providerParameterCalculator;
 
     // mimic CreateFreeIpaRequestToStackConverter
-    public DBStack convert(AllocateDatabaseServerV4Request source, String accountId, String userId, String cloudPlatform) {
+    public DBStack convert(AllocateDatabaseServerV4Request source, String ownerCrn) {
         DBStack dbStack = new DBStack();
         dbStack.setName(source.getName());
         dbStack.setEnvironmentId(source.getEnvironmentId());
+        dbStack.setCloudPlatform(source.getCloudPlatform().name());
+        dbStack.setPlatformVariant(source.getCloudPlatform().name());
 
         if (source.getNetwork() != null) {
             dbStack.setNetwork(buildNetwork(source.getNetwork()));
-            // source.getNetwork().setCloudPlatform(CloudPlatform.valueOf(cloudPlatform));
         }
         if (source.getDatabaseServer() != null) {
-            // source.getNetwork().setCloudPlatform(CloudPlatform.valueOf(cloudPlatform));
             dbStack.setDatabaseServer(buildDatabaseServer(source.getDatabaseServer()));
         }
 
@@ -51,7 +52,7 @@ public class AllocateDatabaseServerV4RequestToDBStackConverter {
             dbStack.setParameters(parameter);
         }
 
-        // dbStack.setOwner(Optional.of(userId).orElse(accountId));
+        dbStack.setOwnerCrn(Crn.safeFromString(ownerCrn));
 
         return dbStack;
     }
