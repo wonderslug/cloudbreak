@@ -75,7 +75,8 @@ public class AllocateDatabaseServerV4Request extends ProviderParametersBase {
         this.databaseServer = databaseServer;
     }
 
-    public Mappable createAws() {
+    @Override
+    public AwsDBStackV4Parameters createAws() {
         if (aws == null) {
             aws = new AwsDBStackV4Parameters();
         }
@@ -86,24 +87,33 @@ public class AllocateDatabaseServerV4Request extends ProviderParametersBase {
         this.aws = aws;
     }
 
+    @Override
     public Mappable createGcp() {
         return null;
     }
 
+    @Override
     public Mappable createAzure() {
         return null;
     }
 
+    @Override
     public Mappable createOpenstack() {
         return null;
     }
 
+    @Override
     public Mappable createYarn() {
         return null;
     }
 
+    @Override
     public Mappable createMock() {
         return null;
+    }
+
+    public AwsDBStackV4Parameters getAws() {
+        return aws;
     }
 
 }

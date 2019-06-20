@@ -86,6 +86,7 @@ public class DatabaseServerV4Base extends ProviderParametersBase {
         this.rootUserPassword = rootUserPassword;
     }
 
+    @Override
     public AwsDatabaseServerV4Parameters createAws() {
         if (aws == null) {
             aws = new AwsDatabaseServerV4Parameters();
@@ -97,22 +98,27 @@ public class DatabaseServerV4Base extends ProviderParametersBase {
         this.aws = aws;
     }
 
+    @Override
     public Mappable createGcp() {
         return null;
     }
 
+    @Override
     public Mappable createAzure() {
         return null;
     }
 
+    @Override
     public Mappable createOpenstack() {
         return null;
     }
 
+    @Override
     public Mappable createYarn() {
         return null;
     }
 
+    @Override
     public Mappable createMock() {
         return null;
     }
