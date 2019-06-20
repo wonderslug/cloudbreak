@@ -39,7 +39,7 @@ public class DBStack {
     @Column(length = 1000000, columnDefinition = "TEXT")
     private String description;
 
-    // these two are for making a location for CloudContext, but why?
+    // FIXME these two are for making a location for CloudContext, but why?
     private String region;
 
     private String availabilityZone;
