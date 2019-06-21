@@ -8,11 +8,13 @@ import com.sequenceiq.cloudbreak.api.endpoint.v4.common.DatabaseVendor;
 import com.sequenceiq.cloudbreak.auth.altus.Crn;
 import com.sequenceiq.cloudbreak.common.mappable.CloudPlatform;
 import com.sequenceiq.cloudbreak.common.mappable.ProviderParameterCalculator;
+import com.sequenceiq.environment.api.v1.environment.model.response.DetailedEnvironmentResponse;
 import com.sequenceiq.redbeams.api.endpoint.v4.databaseserver.requests.AllocateDatabaseServerV4Request;
 import com.sequenceiq.redbeams.api.endpoint.v4.stacks.DatabaseServerV4Request;
 import com.sequenceiq.redbeams.api.endpoint.v4.stacks.NetworkV4Request;
 import com.sequenceiq.redbeams.api.endpoint.v4.stacks.SecurityGroupV4Request;
 import com.sequenceiq.redbeams.domain.stack.DBStack;
+import com.sequenceiq.redbeams.service.EnvironmentService;
 
 import java.util.Map;
 import java.util.Set;
@@ -32,6 +34,9 @@ public class AllocateDatabaseServerV4RequestToDBStackConverterTest {
     private static final Map<String, Object> NETWORK_REQUEST_PARAMETERS = Map.of("netkey", "netvalue");
 
     private static final Map<String, Object> DATABASE_SERVER_REQUEST_PARAMETERS = Map.of("dbkey", "dbvalue");
+
+    @Mock
+    private EnvironmentService environmentService;
 
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     private ProviderParameterCalculator providerParameterCalculator;
@@ -67,7 +72,8 @@ public class AllocateDatabaseServerV4RequestToDBStackConverterTest {
     public void testConversion() {
         allocateRequest.setName("myallocation");
         allocateRequest.setEnvironmentId("myenv");
-        allocateRequest.setCloudPlatform(CloudPlatform.AWS);
+        allocateRequest.setRegion("us-east-1");
+        // allocateRequest.setCloudPlatform(CloudPlatform.AWS);
         when(providerParameterCalculator.get(allocateRequest).asMap()).thenReturn(ALLOCATE_REQUEST_PARAMETERS);
 
         when(providerParameterCalculator.get(networkRequest).asMap()).thenReturn(NETWORK_REQUEST_PARAMETERS);
@@ -81,10 +87,15 @@ public class AllocateDatabaseServerV4RequestToDBStackConverterTest {
 
         securityGroupRequest.setSecurityGroupIds(Set.of("sg-1234"));
 
+        DetailedEnvironmentResponse environment = DetailedEnvironmentResponse.Builder.aDetailedEnvironmentResponse()
+            .withCloudPlatform(CloudPlatform.AWS.name()).build();
+        when(environmentService.getByCrn("myenv")).thenReturn(environment);
+
         DBStack dbStack = underTest.convert(allocateRequest, OWNER_CRN);
 
         assertEquals(allocateRequest.getName(), dbStack.getName());
         assertEquals(allocateRequest.getEnvironmentId(), dbStack.getEnvironmentId());
+        assertEquals(allocateRequest.getRegion(), dbStack.getRegion());
         assertEquals(CloudPlatform.AWS.name(), dbStack.getCloudPlatform());
         assertEquals(CloudPlatform.AWS.name(), dbStack.getPlatformVariant());
         assertEquals(1, dbStack.getParameters().size());
