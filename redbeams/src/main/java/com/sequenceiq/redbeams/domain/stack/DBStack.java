@@ -18,7 +18,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
-import javax.persistence.ManyToOne;
 import javax.persistence.MapKeyColumn;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
@@ -45,7 +44,7 @@ public class DBStack {
 
     private String availabilityZone;
 
-    @ManyToOne
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     private Network network;
 
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
