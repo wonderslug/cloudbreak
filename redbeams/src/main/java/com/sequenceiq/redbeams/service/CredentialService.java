@@ -24,6 +24,5 @@ public class CredentialService {
         SecretResponse secretResponse = credentialResponse.getAttributes();
         String attributes = secretService.getByResponse(secretResponse);
         return new Credential(credentialResponse.getName(), attributes, credentialResponse.getCrn());
-        // return new Credential(credentialResponse.getCloudPlatform(), credentialResponse.getName(), attributes, credentialResponse.getCrn());
     }
 }

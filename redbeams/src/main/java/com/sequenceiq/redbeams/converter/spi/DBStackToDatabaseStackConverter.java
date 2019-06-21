@@ -82,7 +82,7 @@ public class DBStackToDatabaseStackConverter {
     private Map<String, String> getUserDefinedTags(DBStack dbStack) {
         Map<String, String> result = Maps.newHashMap();
         try {
-            if (dbStack.getTags() != null) {
+            if (dbStack.getTags() != null && dbStack.getTags().getValue() != null) {
                 StackTags stackTag = dbStack.getTags().get(StackTags.class);
                 Map<String, String> userDefined = stackTag.getUserDefinedTags();
                 Map<String, String> defaultTags = stackTag.getDefaultTags();
