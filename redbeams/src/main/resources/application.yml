@@ -44,6 +44,9 @@ redbeams:
   threadpool:
     core.size: 40
     capacity.size: 4000
+  environment:
+    url: http://localhost:8088
+    contextPath: /environmentservice
   intermediate.threadpool:
     core.size: 40
     capacity.size: 4000
