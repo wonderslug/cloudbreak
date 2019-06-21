@@ -55,6 +55,11 @@ redbeams:
     capacity.size: 4000
   etc.config.dir: /etc/cloudbreak
 
+spring:
+  freemarker:
+    template-loader-path: file:/etc/redbeams,classpath:/
+    prefer-file-system-access: false
+
 rest:
   debug: false
 
