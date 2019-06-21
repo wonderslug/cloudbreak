@@ -3,6 +3,7 @@ package com.sequenceiq.redbeams.domain.stack;
 import com.sequenceiq.cloudbreak.auth.altus.Crn;
 import com.sequenceiq.cloudbreak.common.json.Json;
 import com.sequenceiq.cloudbreak.common.json.JsonToString;
+import com.sequenceiq.cloudbreak.service.secret.SecretValue;
 import com.sequenceiq.redbeams.converter.CrnConverter;
 
 import java.util.Map;
@@ -48,6 +49,7 @@ public class DBStack {
     private Network network;
 
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @SecretValue
     private DatabaseServer databaseServer;
 
     @Convert(converter = JsonToString.class)
