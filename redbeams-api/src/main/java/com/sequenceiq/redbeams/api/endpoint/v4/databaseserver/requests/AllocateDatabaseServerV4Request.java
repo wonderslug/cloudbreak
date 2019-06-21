@@ -32,6 +32,10 @@ public class AllocateDatabaseServerV4Request extends ProviderParametersBase {
     @ApiModelProperty(value = /* StackModelDescription.ENVIRONMENT_CRN */ "ID of the environment", required = true)
     private String environmentId;
 
+    @NotNull
+    @ApiModelProperty(value = "Region for database stack")
+    private String region;
+
     @Valid
     @ApiModelProperty(/* DBStackModelDescriptions.NETWORK) */ "Network for database stack")
     private NetworkV4Request network;
@@ -57,6 +61,14 @@ public class AllocateDatabaseServerV4Request extends ProviderParametersBase {
 
     public void setEnvironmentId(String environmentId) {
         this.environmentId = environmentId;
+    }
+
+    public String getRegion() {
+        return region;
+    }
+
+    public void setRegion(String region) {
+        this.region = region;
     }
 
     public NetworkV4Request getNetwork() {
