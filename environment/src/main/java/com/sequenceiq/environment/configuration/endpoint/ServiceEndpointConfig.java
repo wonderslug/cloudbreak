@@ -1,4 +1,4 @@
-package com.sequenceiq.environment.configuration;
+package com.sequenceiq.environment.configuration.endpoint;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

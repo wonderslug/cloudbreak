@@ -1,4 +1,4 @@
-package com.sequenceiq.environment.configuration;
+package com.sequenceiq.environment.configuration.endpoint;
 
 import java.util.List;
 
