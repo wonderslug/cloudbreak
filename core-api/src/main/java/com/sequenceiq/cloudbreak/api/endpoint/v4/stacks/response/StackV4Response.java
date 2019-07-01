@@ -115,6 +115,17 @@ public class StackV4Response extends StackV4Base {
     @ApiModelProperty(StackModelDescription.CLOUD_PLATFORM)
     private CloudPlatform cloudPlatform;
 
+    @ApiModelProperty(StackModelDescription.CRN)
+    private String crn;
+
+    public String getCrn() {
+        return crn;
+    }
+
+    public void setCrn(String crn) {
+        this.crn = crn;
+    }
+
     public Long getId() {
         return id;
     }

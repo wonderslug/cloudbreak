@@ -176,6 +176,16 @@ public class Stack implements ProvisionEntity, WorkspaceAwareResource {
     @Enumerated(EnumType.STRING)
     private StackType type;
 
+    private String crn;
+
+    public String getCrn() {
+        return crn;
+    }
+
+    public void setCrn(String crn) {
+        this.crn = crn;
+    }
+
     public Set<InstanceGroup> getInstanceGroups() {
         return instanceGroups;
     }

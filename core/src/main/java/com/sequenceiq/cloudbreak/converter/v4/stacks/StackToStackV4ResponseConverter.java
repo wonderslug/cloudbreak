@@ -117,7 +117,7 @@ public class StackToStackV4ResponseConverter extends AbstractConversionServiceAw
         response.setTags(getTags(response, source.getTags()));
         response.setTimeToLive(getStackTimeToLive(source));
         addSharedServiceResponse(source, response);
-
+        response.setCrn(source.getCrn());
         return response;
     }
 

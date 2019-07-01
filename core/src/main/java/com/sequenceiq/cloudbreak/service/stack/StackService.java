@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -36,6 +37,8 @@ import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.response.AutoscaleStackV
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.response.StackV4Response;
 import com.sequenceiq.cloudbreak.api.util.ConverterUtil;
 import com.sequenceiq.cloudbreak.aspect.Measure;
+import com.sequenceiq.cloudbreak.auth.ThreadBasedUserCrnProvider;
+import com.sequenceiq.cloudbreak.auth.altus.Crn;
 import com.sequenceiq.cloudbreak.authorization.PermissionCheckingUtils;
 import com.sequenceiq.cloudbreak.blueprint.validation.AmbariBlueprintValidator;
 import com.sequenceiq.cloudbreak.cloud.event.platform.GetPlatformTemplateRequest;
@@ -132,6 +135,9 @@ public class StackService {
 
     @Inject
     private StackDownscaleValidatorService downscaleValidatorService;
+
+    @Inject
+    private ThreadBasedUserCrnProvider threadBasedUserCrnProvider;
 
     @Inject
     private SaltSecurityConfigService saltSecurityConfigService;
@@ -418,6 +424,8 @@ public class StackService {
             orchestratorService.save(stack.getOrchestrator());
         }
         stack.getStackAuthentication().setLoginUserName(SSH_USER_CB);
+
+        stack.setCrn(createCRN(threadBasedUserCrnProvider.getAccountId()));
 
         Stack savedStack = measure(() -> stackRepository.save(stack),
                 LOGGER, "Stackrepository save took {} ms for stack {}", stackName);
@@ -911,4 +919,15 @@ public class StackService {
             return code;
         }
     }
+
+    private String createCRN(String accountId) {
+        return Crn.builder()
+                .setService(Crn.Service.CLOUDBREAK)
+                .setAccountId(accountId)
+                .setResourceType(Crn.ResourceType.STACK)
+                .setResource(UUID.randomUUID().toString())
+                .build()
+                .toString();
+    }
+
 }
