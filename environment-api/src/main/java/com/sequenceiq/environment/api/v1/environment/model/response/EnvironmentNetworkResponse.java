@@ -8,6 +8,7 @@ import com.sequenceiq.environment.api.doc.ModelDescriptions;
 import com.sequenceiq.environment.api.doc.environment.EnvironmentModelDescription;
 import com.sequenceiq.environment.api.v1.environment.model.EnvironmentNetworkAwsParams;
 import com.sequenceiq.environment.api.v1.environment.model.EnvironmentNetworkAzureParams;
+import com.sequenceiq.environment.api.v1.environment.model.EnvironmentNetworkYarnParams;
 import com.sequenceiq.environment.api.v1.environment.model.request.EnvironmentNetworkRequest;
 
 import io.swagger.annotations.ApiModel;
@@ -61,6 +62,8 @@ public class EnvironmentNetworkResponse extends EnvironmentNetworkRequest {
 
         private EnvironmentNetworkAzureParams azure;
 
+        private EnvironmentNetworkYarnParams yarn;
+
         private EnvironmentNetworkResponseBuilder() {
         }
 
@@ -98,6 +101,11 @@ public class EnvironmentNetworkResponse extends EnvironmentNetworkRequest {
             return this;
         }
 
+        public EnvironmentNetworkResponseBuilder withYarn(EnvironmentNetworkYarnParams yarn) {
+            this.yarn = yarn;
+            return this;
+        }
+
         public EnvironmentNetworkResponse build() {
             EnvironmentNetworkResponse environmentNetworkResponse = new EnvironmentNetworkResponse();
             environmentNetworkResponse.setCrn(crn);
@@ -105,6 +113,7 @@ public class EnvironmentNetworkResponse extends EnvironmentNetworkRequest {
             environmentNetworkResponse.setSubnetIds(subnetIds);
             environmentNetworkResponse.setAws(aws);
             environmentNetworkResponse.setAzure(azure);
+            environmentNetworkResponse.setYarn(yarn);
             environmentNetworkResponse.setSubnetMetas(subnetMetas);
             return environmentNetworkResponse;
         }

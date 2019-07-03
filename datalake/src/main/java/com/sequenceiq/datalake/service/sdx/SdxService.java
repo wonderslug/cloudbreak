@@ -68,14 +68,15 @@ public class SdxService {
         }
     }
 
-    public StackV4Response getDetail(String userCrn, String name, Set<String> entries) {
-        try {
-            return cloudbreakClient.withCrn(userCrn).stackV4Endpoint().get(0L, name, entries);
-        } catch (javax.ws.rs.NotFoundException e) {
-            LOGGER.info("Sdx cluster not found on CB side", e);
-            throw notFound("SDX cluster", name).get();
+        public StackV4Response getDetail(String userCrn, String name, Set<String> entries) {
+            try {
+                return cloudbreakClient.withCrn(userCrn).stackV4Endpoint().get(0L, name, entries);
+            } catch (javax.ws.rs.NotFoundException e) {
+                LOGGER.info("Sdx cluster not found oSdxCreateActionsn CB side", e);
+    //            throw notFound("SDX cluster on CB side", name).get();
+                return null;
+            }
         }
-    }
 
     public SdxCluster getByAccountIdAndSdxName(String userCrn, String name) {
         String accountIdFromCrn = getAccountIdFromCrn(userCrn);
@@ -88,9 +89,14 @@ public class SdxService {
     }
 
     public void updateSdxStatus(Long id, SdxClusterStatus sdxClusterStatus) {
+        updateSdxStatus(id, sdxClusterStatus, null);
+    }
+
+    public void updateSdxStatus(Long id, SdxClusterStatus sdxClusterStatus, String statusReason) {
         Optional<SdxCluster> sdxCluster = sdxClusterRepository.findById(id);
         sdxCluster.ifPresentOrElse(sdx -> {
             sdx.setStatus(sdxClusterStatus);
+            sdx.setStatusReason(statusReason);
             sdxClusterRepository.save(sdx);
         }, () -> LOGGER.info("Can not update sdx {} to {} status", id, sdxClusterStatus));
     }

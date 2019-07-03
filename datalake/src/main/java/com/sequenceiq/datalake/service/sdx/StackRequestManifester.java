@@ -20,6 +20,7 @@ import com.sequenceiq.cloudbreak.api.endpoint.v4.filesystems.responses.FileSyste
 import com.sequenceiq.cloudbreak.api.endpoint.v4.filesystems.responses.FileSystemParameterV4Responses;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.base.parameter.network.AwsNetworkV4Parameters;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.base.parameter.network.AzureNetworkV4Parameters;
+import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.base.parameter.stack.YarnStackV4Parameters;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.request.StackV4Request;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.request.authentication.StackAuthenticationV4Request;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.request.cluster.ClusterV4Request;
@@ -32,6 +33,7 @@ import com.sequenceiq.cloudbreak.client.CloudbreakUserCrnClient;
 import com.sequenceiq.cloudbreak.cloud.model.CloudSubnet;
 import com.sequenceiq.cloudbreak.common.json.JsonUtil;
 import com.sequenceiq.cloudbreak.common.mappable.CloudPlatform;
+import com.sequenceiq.cloudbreak.service.secret.service.SecretService;
 import com.sequenceiq.cloudbreak.util.FileReaderUtils;
 import com.sequenceiq.cloudbreak.util.PasswordUtil;
 import com.sequenceiq.datalake.controller.exception.BadRequestException;
@@ -48,6 +50,9 @@ public class StackRequestManifester {
 
     @Inject
     private CloudbreakUserCrnClient cloudbreakClient;
+
+    @Inject
+    private SecretService secretService;
 
     @Value("${sdx.cluster.definition}")
     private String clusterDefinition;
@@ -74,13 +79,19 @@ public class StackRequestManifester {
     }
 
     public StackV4Request setupStackRequestForCloudbreak(SdxCluster sdxCluster, SdxClusterRequest clusterRequest, DetailedEnvironmentResponse environment) {
-
         String clusterTemplateJson;
         if (sdxCluster.getStackRequest() == null) {
-            clusterTemplateJson = FileReaderUtils.readFileFromClasspathQuietly("sdx/" + "cluster-template.json");
+            String cloudPlatform = environment.getCredential().getCloudPlatform();
+            try {
+                clusterTemplateJson = FileReaderUtils.readFileFromClasspath("sdx/" + cloudPlatform + "/cluster-template.json");
+            } catch (IOException e) {
+                LOGGER.info("Can not read SDX template for platform {}", cloudPlatform, e);
+                throw new BadRequestException("Can not read template for platform " + cloudPlatform);
+            }
         } else {
             clusterTemplateJson = sdxCluster.getStackRequest();
         }
+
         try {
             StackV4Request stackRequest = JsonUtil.readValue(clusterTemplateJson, StackV4Request.class);
             stackRequest.setName(sdxCluster.getClusterName());
@@ -99,6 +110,8 @@ public class StackRequestManifester {
                     && !environment.getNetwork().getSubnetMetas().isEmpty()) {
                 setupPlacement(environment, stackRequest);
                 setupNetwork(environment, stackRequest);
+            } else {
+                setupYarnDetails(environment, stackRequest);
             }
             if (isCloudStorageConfigured(clusterRequest)) {
                 configureCloudStorage(environment.getCloudPlatform(), sdxCluster, clusterRequest, stackRequest);
@@ -109,6 +122,18 @@ public class StackRequestManifester {
         } catch (IOException e) {
             LOGGER.error("Can not parse json to stack request");
             throw new IllegalStateException("Can not parse json to stack request", e);
+        }
+    }
+
+    private void setupYarnDetails(DetailedEnvironmentResponse environment, StackV4Request stackRequest) {
+        if (environment.getNetwork() == null
+                || environment.getNetwork().getYarn() == null
+                || environment.getNetwork().getYarn().getQueue() == null) {
+            throw new BadRequestException("There is no queue defined in your environment, please create a new yarn environment with queue");
+        } else {
+            YarnStackV4Parameters yarnStackV4Parameters = new YarnStackV4Parameters();
+            yarnStackV4Parameters.setYarnQueue(environment.getNetwork().getYarn().getQueue());
+            stackRequest.setYarn(yarnStackV4Parameters);
         }
     }
 

@@ -23,7 +23,6 @@ import com.sequenceiq.environment.environment.dto.EnvironmentDto;
 import com.sequenceiq.environment.environment.dto.EnvironmentDtoConverter;
 import com.sequenceiq.environment.environment.flow.creation.event.EnvCreationEvent;
 import com.sequenceiq.environment.environment.flow.creation.event.EnvCreationFailureEvent;
-import com.sequenceiq.environment.environment.repository.EnvironmentRepository;
 import com.sequenceiq.environment.environment.service.EnvironmentService;
 import com.sequenceiq.environment.exception.EnvironmentServiceException;
 import com.sequenceiq.environment.network.EnvironmentNetworkService;
@@ -54,7 +53,7 @@ public class NetworkCreationHandler extends EventSenderAwareHandler<EnvironmentD
     private final Set<String> enabledPlatforms;
 
     protected NetworkCreationHandler(EventSender eventSender,
-            EnvironmentService environmentService, EnvironmentRepository environmentRepository,
+            EnvironmentService environmentService,
             PlatformParameterService platformParameterService,
             NetworkService networkService,
             EnvironmentDtoConverter environmentDtoConverter,
@@ -97,28 +96,30 @@ public class NetworkCreationHandler extends EventSenderAwareHandler<EnvironmentD
     private void setNetworkIfNeeded(EnvironmentDto environmentDto, Environment environment) {
         if (hasNetwork(environment)) {
             BaseNetwork baseNetwork = hasExistingNetwork(environment)
-                    ? decorateWithSubnetMeta(environment.getNetwork().getId(), environmentDto)
+                    ? decorateWithSubnetMetaIfNeeded(environment.getNetwork().getId(), environmentDto)
                     : environmentNetworkService.createNetwork(environmentDto, environment.getNetwork());
             baseNetwork = networkService.save(baseNetwork);
             environment.setNetwork(baseNetwork);
         }
     }
 
-    private boolean hasNetwork(Environment environment) {
-        return Objects.nonNull(environment.getNetwork()) && enabledPlatforms.contains(environment.getCloudPlatform());
-    }
-
-    private boolean hasExistingNetwork(Environment environment) {
-        return networkService.hasExistingNetwork(environment.getNetwork(), CloudPlatform.valueOf(environment.getCloudPlatform()));
-    }
-
-    private BaseNetwork decorateWithSubnetMeta(Long networkId, EnvironmentDto envDto) {
+    private BaseNetwork decorateWithSubnetMetaIfNeeded(Long networkId, EnvironmentDto envDto) {
         Map<String, CloudSubnet> subnetMetadata = getSubnetMetadata(envDto);
-        if (subnetMetadata.isEmpty()) {
+        if (subnetMetadata.isEmpty() && "AWS".equalsIgnoreCase(envDto.getCloudPlatform())) {
             throw new EnvironmentServiceException(String.format("Subnets of the environment (%s) are not found in vpc (%s). ",
                     String.join(",", envDto.getNetwork().getSubnetIds()), getVpcId(envDto).orElse("")));
         }
         return networkService.decorateNetworkWithSubnetMeta(networkId, subnetMetadata);
+    }
+
+    private boolean hasNetwork(Environment environment) {
+        return Objects.nonNull(environment.getNetwork()) &&
+                !CloudPlatform.YARN.name().equals(environment.getCloudPlatform()) &&
+                enabledPlatforms.contains(environment.getCloudPlatform());
+    }
+
+    private boolean hasExistingNetwork(Environment environment) {
+        return networkService.hasExistingNetwork(environment.getNetwork(), CloudPlatform.valueOf(environment.getCloudPlatform()));
     }
 
     private Map<String, CloudSubnet> getSubnetMetadata(EnvironmentDto environmentDto) {
