@@ -13,6 +13,8 @@ import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.request.cluster.gateway.
 @Service
 public class GatewayManifester {
 
+    private static final String GATEWAY_PROXY_TOPOLOGY_NAME = "cdp-proxy";
+
     @Value("${sdx.gateway.ssotype}")
     private SSOType defaultSsoType;
 
@@ -31,7 +33,7 @@ public class GatewayManifester {
 
     private GatewayTopologyV4Request getGatewayTopologyV4Request() {
         GatewayTopologyV4Request gatewayTopologyV4Request = new GatewayTopologyV4Request();
-        gatewayTopologyV4Request.setTopologyName("dp-proxy");
+        gatewayTopologyV4Request.setTopologyName(GATEWAY_PROXY_TOPOLOGY_NAME);
         gatewayTopologyV4Request.setExposedServices(List.of("ALL"));
         return gatewayTopologyV4Request;
     }

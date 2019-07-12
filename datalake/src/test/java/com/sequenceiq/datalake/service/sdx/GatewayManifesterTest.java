@@ -1,5 +1,6 @@
 package com.sequenceiq.datalake.service.sdx;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static reactor.core.support.Assert.isTrue;
 
 import java.util.List;
@@ -56,6 +57,19 @@ public class GatewayManifesterTest {
         underTest.configureGatewayForSdxCluster(stackV4Request);
 
         isTrue(stackV4Request.getCluster().getGateway().equals(gatewayV4Request));
+    }
+
+    @Test
+    void prepareGatewayWithCorrectTopologyName() {
+        StackV4Request stackV4Request = new StackV4Request();
+        stackV4Request.setCluster(new ClusterV4Request());
+
+        StackV4Request result = underTest.configureGatewayForSdxCluster(stackV4Request);
+        underTest.configureGatewayForSdxCluster(stackV4Request);
+
+        List<GatewayTopologyV4Request> topologies = result.getCluster().getGateway().getTopologies();
+        assertEquals(1, topologies.size());
+        assertEquals("cdp-proxy", topologies.get(0).getTopologyName());
     }
 
     private GatewayV4Request getGatewayV4Request() {
