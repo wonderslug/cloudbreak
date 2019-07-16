@@ -341,7 +341,7 @@ public class FreeIpaClient {
     }
 
     public Role addRoleMember(String roleName, Set<String> users, Set<String> groups, Set<String> hosts, Set<String> hostgroups, Set<String> services)
-        throws FreeIpaClientException {
+            throws FreeIpaClientException {
         List<String> flags = List.of(roleName);
         Map<String, Object> params = new HashMap<>();
         addToMapIfNotEmpty(params, "user", users);
