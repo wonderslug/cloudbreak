@@ -82,7 +82,7 @@ public class CloudStorageV4RequestToFileSystemConverterTest {
         adlsFileSystemParameters.setTenantId("1111111");
         request.setAdls(adlsFileSystemParameters);
         AdlsCloudStorageV1Parameters adlsCloudStorageParameters = new AdlsCloudStorageV1Parameters();
-        when(fileSystemResolver.propagateConfiguration(request)).thenReturn(adlsCloudStorageParameters);
+        when(fileSystemResolver.resolveFileSystem(request)).thenReturn(adlsCloudStorageParameters);
         when(underTest.getConversionService()).thenReturn(conversionService);
         when(conversionService.convert(adlsFileSystemParameters, AdlsFileSystem.class)).thenReturn(new AdlsFileSystem());
 
@@ -90,7 +90,7 @@ public class CloudStorageV4RequestToFileSystemConverterTest {
 
         checkWhetherTheBasicDataHasPassedOrNot(result);
         assertEquals(FileSystemType.ADLS, result.getType());
-        verify(fileSystemResolver, times(1)).propagateConfiguration(request);
+        verify(fileSystemResolver, times(1)).resolveFileSystem(request);
     }
 
     @Test
@@ -100,16 +100,16 @@ public class CloudStorageV4RequestToFileSystemConverterTest {
         gcsFileSystemParameters.setServiceAccountEmail("some@email.com");
         request.setGcs(gcsFileSystemParameters);
         GcsCloudStorageV1Parameters gcsCloudStorageParameters = new GcsCloudStorageV1Parameters();
-        when(fileSystemResolver.propagateConfiguration(request)).thenReturn(gcsCloudStorageParameters);
+        when(fileSystemResolver.resolveFileSystem(request)).thenReturn(gcsCloudStorageParameters);
         when(underTest.getConversionService()).thenReturn(conversionService);
         when(conversionService.convert(gcsCloudStorageParameters, GcsFileSystem.class)).thenReturn(new GcsFileSystem());
-        when(fileSystemResolver.propagateConfiguration(request)).thenReturn(new GcsCloudStorageV1Parameters());
+        when(fileSystemResolver.resolveFileSystem(request)).thenReturn(new GcsCloudStorageV1Parameters());
 
         FileSystem result = underTest.convert(request);
 
         checkWhetherTheBasicDataHasPassedOrNot(result);
         assertEquals(FileSystemType.GCS, result.getType());
-        verify(fileSystemResolver, times(1)).propagateConfiguration(request);
+        verify(fileSystemResolver, times(1)).resolveFileSystem(request);
     }
 
     @Test
@@ -120,16 +120,16 @@ public class CloudStorageV4RequestToFileSystemConverterTest {
         wasbFileSystemParameters.setAccountName("accountNameValue");
         request.setWasb(wasbFileSystemParameters);
         WasbCloudStorageV1Parameters wasbCloudStorageParameters = new WasbCloudStorageV1Parameters();
-        when(fileSystemResolver.propagateConfiguration(request)).thenReturn(wasbCloudStorageParameters);
+        when(fileSystemResolver.resolveFileSystem(request)).thenReturn(wasbCloudStorageParameters);
         when(underTest.getConversionService()).thenReturn(conversionService);
         when(conversionService.convert(wasbCloudStorageParameters, WasbFileSystem.class)).thenReturn(new WasbFileSystem());
-        when(fileSystemResolver.propagateConfiguration(request)).thenReturn(new WasbCloudStorageV1Parameters());
+        when(fileSystemResolver.resolveFileSystem(request)).thenReturn(new WasbCloudStorageV1Parameters());
 
         FileSystem result = underTest.convert(request);
 
         checkWhetherTheBasicDataHasPassedOrNot(result);
         assertEquals(FileSystemType.WASB, result.getType());
-        verify(fileSystemResolver, times(1)).propagateConfiguration(request);
+        verify(fileSystemResolver, times(1)).resolveFileSystem(request);
     }
 
     @Test
@@ -140,23 +140,23 @@ public class CloudStorageV4RequestToFileSystemConverterTest {
         adlsGen2FileSystemParameters.setAccountName("accountNameValue");
         request.setAdlsGen2(adlsGen2FileSystemParameters);
         AdlsGen2CloudStorageV1Parameters adlsGen2CloudStorageParameters = new AdlsGen2CloudStorageV1Parameters();
-        when(fileSystemResolver.propagateConfiguration(request)).thenReturn(adlsGen2CloudStorageParameters);
+        when(fileSystemResolver.resolveFileSystem(request)).thenReturn(adlsGen2CloudStorageParameters);
         when(underTest.getConversionService()).thenReturn(conversionService);
         when(conversionService.convert(adlsGen2CloudStorageParameters, AdlsGen2FileSystem.class)).thenReturn(new AdlsGen2FileSystem());
-        when(fileSystemResolver.propagateConfiguration(request)).thenReturn(new AdlsGen2CloudStorageV1Parameters());
+        when(fileSystemResolver.resolveFileSystem(request)).thenReturn(new AdlsGen2CloudStorageV1Parameters());
 
         FileSystem result = underTest.convert(request);
 
         checkWhetherTheBasicDataHasPassedOrNot(result);
         assertEquals(FileSystemType.ADLS_GEN_2, result.getType());
-        verify(fileSystemResolver, times(1)).propagateConfiguration(request);
+        verify(fileSystemResolver, times(1)).resolveFileSystem(request);
     }
 
     @Test
     public void testConvertWhenNoFileSystemParameterInstanceHasPassedThroughTheRequestThenExceptionShouldComeIndicatingThatTheFileSystemTypeIsUndecidable() {
         CloudStorageV4Request request = createV4Request();
         String message = "Unable to decide file system, none of the supported file system type has provided!";
-        when(fileSystemResolver.propagateConfiguration(request)).thenThrow(new BadRequestException(message));
+        when(fileSystemResolver.resolveFileSystem(request)).thenThrow(new BadRequestException(message));
 
         expectedException.expect(BadRequestException.class);
         expectedException.expectMessage(message);

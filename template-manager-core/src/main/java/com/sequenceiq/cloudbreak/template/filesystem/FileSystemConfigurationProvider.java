@@ -2,6 +2,8 @@ package com.sequenceiq.cloudbreak.template.filesystem;
 
 import java.io.IOException;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
@@ -24,31 +26,43 @@ public class FileSystemConfigurationProvider {
     @Inject
     private FileSystemConfigurationsViewProvider fileSystemConfigurationsViewProvider;
 
-    public BaseFileSystemConfigurationsView fileSystemConfiguration(FileSystem fs, Stack stack, Json credentialAttributes) throws IOException {
+    public Set<BaseFileSystemConfigurationsView> fileSystemConfigurations(Set<FileSystem> fileSystems, Stack stack, Json attributes) {
+        return fileSystems.stream().map(fileSystem -> fileSystemConfiguration(fileSystem, stack, attributes)).collect(Collectors.toSet());
+    }
+
+    public BaseFileSystemConfigurationsView fileSystemConfiguration(FileSystem fileSystem, Stack stack, Json credentialAttributes) {
         Optional<Resource> resource = Optional.empty();
         if (CloudConstants.AZURE.equals(stack.getPlatformVariant())) {
             resource = Optional.of(stack.getResourceByType(ResourceType.ARM_TEMPLATE));
         }
-        return fileSystemConfiguration(fs, stack.getId(), stack.getUuid(), credentialAttributes, stack.getPlatformVariant(), resource);
+        return fileSystemConfiguration(fileSystem, stack.getId(), stack.getUuid(), credentialAttributes, stack.getPlatformVariant(), resource);
     }
 
-    public BaseFileSystemConfigurationsView fileSystemConfiguration(FileSystem fs, StackV4Request request, Json credentialAttributes)
-            throws IOException {
+
+    public Set<BaseFileSystemConfigurationsView> fileSystemConfigurations(Set<FileSystem> fileSystems, StackV4Request stack, Json attributes) {
+        return fileSystems.stream().map(fileSystem -> fileSystemConfiguration(fileSystem, stack, attributes)).collect(Collectors.toSet());
+    }
+
+    public BaseFileSystemConfigurationsView fileSystemConfiguration(FileSystem fileSystem, StackV4Request request, Json credentialAttributes) {
         Resource resource = new Resource(ResourceType.ARM_TEMPLATE, request.getName(), null);
-        return fileSystemConfiguration(fs, 0L, "fake-uuid", credentialAttributes, request.getCloudPlatform().name(), Optional.of(resource));
+        return fileSystemConfiguration(fileSystem, 0L, "fake-uuid", credentialAttributes, request.getCloudPlatform().name(), Optional.of(resource));
     }
 
-    private BaseFileSystemConfigurationsView fileSystemConfiguration(FileSystem fs, Long stackId, String uuid, Json credentialAttributes,
-            String platformVariant, Optional<Resource> resource) throws IOException {
-        BaseFileSystemConfigurationsView fileSystemConfiguration = null;
-        if (fs != null) {
-            fileSystemConfiguration = fileSystemConfigurationsViewProvider.propagateConfigurationsView(fs);
-            fileSystemConfiguration.setStorageContainer("cloudbreak" + stackId);
-            if (CloudConstants.AZURE.equals(platformVariant) && credentialAttributes != null) {
-                fileSystemConfiguration = azureFileSystemConfigProvider.decorateFileSystemConfiguration(uuid, credentialAttributes,
-                        resource.orElse(null), fileSystemConfiguration);
+    private BaseFileSystemConfigurationsView fileSystemConfiguration(FileSystem fileSystem, Long stackId, String uuid, Json credentialAttributes,
+            String platformVariant, Optional<Resource> resource) {
+        try {
+            BaseFileSystemConfigurationsView fileSystemConfiguration = null;
+            if (fileSystem != null) {
+                fileSystemConfiguration = fileSystemConfigurationsViewProvider.propagateConfigurationsView(fileSystem);
+                fileSystemConfiguration.setStorageContainer("cloudbreak" + stackId);
+                if (CloudConstants.AZURE.equals(platformVariant) && credentialAttributes != null) {
+                    fileSystemConfiguration = azureFileSystemConfigProvider.decorateFileSystemConfiguration(uuid, credentialAttributes,
+                            resource.orElse(null), fileSystemConfiguration);
+                }
             }
+            return fileSystemConfiguration;
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
         }
-        return fileSystemConfiguration;
     }
 }

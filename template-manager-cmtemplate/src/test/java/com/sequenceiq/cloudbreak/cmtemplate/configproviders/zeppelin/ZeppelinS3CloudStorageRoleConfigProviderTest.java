@@ -108,7 +108,7 @@ public class ZeppelinS3CloudStorageRoleConfigProviderTest {
 
         GeneralClusterConfigs clusterConfigs = new GeneralClusterConfigs();
         clusterConfigs.setClusterName("zeppelincluster");
-        return Builder.builder().withGeneralClusterConfigs(clusterConfigs).withFileSystemConfigurationView(fileSystemConfigurationsView)
+        return Builder.builder().withGeneralClusterConfigs(clusterConfigs).withFileSystemConfigurationViews(fileSystemConfigurationsView)
                 .withHostgroupViews(Set.of(master, worker)).build();
     }
 

@@ -270,7 +270,7 @@ class AmbariBlueprintModulTestModelProvider {
                 .withHostgroups(getHostGroups("master"))
                 .withBlueprintView(generalBlueprintView(testFile.getFileContent(), "2.6", "HDP"))
                 .withGeneralClusterConfigs(configs)
-                .withFileSystemConfigurationView(new S3FileSystemConfigurationsView(new S3FileSystem(), duplicatedLocationsKey(), false))
+                .withFileSystemConfigurationViews(new S3FileSystemConfigurationsView(new S3FileSystem(), duplicatedLocationsKey(), false))
                 .build();
     }
 

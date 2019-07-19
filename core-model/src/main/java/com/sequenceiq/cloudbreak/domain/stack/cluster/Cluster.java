@@ -146,8 +146,8 @@ public class Cluster implements ProvisionEntity, WorkspaceAwareResource {
     @ManyToMany
     private Set<RDSConfig> rdsConfigs;
 
-    @ManyToOne
-    private FileSystem fileSystem;
+    @OneToMany(mappedBy = "cluster", fetch = FetchType.EAGER)
+    private Set<FileSystem> fileSystems;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
@@ -302,12 +302,12 @@ public class Cluster implements ProvisionEntity, WorkspaceAwareResource {
         this.rdsConfigs = rdsConfigs;
     }
 
-    public FileSystem getFileSystem() {
-        return fileSystem;
+    public Set<FileSystem> getFileSystems() {
+        return fileSystems;
     }
 
-    public void setFileSystem(FileSystem fileSystem) {
-        this.fileSystem = fileSystem;
+    public void setFileSystems(Set<FileSystem> fileSystems) {
+        this.fileSystems = fileSystems;
     }
 
     public String getUserName() {

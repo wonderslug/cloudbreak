@@ -40,7 +40,7 @@ public class CloudStorageV4RequestToFileSystemConverter extends AbstractConversi
     public FileSystem convert(CloudStorageV4Request source) {
         FileSystem fileSystem = new FileSystem();
         fileSystem.setName(nameGenerator.generateName(FILESYSTEM));
-        FileSystemAwareCloudStorage cloudStorageParameters = fileSystemResolver.propagateConfiguration(source);
+        FileSystemAwareCloudStorage cloudStorageParameters = fileSystemResolver.resolveFileSystem(source);
         fileSystem.setType(cloudStorageParameters.getType());
 
         Set<StorageLocation> locations = new HashSet<>();
@@ -52,7 +52,7 @@ public class CloudStorageV4RequestToFileSystemConverter extends AbstractConversi
         try {
             StorageLocations storageLocations = new StorageLocations();
             storageLocations.setLocations(locations);
-            fileSystem.setLocations(new Json(storageLocations));
+            fileSystem.setLocations(storageLocations);
         } catch (IllegalArgumentException ignored) {
             throw new BadRequestException(String.format("Storage locations could not be parsed: %s", source));
         }

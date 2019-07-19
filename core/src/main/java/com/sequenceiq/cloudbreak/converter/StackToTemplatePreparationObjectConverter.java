@@ -2,9 +2,11 @@ package com.sequenceiq.cloudbreak.converter;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import javax.inject.Inject;
 
@@ -16,6 +18,7 @@ import com.sequenceiq.cloudbreak.blueprint.sharedservice.SharedServiceConfigsVie
 import com.sequenceiq.cloudbreak.cloud.model.StackInputs;
 import com.sequenceiq.cloudbreak.cloud.model.component.StackRepoDetails;
 import com.sequenceiq.cloudbreak.cluster.service.ClusterComponentConfigProvider;
+import com.sequenceiq.cloudbreak.common.exception.CloudbreakServiceException;
 import com.sequenceiq.cloudbreak.core.bootstrap.service.container.postgres.PostgresConfigService;
 import com.sequenceiq.cloudbreak.domain.FileSystem;
 import com.sequenceiq.cloudbreak.domain.stack.Stack;
@@ -23,15 +26,15 @@ import com.sequenceiq.cloudbreak.domain.stack.cluster.Cluster;
 import com.sequenceiq.cloudbreak.domain.stack.cluster.DatalakeResources;
 import com.sequenceiq.cloudbreak.domain.stack.cluster.gateway.Gateway;
 import com.sequenceiq.cloudbreak.domain.stack.instance.InstanceMetaData;
+import com.sequenceiq.cloudbreak.dto.LdapView;
 import com.sequenceiq.cloudbreak.dto.credential.Credential;
 import com.sequenceiq.cloudbreak.kerberos.KerberosConfigService;
 import com.sequenceiq.cloudbreak.ldap.LdapConfigService;
-import com.sequenceiq.cloudbreak.common.exception.CloudbreakServiceException;
 import com.sequenceiq.cloudbreak.service.blueprint.BlueprintViewProvider;
 import com.sequenceiq.cloudbreak.service.cluster.ClusterService;
 import com.sequenceiq.cloudbreak.service.cluster.InstanceGroupMetadataCollector;
-import com.sequenceiq.cloudbreak.service.environment.credential.CredentialClientService;
 import com.sequenceiq.cloudbreak.service.datalake.DatalakeResourcesService;
+import com.sequenceiq.cloudbreak.service.environment.credential.CredentialClientService;
 import com.sequenceiq.cloudbreak.service.hostgroup.HostGroupService;
 import com.sequenceiq.cloudbreak.template.BlueprintProcessingException;
 import com.sequenceiq.cloudbreak.template.TemplatePreparationObject;
@@ -39,7 +42,6 @@ import com.sequenceiq.cloudbreak.template.TemplatePreparationObject.Builder;
 import com.sequenceiq.cloudbreak.template.filesystem.BaseFileSystemConfigurationsView;
 import com.sequenceiq.cloudbreak.template.filesystem.FileSystemConfigurationProvider;
 import com.sequenceiq.cloudbreak.template.model.HdfConfigs;
-import com.sequenceiq.cloudbreak.dto.LdapView;
 
 @Component
 public class StackToTemplatePreparationObjectConverter extends AbstractConversionServiceAwareConverter<Stack, TemplatePreparationObject> {
@@ -90,14 +92,14 @@ public class StackToTemplatePreparationObjectConverter extends AbstractConversio
     public TemplatePreparationObject convert(Stack source) {
         try {
             Cluster cluster = clusterService.getById(source.getCluster().getId());
-            FileSystem fileSystem = cluster.getFileSystem();
+            Set<FileSystem> fileSystems = cluster.getFileSystems();
             Optional<LdapView> ldapView = ldapConfigService.get(source.getEnvironmentCrn());
             StackRepoDetails hdpRepo = clusterComponentConfigProvider.getHDPRepo(cluster.getId());
             String stackRepoDetailsHdpVersion = hdpRepo != null ? hdpRepo.getHdpVersion() : null;
             Map<String, List<InstanceMetaData>> groupInstances = instanceGroupMetadataCollector.collectMetadata(source);
             String blueprintText = cluster.getBlueprint().getBlueprintText();
             HdfConfigs hdfConfigs = hdfConfigProvider.createHdfConfig(cluster.getHostGroups(), groupInstances, blueprintText);
-            BaseFileSystemConfigurationsView fileSystemConfigurationView = getFileSystemConfigurationView(source, fileSystem);
+            Set<BaseFileSystemConfigurationsView> fileSystemConfigurationViews = getFileSystemConfigurationViews(source, fileSystems);
             Optional<DatalakeResources> dataLakeResource = getDataLakeResource(source);
             StackInputs stackInputs = getStackInputs(source);
             Map<String, Object> fixInputs = stackInputs.getFixInputs() == null ? new HashMap<>() : stackInputs.getFixInputs();
@@ -115,14 +117,14 @@ public class StackToTemplatePreparationObjectConverter extends AbstractConversio
                     .withFixInputs(fixInputs)
                     .withBlueprintView(blueprintViewProvider.getBlueprintView(cluster.getBlueprint()))
                     .withStackRepoDetailsHdpVersion(stackRepoDetailsHdpVersion)
-                    .withFileSystemConfigurationView(fileSystemConfigurationView)
+                    .withFileSystemConfigurationViews(fileSystemConfigurationViews)
                     .withGeneralClusterConfigs(generalClusterConfigsProvider.generalClusterConfigs(source, cluster))
                     .withLdapConfig(ldapView.orElse(null))
                     .withHdfConfigs(hdfConfigs)
                     .withKerberosConfig(kerberosConfigService.get(source.getEnvironmentCrn()).orElse(null))
                     .withSharedServiceConfigs(sharedServiceConfigProvider.createSharedServiceConfigs(source, dataLakeResource))
                     .build();
-        } catch (BlueprintProcessingException | IOException e) {
+        } catch (BlueprintProcessingException | IOException | IllegalArgumentException e) {
             throw new CloudbreakServiceException(e.getMessage(), e);
         }
     }
@@ -134,13 +136,13 @@ public class StackToTemplatePreparationObjectConverter extends AbstractConversio
         return Optional.empty();
     }
 
-    private BaseFileSystemConfigurationsView getFileSystemConfigurationView(Stack source, FileSystem fileSystem) throws IOException {
-        BaseFileSystemConfigurationsView fileSystemConfigurationView = null;
+    private Set<BaseFileSystemConfigurationsView> getFileSystemConfigurationViews(Stack source, Set<FileSystem> fileSystems) {
+        Set<BaseFileSystemConfigurationsView> fileSystemConfigurationViews = new HashSet<>();
         Credential credentialResponse = credentialClientService.getByEnvironmentCrn(source.getEnvironmentCrn());
-        if (source.getCluster().getFileSystem() != null) {
-            fileSystemConfigurationView = fileSystemConfigurationProvider.fileSystemConfiguration(fileSystem, source, credentialResponse.getAttributes());
+        if (source.getCluster().getFileSystems() != null) {
+            fileSystemConfigurationViews = fileSystemConfigurationProvider.fileSystemConfigurations(fileSystems, source, credentialResponse.getAttributes());
         }
-        return fileSystemConfigurationView;
+        return fileSystemConfigurationViews;
     }
 
     private StackInputs getStackInputs(Stack source) throws IOException {

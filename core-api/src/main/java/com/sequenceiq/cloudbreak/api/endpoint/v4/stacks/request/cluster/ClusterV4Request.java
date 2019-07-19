@@ -16,7 +16,7 @@ import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.request.cluster.ambari.A
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.request.cluster.cm.ClouderaManagerV4Request;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.request.cluster.customcontainer.CustomContainerV4Request;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.request.cluster.gateway.GatewayV4Request;
-import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.request.cluster.storage.CloudStorageV4Request;
+import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.request.cluster.storage.CloudStorageRequest;
 import com.sequenceiq.cloudbreak.doc.ModelDescriptions.ClusterModelDescription;
 import com.sequenceiq.cloudbreak.doc.ModelDescriptions.StackModelDescription;
 
@@ -53,7 +53,7 @@ public class ClusterV4Request implements JsonEntity {
 
     @Valid
     @ApiModelProperty(StackModelDescription.CLOUD_STORAGE)
-    private CloudStorageV4Request cloudStorage;
+    private CloudStorageRequest cloudStorage;
 
     @Valid
     @ApiModelProperty(ClusterModelDescription.CM_REQUEST)
@@ -128,11 +128,11 @@ public class ClusterV4Request implements JsonEntity {
         this.proxyConfigCrn = proxyConfigCrn;
     }
 
-    public CloudStorageV4Request getCloudStorage() {
+    public CloudStorageRequest getCloudStorage() {
         return cloudStorage;
     }
 
-    public void setCloudStorage(CloudStorageV4Request cloudStorage) {
+    public void setCloudStorage(CloudStorageRequest cloudStorage) {
         this.cloudStorage = cloudStorage;
     }
 

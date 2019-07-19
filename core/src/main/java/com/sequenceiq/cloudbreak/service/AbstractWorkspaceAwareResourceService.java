@@ -1,5 +1,8 @@
 package com.sequenceiq.cloudbreak.service;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -63,6 +66,16 @@ public abstract class AbstractWorkspaceAwareResourceService<T extends WorkspaceA
     }
 
     @Override
+    public Collection<T> createMultipleWithMdcContextRestore(Collection<T> resources, Workspace workspace, User user) {
+        Map<String, String> mdcContextMap = MDCBuilder.getMdcContextMap();
+        try {
+            return createMultipleInternal(resources, workspace, user);
+        } finally {
+            MDCBuilder.buildMdcContextFromMap(mdcContextMap);
+        }
+    }
+
+    @Override
     public T create(T resource, Workspace workspace, User user) {
         return createInternal(resource, workspace, user);
     }
@@ -78,6 +91,25 @@ public abstract class AbstractWorkspaceAwareResourceService<T extends WorkspaceA
             if (cve != null) {
                 String message = String.format("%s already exists with name '%s' in workspace %s",
                         resource().getShortName(), resource.getName(), resource.getWorkspace().getName());
+                throw new BadRequestException(message, e);
+            }
+            throw e;
+        }
+    }
+
+    private Collection<T> createMultipleInternal(Collection<T> resources, Workspace workspace, User user) {
+        try {
+            resources.forEach(this::prepareCreation);
+            resources.forEach(resource -> setWorkspace(resource, user, workspace));
+            Iterable<T> saved = repository().saveAll(resources);
+            List<T> results = new ArrayList<>();
+            saved.forEach(results::add);
+            return results;
+        } catch (AccessDeniedException e) {
+            ConstraintViolationException cve = ThrowableUtil.getSpecificCauseRecursively(e, ConstraintViolationException.class);
+            if (cve != null) {
+                String message = String.format("One of the %s(s) already exists in workspace %s",
+                        this.resource().getReadableName(), workspace.getName());
                 throw new BadRequestException(message, e);
             }
             throw e;

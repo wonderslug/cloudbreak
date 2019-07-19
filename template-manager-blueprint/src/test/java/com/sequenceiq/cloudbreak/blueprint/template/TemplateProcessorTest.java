@@ -106,7 +106,7 @@ public class TemplateProcessorTest {
                 .withBlueprintView(new BlueprintView(testBlueprint, blueprintStackInfo.getVersion(),
                         blueprintStackInfo.getType(), ambariBlueprintTextProcessor))
                 .withFixInputs(properties)
-                .withFileSystemConfigurationView(s3FileSystemConfig())
+                .withFileSystemConfigurationViews(s3FileSystemConfig())
                 .build();
 
         String result = underTest.process(testBlueprint, templatePreparationObject, Maps.newHashMap());

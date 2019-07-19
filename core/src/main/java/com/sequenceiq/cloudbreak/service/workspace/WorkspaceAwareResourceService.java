@@ -1,5 +1,6 @@
 package com.sequenceiq.cloudbreak.service.workspace;
 
+import java.util.Collection;
 import java.util.Set;
 
 import com.sequenceiq.cloudbreak.workspace.resource.WorkspaceResource;
@@ -16,6 +17,8 @@ public interface WorkspaceAwareResourceService<T extends WorkspaceAwareResource>
     T createWithMdcContextRestore(T resource, Workspace workspace, User user);
 
     T create(T resource, Workspace workspace, User user);
+
+    Collection<T> createMultipleWithMdcContextRestore(Collection<T> resources, Workspace workspace, User user);
 
     T getByNameForWorkspaceId(String name, Long workspaceId);
 

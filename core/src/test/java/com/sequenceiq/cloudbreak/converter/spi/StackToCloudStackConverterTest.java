@@ -121,11 +121,11 @@ public class StackToCloudStackConverterTest {
 
     @Test
     public void testConvertWhenThereIsNoFileSystemInClusterThenCloudFileSystemShouldBeNull() {
-        when(cluster.getFileSystem()).thenReturn(null);
+        when(cluster.getFileSystems()).thenReturn(null);
 
         CloudStack result = underTest.convert(stack);
 
-        assertFalse(result.getFileSystem().isPresent());
+        assertFalse(result.getFileSystems().isPresent());
         verify(converterUtil, times(0)).convert(any(FileSystem.class), eq(SpiFileSystem.class));
     }
 
@@ -134,13 +134,13 @@ public class StackToCloudStackConverterTest {
     public void testConvertWhenThereIsAFileSystemInClusterThenExpectedSpiFileSystemShouldPlacedInCloudStack() {
         FileSystem fileSystem = new FileSystem();
         SpiFileSystem expected = mock(SpiFileSystem.class);
-        when(cluster.getFileSystem()).thenReturn(fileSystem);
+        when(cluster.getFileSystems()).thenReturn(fileSystem);
         when(converterUtil.convert(fileSystem, SpiFileSystem.class)).thenReturn(expected);
 
         CloudStack result = underTest.convert(stack);
 
-        assertTrue(result.getFileSystem().isPresent());
-        assertEquals(expected, result.getFileSystem().get());
+        assertTrue(result.getFileSystems().isPresent());
+        assertEquals(expected, result.getFileSystems().get());
         verify(converterUtil, times(1)).convert(fileSystem, SpiFileSystem.class);
     }
 

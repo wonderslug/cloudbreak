@@ -35,9 +35,9 @@ import com.sequenceiq.cloudbreak.converter.AbstractConversionServiceAwareConvert
 import com.sequenceiq.cloudbreak.converter.util.CloudStorageValidationUtil;
 import com.sequenceiq.cloudbreak.converter.v4.stacks.cluster.clouderamanager.ClouderaManagerProductV4RequestToClouderaManagerProductConverter;
 import com.sequenceiq.cloudbreak.converter.v4.stacks.cluster.clouderamanager.ClouderaManagerRepositoryV4RequestToClouderaManagerRepoConverter;
+import com.sequenceiq.cloudbreak.converter.v4.stacks.cluster.filesystem.CloudStorageRequestConverter;
 import com.sequenceiq.cloudbreak.domain.Blueprint;
 import com.sequenceiq.cloudbreak.domain.ClusterAttributes;
-import com.sequenceiq.cloudbreak.domain.FileSystem;
 import com.sequenceiq.cloudbreak.domain.RDSConfig;
 import com.sequenceiq.cloudbreak.domain.stack.cluster.Cluster;
 import com.sequenceiq.cloudbreak.domain.stack.cluster.ClusterComponent;
@@ -74,6 +74,9 @@ public class ClusterV4RequestToClusterConverter extends AbstractConversionServic
     @Inject
     private RdsConfigService rdsConfigService;
 
+    @Inject
+    private CloudStorageRequestConverter cloudStorageRequestConverter;
+
     @Override
     public Cluster convert(ClusterV4Request source) {
         Workspace workspace = workspaceService.getForCurrentUser();
@@ -90,7 +93,7 @@ public class ClusterV4RequestToClusterConverter extends AbstractConversionServic
         cluster.setBlueprint(getBlueprint(source.getBlueprintName(), workspace));
         convertGateway(source, cluster);
         if (cloudStorageValidationUtil.isCloudStorageConfigured(source.getCloudStorage())) {
-            cluster.setFileSystem(getConversionService().convert(source.getCloudStorage(), FileSystem.class));
+            cluster.setFileSystems(cloudStorageRequestConverter.convert(source.getCloudStorage()));
         }
         convertAttributes(source, cluster);
         try {

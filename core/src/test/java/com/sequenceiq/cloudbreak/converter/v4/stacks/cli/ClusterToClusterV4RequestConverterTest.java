@@ -90,7 +90,7 @@ public class ClusterToClusterV4RequestConverterTest {
 
     @Test
     public void testConvertWhenThereIsNoFileSystemThenCloudStorageIsNull() {
-        when(cluster.getFileSystem()).thenReturn(null);
+        when(cluster.getFileSystems()).thenReturn(null);
 
         ClusterV4Request result = underTest.convert(cluster);
 
@@ -103,7 +103,7 @@ public class ClusterToClusterV4RequestConverterTest {
     public void testConvertWhenFileSystemNotNullThenExpectedCloudStorageRequestShouldBePlaced() {
         FileSystem fileSystem = new FileSystem();
         CloudStorageV4Request expected = new CloudStorageV4Request();
-        when(cluster.getFileSystem()).thenReturn(fileSystem);
+        when(cluster.getFileSystems()).thenReturn(fileSystem);
         when(conversionService.convert(fileSystem, CloudStorageV4Request.class)).thenReturn(expected);
 
         ClusterV4Request result = underTest.convert(cluster);

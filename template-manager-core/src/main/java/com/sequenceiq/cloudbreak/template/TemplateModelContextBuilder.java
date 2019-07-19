@@ -73,16 +73,18 @@ public class TemplateModelContextBuilder {
         return this;
     }
 
-    public TemplateModelContextBuilder withFileSystemConfigs(BaseFileSystemConfigurationsView fileSystemConfigurationView) {
-        if (fileSystemConfigurationView != null) {
-            withFileSystemConfigurationView(fileSystemConfigurationView);
+    public TemplateModelContextBuilder withFileSystemConfigs(Set<BaseFileSystemConfigurationsView> fileSystemConfigurationViews) {
+        if (fileSystemConfigurationViews != null) {
+            withFileSystemConfigurationView(fileSystemConfigurationViews);
         }
         return this;
     }
 
-    private TemplateModelContextBuilder withFileSystemConfigurationView(BaseFileSystemConfigurationsView fileSystemConfigurationView) {
-        String componentName = fileSystemConfigurationView.getType().toLowerCase();
-        fileSystemConfig.put(componentName, fileSystemConfigurationView);
+    private TemplateModelContextBuilder withFileSystemConfigurationView(Set<BaseFileSystemConfigurationsView> fileSystemConfigurationViews) {
+        fileSystemConfigurationViews.forEach(baseFileSystemConfigurationsView -> {
+            String componentName = baseFileSystemConfigurationsView.getType().toLowerCase();
+            fileSystemConfig.put(componentName, baseFileSystemConfigurationsView);
+        });
         return this;
     }
 

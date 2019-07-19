@@ -46,7 +46,7 @@ public class TemplatePreparationObject {
 
     private final Optional<HdfConfigs> hdfConfigs;
 
-    private final Optional<BaseFileSystemConfigurationsView> fileSystemView;
+    private final Set<BaseFileSystemConfigurationsView> fileSystemViews;
 
     private final Optional<KerberosConfig> kerberosConfig;
 
@@ -64,7 +64,7 @@ public class TemplatePreparationObject {
         ldapConfig = builder.ldapConfig;
         hdfConfigs = builder.hdfConfigs;
         gatewayView = builder.gatewayView;
-        fileSystemView = builder.fileSystemView;
+        fileSystemViews = builder.fileSystemViews;
         kerberosConfig = builder.kerberosConfig;
         blueprintView = builder.blueprintView;
         generalClusterConfigs = builder.generalClusterConfigs;
@@ -112,8 +112,8 @@ public class TemplatePreparationObject {
         return kerberosConfig;
     }
 
-    public Optional<BaseFileSystemConfigurationsView> getFileSystemConfigurationView() {
-        return fileSystemView;
+    public Set<BaseFileSystemConfigurationsView> getFileSystemConfigurationViews() {
+        return fileSystemViews;
     }
 
     public GeneralClusterConfigs getGeneralClusterConfigs() {
@@ -148,7 +148,7 @@ public class TemplatePreparationObject {
 
         private Optional<HdfConfigs> hdfConfigs = Optional.empty();
 
-        private Optional<BaseFileSystemConfigurationsView> fileSystemView = Optional.empty();
+        private Set<BaseFileSystemConfigurationsView> fileSystemViews = new HashSet<>();
 
         private GatewayView gatewayView;
 
@@ -204,8 +204,8 @@ public class TemplatePreparationObject {
             return this;
         }
 
-        public Builder withFileSystemConfigurationView(BaseFileSystemConfigurationsView fileSystemView) {
-            this.fileSystemView = Optional.ofNullable(fileSystemView);
+        public Builder withFileSystemConfigurationViews(Set<BaseFileSystemConfigurationsView> fileSystemViews) {
+            this.fileSystemViews = fileSystemViews;
             return this;
         }
 

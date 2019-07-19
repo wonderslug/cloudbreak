@@ -21,7 +21,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.sequenceiq.cloudbreak.common.model.OrchestratorType;
-import com.sequenceiq.cloudbreak.exception.NotFoundException;
+import com.sequenceiq.cloudbreak.common.service.TransactionService;
+import com.sequenceiq.cloudbreak.common.service.TransactionService.TransactionExecutionException;
 import com.sequenceiq.cloudbreak.core.bootstrap.service.OrchestratorTypeResolver;
 import com.sequenceiq.cloudbreak.core.bootstrap.service.container.ContainerOrchestratorResolver;
 import com.sequenceiq.cloudbreak.domain.Constraint;
@@ -31,24 +32,23 @@ import com.sequenceiq.cloudbreak.domain.Orchestrator;
 import com.sequenceiq.cloudbreak.domain.RDSConfig;
 import com.sequenceiq.cloudbreak.domain.stack.cluster.Cluster;
 import com.sequenceiq.cloudbreak.domain.stack.cluster.host.HostGroup;
+import com.sequenceiq.cloudbreak.exception.NotFoundException;
 import com.sequenceiq.cloudbreak.orchestrator.container.ContainerOrchestrator;
 import com.sequenceiq.cloudbreak.orchestrator.exception.CloudbreakOrchestratorException;
 import com.sequenceiq.cloudbreak.orchestrator.model.ContainerInfo;
 import com.sequenceiq.cloudbreak.orchestrator.model.OrchestrationCredential;
 import com.sequenceiq.cloudbreak.service.CloudbreakException;
 import com.sequenceiq.cloudbreak.service.ComponentConfigProviderService;
-import com.sequenceiq.cloudbreak.common.service.TransactionService;
-import com.sequenceiq.cloudbreak.common.service.TransactionService.TransactionExecutionException;
 import com.sequenceiq.cloudbreak.service.cluster.ClusterService;
 import com.sequenceiq.cloudbreak.service.cluster.ContainerService;
 import com.sequenceiq.cloudbreak.service.constraint.ConstraintService;
 import com.sequenceiq.cloudbreak.service.hostgroup.HostGroupService;
 import com.sequenceiq.cloudbreak.service.rdsconfig.RdsConfigService;
 import com.sequenceiq.cloudbreak.service.stack.flow.TerminationFailedException;
-import com.sequenceiq.common.model.FileSystemType;
 import com.sequenceiq.cloudbreak.template.filesystem.BaseFileSystemConfigurationsView;
 import com.sequenceiq.cloudbreak.template.filesystem.FileSystemConfigurationsViewProvider;
 import com.sequenceiq.cloudbreak.template.filesystem.FileSystemConfigurator;
+import com.sequenceiq.common.model.FileSystemType;
 
 @Component
 public class ClusterTerminationService {
@@ -144,14 +144,14 @@ public class ClusterTerminationService {
         String terminatedName = cluster.getName() + DELIMITER + new Date().getTime();
         cluster.setName(terminatedName);
         clusterService.cleanupCluster(stackId);
-        FileSystem fs = cluster.getFileSystem();
-        if (fs != null) {
-            deleteFileSystemResources(stackId, fs);
+        Set<FileSystem> fileSystems = cluster.getFileSystems();
+        if (fileSystems != null) {
+            deleteFileSystemResources(stackId, fileSystems);
         }
         cluster.setBlueprint(null);
         cluster.setStack(null);
         cluster.setStatus(DELETE_COMPLETED);
-        cluster.setFileSystem(null);
+        cluster.setFileSystems(null);
         transactionService.required(() -> {
             deleteClusterHostGroupsWithItsMetadata(cluster);
             rdsConfigService.deleteDefaultRdsConfigs(rdsConfigs);
@@ -177,14 +177,16 @@ public class ClusterTerminationService {
         clusterService.save(cluster);
     }
 
-    private void deleteFileSystemResources(Long stackId, FileSystem fileSystem) {
-        try {
-            FileSystemConfigurator<BaseFileSystemConfigurationsView> fsConfigurator = fileSystemConfigurators.get(fileSystem.getType());
-            BaseFileSystemConfigurationsView fsConfiguration = fileSystemConfigurationsViewProvider.propagateConfigurationsView(fileSystem);
-            fsConfiguration.setStorageContainer("cloudbreak" + stackId);
-            fsConfigurator.deleteResources(fsConfiguration);
-        } catch (IOException e) {
-            throw new TerminationFailedException("File system resources could not be deleted: ", e);
-        }
+    private void deleteFileSystemResources(Long stackId, Set<FileSystem> fileSystems) {
+        fileSystems.forEach(fileSystem -> {
+            try {
+                FileSystemConfigurator<BaseFileSystemConfigurationsView> fsConfigurator = fileSystemConfigurators.get(fileSystem.getType());
+                BaseFileSystemConfigurationsView fsConfiguration = fileSystemConfigurationsViewProvider.propagateConfigurationsView(fileSystem);
+                fsConfiguration.setStorageContainer("cloudbreak" + stackId);
+                fsConfigurator.deleteResources(fsConfiguration);
+            } catch (IOException e) {
+                throw new TerminationFailedException("File system resources could not be deleted: ", e);
+            }
+        });
     }
 }

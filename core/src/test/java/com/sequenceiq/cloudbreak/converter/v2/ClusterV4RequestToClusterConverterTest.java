@@ -135,7 +135,7 @@ public class ClusterV4RequestToClusterConverterTest {
 
         Cluster actual = underTest.convert(source);
 
-        assertThat(actual.getFileSystem(), is(fileSystem));
+        assertThat(actual.getFileSystems(), is(fileSystem));
         assertThat(actual.getName(), is(source.getName()));
         assertThat(actual.getRdsConfigs().size(), is(1));
         assertThat(actual.getRdsConfigs().stream().findFirst().get().getName(), is(rdsConfigName));

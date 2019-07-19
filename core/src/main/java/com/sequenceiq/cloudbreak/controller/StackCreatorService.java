@@ -32,6 +32,7 @@ import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.response.StackV4Response
 import com.sequenceiq.cloudbreak.api.util.ConverterUtil;
 import com.sequenceiq.cloudbreak.cloud.event.validation.ParametersValidationRequest;
 import com.sequenceiq.cloudbreak.cloud.model.CloudCredential;
+import com.sequenceiq.cloudbreak.cloud.model.SpiFileSystem;
 import com.sequenceiq.cloudbreak.common.service.TransactionService;
 import com.sequenceiq.cloudbreak.common.service.TransactionService.TransactionExecutionException;
 import com.sequenceiq.cloudbreak.common.service.TransactionService.TransactionRuntimeExecutionException;
@@ -64,6 +65,7 @@ import com.sequenceiq.cloudbreak.service.datalake.DatalakeResourcesService;
 import com.sequenceiq.cloudbreak.service.decorator.StackDecorator;
 import com.sequenceiq.cloudbreak.service.environment.EnvironmentClientService;
 import com.sequenceiq.cloudbreak.service.environment.credential.CredentialClientService;
+import com.sequenceiq.cloudbreak.service.filesystem.SpiCloudStorageAssembler;
 import com.sequenceiq.cloudbreak.service.image.ImageService;
 import com.sequenceiq.cloudbreak.service.image.StatedImage;
 import com.sequenceiq.cloudbreak.service.metrics.CloudbreakMetricService;
@@ -143,6 +145,9 @@ public class StackCreatorService {
     private ClusterService clusterService;
 
     @Inject
+    private SpiCloudStorageAssembler spiCloudStorageAssembler;
+
+    @Inject
     private ClusterComponentRepository clusterComponentRepository;
 
     public StackV4Response createStack(User user, Workspace workspace, StackV4Request stackRequest) {
@@ -216,8 +221,9 @@ public class StackCreatorService {
                     fileSystemValidator.validateFileSystem(stackValidation.getCredential().cloudPlatform(), cloudCredential,
                             stackValidationRequest.getFileSystem(), stack.getCreator().getUserId(), stack.getWorkspace().getId());
 
+                    Set<SpiFileSystem> spiFileSystems = spiCloudStorageAssembler.assembleSpiFileSystems(stackRequest.getCluster().getCloudStorage());
                     DetailedEnvironmentResponse environment = environmentClientService.getByCrn(stackRequest.getEnvironmentCrn());
-                    clusterCreationService.validate(stackRequest.getCluster(), cloudCredential, stack, user, workspace, environment);
+                    clusterCreationService.validate(stackRequest.getCluster(), cloudCredential, stack, user, workspace, environment, spiFileSystems);
                 }
 
                 LOGGER.info("Fill up instanceMetadata for stack {}.", stackName);

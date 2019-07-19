@@ -55,9 +55,10 @@ public class ConfigUtils {
     }
 
     public static Optional<StorageLocationView> getStorageLocationForServiceProperty(TemplatePreparationObject source, String serviceProperty) {
-        return source.getFileSystemConfigurationView().flatMap(configview -> configview.getLocations().stream()
+        // TODO: I'm not sure about this
+        return source.getFileSystemConfigurationViews().stream().flatMap(configview -> configview.getLocations().stream())
                 .filter(s -> s.getProperty().equalsIgnoreCase(serviceProperty))
-                .findFirst());
+                .findFirst();
     }
 
     public static String getSafetyValveProperty(String key, String value) {

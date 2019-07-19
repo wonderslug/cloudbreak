@@ -93,7 +93,7 @@ public class ZeppelinCloudStorageRoleConfigProviderTest {
                     new S3FileSystemConfigurationsView(new S3FileSystem(), locations, false);
         }
 
-        return Builder.builder().withFileSystemConfigurationView(fileSystemConfigurationsView)
+        return Builder.builder().withFileSystemConfigurationViews(fileSystemConfigurationsView)
                 .withHostgroupViews(Set.of(master, worker)).build();
     }
 

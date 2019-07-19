@@ -201,10 +201,10 @@ public class GcpInstanceResourceBuilder extends AbstractGcpComputeBuilder {
     }
 
     private List<ServiceAccount> extractServiceAccounts(CloudStack cloudStack) {
-        if (!cloudStack.getFileSystem().isPresent()) {
+        if (cloudStack.getFileSystems().isEmpty()) {
             return null;
         }
-        CloudGcsView cloudFileSystem = (CloudGcsView) cloudStack.getFileSystem().get().getCloudFileSystem();
+        CloudGcsView cloudFileSystem = (CloudGcsView) cloudStack.getFileSystems().iterator().next().getCloudFileSystem();
         String email = cloudFileSystem.getServiceAccountEmail();
         return StringUtils.isEmpty(email) ? null
                 : singletonList(new ServiceAccount()

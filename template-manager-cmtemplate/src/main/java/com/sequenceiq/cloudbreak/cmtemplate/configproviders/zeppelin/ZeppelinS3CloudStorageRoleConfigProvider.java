@@ -76,8 +76,8 @@ public class ZeppelinS3CloudStorageRoleConfigProvider extends AbstractRoleConfig
 
     @Override
     public boolean isConfigurationNeeded(CmTemplateProcessor cmTemplateProcessor, TemplatePreparationObject source) {
-        return source.getFileSystemConfigurationView().isPresent()
-                && source.getFileSystemConfigurationView().get().getType().equals(FileSystemType.S3.name())
+        return !source.getFileSystemConfigurationViews().isEmpty()
+                && source.getFileSystemConfigurationViews().iterator().next().getType().equals(FileSystemType.S3.name())
                 && cmTemplateProcessor.isRoleTypePresentInService(getServiceType(), getRoleTypes());
     }
 }

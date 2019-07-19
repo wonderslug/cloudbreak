@@ -11,11 +11,13 @@ import org.springframework.stereotype.Component;
 
 import com.sequenceiq.cloudbreak.api.endpoint.v4.common.ExecutorType;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.request.cluster.ClusterV4Request;
+import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.request.cluster.storage.CloudStorageRequest;
 import com.sequenceiq.cloudbreak.auth.ThreadBasedUserCrnProvider;
 import com.sequenceiq.cloudbreak.service.proxy.ProxyConfigDtoService;
 import com.sequenceiq.cloudbreak.service.rdsconfig.RdsConfigService;
 import com.sequenceiq.cloudbreak.service.workspace.WorkspaceService;
 import com.sequenceiq.distrox.api.v1.distrox.model.cluster.DistroXClusterV1Request;
+import com.sequenceiq.distrox.api.v1.distrox.model.cluster.storage.CloudStorageV1Request;
 
 @Component
 public class DistroXClusterToClusterConverter {
@@ -55,7 +57,11 @@ public class DistroXClusterToClusterConverter {
         response.setPassword(source.getPassword());
         response.setProxyConfigCrn(getIfNotNull(source.getProxy(), this::getProxyCrnByName));
         response.setCm(getIfNotNull(source.getCm(), cmConverter::convert));
-        response.setCloudStorage(getIfNotNull(source.getCloudStorage(), cloudStorageConverter::convert));
+        // TODO: convert this properly
+        CloudStorageV1Request cloudStorageV1Request = source.getCloudStorage();
+        CloudStorageRequest cloudStorageRequest = new CloudStorageRequest();
+        response.setCloudStorage(cloudStorageRequest);
+
         response.setValidateBlueprint(source.getValidateBlueprint());
         response.setExecutorType(ExecutorType.DEFAULT);
         response.setCustomContainer(null);
@@ -71,7 +77,11 @@ public class DistroXClusterToClusterConverter {
         response.setUserName(source.getUserName());
         response.setPassword(source.getPassword());
         response.setCm(getIfNotNull(source.getCm(), cmConverter::convert));
-        response.setCloudStorage(getIfNotNull(source.getCloudStorage(), cloudStorageConverter::convert));
+        // TODO: convert this properly
+        CloudStorageRequest cloudStorageRequest = source.getCloudStorage();
+        CloudStorageV1Request cloudStorageV1Request = new CloudStorageV1Request();
+        response.setCloudStorage(cloudStorageV1Request);
+
         response.setProxy(source.getProxyConfigCrn());
         return response;
     }

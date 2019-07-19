@@ -1,10 +1,13 @@
 package com.sequenceiq.cloudbreak.domain;
 
+import java.io.IOException;
+
 import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -13,8 +16,11 @@ import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.sequenceiq.cloudbreak.common.json.Json;
 import com.sequenceiq.cloudbreak.common.json.JsonToString;
+import com.sequenceiq.cloudbreak.common.json.JsonUtil;
+import com.sequenceiq.cloudbreak.domain.stack.cluster.Cluster;
 import com.sequenceiq.cloudbreak.workspace.model.Workspace;
 import com.sequenceiq.cloudbreak.workspace.model.WorkspaceAwareResource;
 import com.sequenceiq.cloudbreak.workspace.resource.WorkspaceResource;
@@ -23,6 +29,9 @@ import com.sequenceiq.common.model.FileSystemType;
 @Entity
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"workspace_id", "name"}))
 public class FileSystem implements ProvisionEntity, WorkspaceAwareResource {
+
+    private static final TypeReference<StorageLocations> STORAGE_LOCATIONS_TYPE_REFERENCE = new TypeReference<>() {
+    };
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO, generator = "filesystem_generator")
@@ -49,6 +58,9 @@ public class FileSystem implements ProvisionEntity, WorkspaceAwareResource {
 
     @ManyToOne
     private Workspace workspace;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Cluster cluster;
 
     public Workspace getWorkspace() {
         return workspace;
@@ -99,8 +111,21 @@ public class FileSystem implements ProvisionEntity, WorkspaceAwareResource {
         return locations;
     }
 
-    public void setLocations(Json locations) {
-        this.locations = locations;
+    public StorageLocations getLocationsObject() {
+        try {
+            if (locations != null && locations.getValue() != null) {
+                return JsonUtil.readValue(locations.getValue(), STORAGE_LOCATIONS_TYPE_REFERENCE);
+            }
+            return null;
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    public void setLocations(StorageLocations storageLocations) {
+        if (storageLocations != null) {
+            this.locations = new Json(storageLocations);
+        }
     }
 
     public Json getConfigurations() {
@@ -109,5 +134,13 @@ public class FileSystem implements ProvisionEntity, WorkspaceAwareResource {
 
     public void setConfigurations(Json configurations) {
         this.configurations = configurations;
+    }
+
+    public Cluster getCluster() {
+        return cluster;
+    }
+
+    public void setCluster(Cluster cluster) {
+        this.cluster = cluster;
     }
 }

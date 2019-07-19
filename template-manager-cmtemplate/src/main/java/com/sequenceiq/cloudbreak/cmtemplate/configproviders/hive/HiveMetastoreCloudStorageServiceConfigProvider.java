@@ -48,7 +48,7 @@ public class HiveMetastoreCloudStorageServiceConfigProvider implements CmTemplat
 
     @Override
     public boolean isConfigurationNeeded(CmTemplateProcessor cmTemplateProcessor, TemplatePreparationObject source) {
-        return source.getFileSystemConfigurationView().isPresent()
+        return !source.getFileSystemConfigurationViews().isEmpty()
                 && cmTemplateProcessor.isRoleTypePresentInService(getServiceType(), getRoleTypes());
     }
 }

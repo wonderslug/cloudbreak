@@ -31,11 +31,11 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -57,6 +57,7 @@ import com.sequenceiq.cloudbreak.blueprint.utils.BlueprintUtils;
 import com.sequenceiq.cloudbreak.client.HttpClientConfig;
 import com.sequenceiq.cloudbreak.cloud.model.AmbariRepo;
 import com.sequenceiq.cloudbreak.cloud.model.ClouderaManagerRepo;
+import com.sequenceiq.cloudbreak.domain.FileSystem;
 import com.sequenceiq.common.api.telemetry.model.Telemetry;
 import com.sequenceiq.cloudbreak.cloud.model.VolumeSetAttributes;
 import com.sequenceiq.cloudbreak.cloud.model.component.ManagementPackComponent;
@@ -239,8 +240,9 @@ public class ClusterService {
             LOGGER.debug("Host group constrainst saved in {} ms for stack {}", System.currentTimeMillis() - start, stackName);
 
             start = System.currentTimeMillis();
-            if (cluster.getFileSystem() != null) {
-                cluster.setFileSystem(fileSystemConfigService.createWithMdcContextRestore(cluster.getFileSystem(), cluster.getWorkspace(), user));
+            if (CollectionUtils.isNotEmpty(cluster.getFileSystems())) {
+                Collection<FileSystem> fileSystems = fileSystemConfigService.createMultipleWithMdcContextRestore(cluster.getFileSystems(), cluster.getWorkspace(), user);
+                cluster.setFileSystems(new HashSet<>(fileSystems));
             }
             LOGGER.debug("Filesystem config saved in {} ms for stack {}", System.currentTimeMillis() - start, stackName);
 
@@ -308,9 +310,12 @@ public class ClusterService {
         Cluster savedCluster;
         try {
             long start = System.currentTimeMillis();
-            if (cluster.getFileSystem() != null) {
-                cluster.getFileSystem().setWorkspace(cluster.getWorkspace());
-                fileSystemConfigService.pureSave(cluster.getFileSystem());
+            if (cluster.getFileSystems() != null) {
+                cluster.getFileSystems().forEach(fileSystem -> {
+                    fileSystem.setCluster(cluster);
+                    fileSystem.setWorkspace(cluster.getWorkspace());
+                });
+                fileSystemConfigService.pureSaveAll(cluster.getFileSystems());
             }
             savedCluster = save(cluster);
             Gateway gateway = cluster.getGateway();

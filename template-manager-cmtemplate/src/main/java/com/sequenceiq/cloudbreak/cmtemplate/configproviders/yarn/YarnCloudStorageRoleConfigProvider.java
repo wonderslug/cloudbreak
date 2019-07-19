@@ -43,7 +43,7 @@ public class YarnCloudStorageRoleConfigProvider extends AbstractRoleConfigProvid
 
     @Override
     public boolean isConfigurationNeeded(CmTemplateProcessor cmTemplateProcessor, TemplatePreparationObject source) {
-        return source.getFileSystemConfigurationView().isPresent()
+        return !source.getFileSystemConfigurationViews().isEmpty()
                 && cmTemplateProcessor.isRoleTypePresentInService(getServiceType(), getRoleTypes());
     }
 }

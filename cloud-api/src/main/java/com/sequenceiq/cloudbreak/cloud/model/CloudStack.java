@@ -3,7 +3,8 @@ package com.sequenceiq.cloudbreak.cloud.model;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -31,10 +32,10 @@ public class CloudStack {
 
     private final InstanceAuthentication instanceAuthentication;
 
-    private final Optional<SpiFileSystem> fileSystem;
+    private final Set<SpiFileSystem> fileSystems;
 
     public CloudStack(Collection<Group> groups, Network network, Image image, Map<String, String> parameters, Map<String, String> tags, String template,
-            InstanceAuthentication instanceAuthentication, String loginUserName, String publicKey, SpiFileSystem fileSystem) {
+            InstanceAuthentication instanceAuthentication, String loginUserName, String publicKey, Set<SpiFileSystem> fileSystems) {
         this.groups = ImmutableList.copyOf(groups);
         this.network = network;
         this.image = image;
@@ -44,7 +45,7 @@ public class CloudStack {
         this.instanceAuthentication = instanceAuthentication;
         this.loginUserName = loginUserName;
         this.publicKey = publicKey;
-        this.fileSystem = Optional.ofNullable(fileSystem);
+        this.fileSystems = fileSystems;
     }
 
     public List<Group> getGroups() {
@@ -75,8 +76,8 @@ public class CloudStack {
         return instanceAuthentication;
     }
 
-    public Optional<SpiFileSystem> getFileSystem() {
-        return fileSystem;
+    public Set<SpiFileSystem> getFileSystems() {
+        return fileSystems;
     }
 
     public String getTemplate() {
@@ -93,12 +94,14 @@ public class CloudStack {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder("CloudStack{");
-        sb.append("groups=").append(groups);
-        sb.append(", network=").append(network);
-        sb.append(", image=").append(image);
-        sb.append(", cloudFileSystem=").append(fileSystem.orElse(null));
-        sb.append('}');
+        StringBuilder sb = new StringBuilder("CloudStack{")
+                .append("groups=").append(groups)
+                .append(", network=").append(network)
+                .append(", image=").append(image)
+                .append(", cloudFileSystems=[");
+        String fileSystemsString = fileSystems.stream().map(SpiFileSystem::toString).collect(Collectors.joining(", "));
+        sb.append(fileSystemsString);
+        sb.append("]}");
         return sb.toString();
     }
 }

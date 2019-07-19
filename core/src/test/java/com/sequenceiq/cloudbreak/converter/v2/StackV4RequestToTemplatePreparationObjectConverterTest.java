@@ -307,7 +307,7 @@ public class StackV4RequestToTemplatePreparationObjectConverterTest {
 
         TemplatePreparationObject result = underTest.convert(source);
 
-        assertFalse(result.getFileSystemConfigurationView().isPresent());
+        assertFalse(result.getFileSystemConfigurationViews().isPresent());
     }
 
     @Test
@@ -322,8 +322,8 @@ public class StackV4RequestToTemplatePreparationObjectConverterTest {
 
         TemplatePreparationObject result = underTest.convert(source);
 
-        assertTrue(result.getFileSystemConfigurationView().isPresent());
-        assertEquals(expected, result.getFileSystemConfigurationView().get());
+        assertTrue(result.getFileSystemConfigurationViews().isPresent());
+        assertEquals(expected, result.getFileSystemConfigurationViews().get());
     }
 
     @Test

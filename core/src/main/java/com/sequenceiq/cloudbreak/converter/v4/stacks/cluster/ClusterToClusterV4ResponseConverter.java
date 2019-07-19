@@ -131,8 +131,8 @@ public class ClusterToClusterV4ResponseConverter extends AbstractConversionServi
     }
 
     private CloudStorageV1Response getCloudStorage(Cluster source) {
-        if (source.getFileSystem() != null) {
-            return getConversionService().convert(source.getFileSystem(), CloudStorageV1Response.class);
+        if (source.getFileSystems() != null) {
+            return getConversionService().convert(source.getFileSystems(), CloudStorageV1Response.class);
         }
         return null;
     }

@@ -1,9 +1,11 @@
 package com.sequenceiq.cloudbreak.structuredevent.converter;
 
 import java.util.Optional;
+import java.util.Set;
 
 import javax.inject.Inject;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
@@ -44,7 +46,7 @@ public class ClusterToClusterDetailsConverter extends AbstractConversionServiceA
         clusterDetails.setStatusReason(source.getStatusReason());
         convertKerberosConfig(clusterDetails, source);
         convertGatewayProperties(clusterDetails, source.getGateway());
-        convertFileSystemProperties(clusterDetails, source.getFileSystem());
+        convertFileSystemProperties(clusterDetails, source.getFileSystems());
         convertComponents(clusterDetails, source);
         addDatabaseInfo(clusterDetails, source);
         return clusterDetails;
@@ -82,9 +84,9 @@ public class ClusterToClusterDetailsConverter extends AbstractConversionServiceA
         }
     }
 
-    private void convertFileSystemProperties(ClusterDetails clusterDetails, FileSystem fileSystem) {
-        if (fileSystem != null) {
-            clusterDetails.setFileSystemType(fileSystem.getType().name());
+    private void convertFileSystemProperties(ClusterDetails clusterDetails, Set<FileSystem> fileSystems) {
+        if (CollectionUtils.isNotEmpty(fileSystems)) {
+            clusterDetails.setFileSystemType(fileSystems.iterator().next().getType().name());
         }
     }
 

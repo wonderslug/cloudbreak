@@ -207,15 +207,15 @@ public class StackToTemplatePreparationObjectConverterTest {
         FileSystem sourceFileSystem = new FileSystem();
         FileSystem clusterServiceFileSystem = new FileSystem();
         BaseFileSystemConfigurationsView expected = mock(BaseFileSystemConfigurationsView.class);
-        when(sourceCluster.getFileSystem()).thenReturn(sourceFileSystem);
-        when(cluster.getFileSystem()).thenReturn(clusterServiceFileSystem);
+        when(sourceCluster.getFileSystems()).thenReturn(sourceFileSystem);
+        when(cluster.getFileSystems()).thenReturn(clusterServiceFileSystem);
         when(stackMock.getEnvironmentCrn()).thenReturn("envCredentialCRN");
         when(fileSystemConfigurationProvider.fileSystemConfiguration(clusterServiceFileSystem, stackMock, new Json(""))).thenReturn(expected);
 
         TemplatePreparationObject result = underTest.convert(stackMock);
 
-        assertTrue(result.getFileSystemConfigurationView().isPresent());
-        assertEquals(expected, result.getFileSystemConfigurationView().get());
+        assertTrue(result.getFileSystemConfigurationViews().isPresent());
+        assertEquals(expected, result.getFileSystemConfigurationViews().get());
         verify(fileSystemConfigurationProvider, times(1)).fileSystemConfiguration(clusterServiceFileSystem, stackMock, new Json(""));
     }
 
@@ -223,13 +223,13 @@ public class StackToTemplatePreparationObjectConverterTest {
     public void testConvertWhenClusterDoesNotProvidesFileSystemThenBaseFileSystemConfigurationsViewShouldBeEmpty() throws IOException {
         FileSystem clusterServiceFileSystem = new FileSystem();
         BaseFileSystemConfigurationsView expected = mock(BaseFileSystemConfigurationsView.class);
-        when(sourceCluster.getFileSystem()).thenReturn(null);
-        when(cluster.getFileSystem()).thenReturn(clusterServiceFileSystem);
+        when(sourceCluster.getFileSystems()).thenReturn(null);
+        when(cluster.getFileSystems()).thenReturn(clusterServiceFileSystem);
         when(fileSystemConfigurationProvider.fileSystemConfiguration(clusterServiceFileSystem, stackMock, new Json(""))).thenReturn(expected);
 
         TemplatePreparationObject result = underTest.convert(stackMock);
 
-        assertFalse(result.getFileSystemConfigurationView().isPresent());
+        assertFalse(result.getFileSystemConfigurationViews().isPresent());
         verify(fileSystemConfigurationProvider, times(0)).fileSystemConfiguration(clusterServiceFileSystem, stackMock, new Json(""));
     }
 
@@ -240,8 +240,8 @@ public class StackToTemplatePreparationObjectConverterTest {
         IOException invokedException = new IOException(iOExceptionMessage);
         FileSystem sourceFileSystem = new FileSystem();
         FileSystem clusterServiceFileSystem = new FileSystem();
-        when(sourceCluster.getFileSystem()).thenReturn(sourceFileSystem);
-        when(cluster.getFileSystem()).thenReturn(clusterServiceFileSystem);
+        when(sourceCluster.getFileSystems()).thenReturn(sourceFileSystem);
+        when(cluster.getFileSystems()).thenReturn(clusterServiceFileSystem);
         when(stackMock.getEnvironmentCrn()).thenReturn("envCredentialCRN");
         when(fileSystemConfigurationProvider.fileSystemConfiguration(clusterServiceFileSystem, stackMock, new Json(""))).thenThrow(invokedException);
 

@@ -1,6 +1,6 @@
 package com.sequenceiq.cloudbreak.cloud.aws.view;
 
-import java.util.Optional;
+import java.util.Set;
 
 import com.sequenceiq.cloudbreak.cloud.model.CloudStack;
 import com.sequenceiq.cloudbreak.cloud.model.SpiFileSystem;
@@ -8,18 +8,19 @@ import com.sequenceiq.cloudbreak.cloud.model.filesystem.CloudS3View;
 
 public class AwsInstanceProfileView {
 
-    private final Optional<SpiFileSystem> cloudFileSystem;
+    private final Set<SpiFileSystem> cloudFileSystems;
 
     public AwsInstanceProfileView(CloudStack stack) {
-        cloudFileSystem = stack.getFileSystem();
+        cloudFileSystems = stack.getFileSystems();
     }
 
     public boolean isInstanceProfileAvailable() {
-        return cloudFileSystem.isPresent() && (cloudFileSystem.get().getCloudFileSystem() instanceof CloudS3View);
+        return !cloudFileSystems.isEmpty() && (cloudFileSystems.iterator().next().getCloudFileSystem() instanceof CloudS3View);
     }
 
     public String getInstanceProfile() {
-        return ((CloudS3View) cloudFileSystem.get().getCloudFileSystem()).getInstanceProfile();
+        // TODO: this is only temporary!!!
+        return ((CloudS3View) cloudFileSystems.iterator().next().getCloudFileSystem()).getInstanceProfile();
     }
 
 }

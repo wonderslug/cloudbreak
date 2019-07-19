@@ -22,6 +22,7 @@ import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.request.cluster.ClusterV
 import com.sequenceiq.cloudbreak.api.util.ConverterUtil;
 import com.sequenceiq.cloudbreak.aspect.Measure;
 import com.sequenceiq.cloudbreak.cloud.model.CloudCredential;
+import com.sequenceiq.cloudbreak.cloud.model.SpiFileSystem;
 import com.sequenceiq.cloudbreak.common.service.TransactionService.TransactionExecutionException;
 import com.sequenceiq.cloudbreak.common.type.ComponentType;
 import com.sequenceiq.cloudbreak.validation.ValidationResult;
@@ -98,19 +99,20 @@ public class ClusterCreationSetupService {
     @Inject
     private StackUtil stackUtil;
 
-    public void validate(ClusterV4Request request, Stack stack, User user, Workspace workspace, DetailedEnvironmentResponse environment) {
-        validate(request, null, stack, user, workspace, environment);
+    public void validate(ClusterV4Request request, Stack stack, User user, Workspace workspace,
+            DetailedEnvironmentResponse environment, Set<SpiFileSystem> spiFileSystems) {
+        validate(request, null, stack, user, workspace, environment, spiFileSystems);
     }
 
     @Measure(ClusterCreationSetupService.class)
     public void validate(ClusterV4Request request, CloudCredential cloudCredential, Stack stack, User user,
-            Workspace workspace, DetailedEnvironmentResponse environment) {
+            Workspace workspace, DetailedEnvironmentResponse environment, Set<SpiFileSystem> spiFileSystems) {
         MdcContext.builder().userCrn(user.getUserCrn()).tenant(user.getTenant().getName()).buildMdc();
         CloudCredential credential = cloudCredential;
         if (credential == null) {
             credential = stackUtil.getCloudCredential(stack);
         }
-        fileSystemValidator.validateCloudStorage(stack.cloudPlatform(), credential, request.getCloudStorage(),
+        fileSystemValidator.validateCloudStorages(stack.cloudPlatform(), credential, spiFileSystems,
                 stack.getCreator().getUserId(), stack.getWorkspace().getId());
         mpackValidator.validateMpacks(request.getAmbari(), workspace);
         rdsConfigValidator.validateRdsConfigs(request, user, workspace);
@@ -129,6 +131,7 @@ public class ClusterCreationSetupService {
         decorateHostGroupWithConstraint(stack, clusterStub);
 
         if (request.getCloudStorage() != null) {
+            // TODO: stupid conversion
             FileSystem fs = measure(() -> fileSystemConfigService.createWithMdcContextRestore(
                     converterUtil.convert(request.getCloudStorage(), FileSystem.class), stack.getWorkspace(), stack.getCreator()),
                     LOGGER, "File system saving took {} ms for stack {}", stackName);

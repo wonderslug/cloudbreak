@@ -18,10 +18,12 @@ import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.request.instancegroup.te
 import com.sequenceiq.cloudbreak.blueprint.GeneralClusterConfigsProvider;
 import com.sequenceiq.cloudbreak.blueprint.utils.StackInfoService;
 import com.sequenceiq.cloudbreak.cluster.api.DatalakeConfigApi;
+import com.sequenceiq.cloudbreak.common.exception.CloudbreakServiceException;
 import com.sequenceiq.cloudbreak.common.json.Json;
 import com.sequenceiq.cloudbreak.common.user.CloudbreakUser;
 import com.sequenceiq.cloudbreak.converter.AbstractConversionServiceAwareConverter;
 import com.sequenceiq.cloudbreak.converter.util.CloudStorageValidationUtil;
+import com.sequenceiq.cloudbreak.converter.v4.stacks.cluster.filesystem.CloudStorageRequestConverter;
 import com.sequenceiq.cloudbreak.domain.Blueprint;
 import com.sequenceiq.cloudbreak.domain.FileSystem;
 import com.sequenceiq.cloudbreak.domain.RDSConfig;
@@ -34,7 +36,6 @@ import com.sequenceiq.cloudbreak.dto.credential.Credential;
 import com.sequenceiq.cloudbreak.kerberos.KerberosConfigService;
 import com.sequenceiq.cloudbreak.ldap.LdapConfigService;
 import com.sequenceiq.cloudbreak.service.CloudbreakRestRequestThreadLocalService;
-import com.sequenceiq.cloudbreak.common.exception.CloudbreakServiceException;
 import com.sequenceiq.cloudbreak.service.blueprint.BlueprintService;
 import com.sequenceiq.cloudbreak.service.blueprint.BlueprintViewProvider;
 import com.sequenceiq.cloudbreak.service.datalake.DatalakeResourcesService;
@@ -121,6 +122,9 @@ public class StackV4RequestToTemplatePreparationObjectConverter extends Abstract
     @Inject
     private CredentialConverter credentialConverter;
 
+    @Inject
+    private CloudStorageRequestConverter cloudStorageRequestConverter;
+
     @Override
     public TemplatePreparationObject convert(StackV4Request source) {
         try {
@@ -129,7 +133,7 @@ public class StackV4RequestToTemplatePreparationObjectConverter extends Abstract
             Workspace workspace = workspaceService.get(restRequestThreadLocalService.getRequestedWorkspaceId(), user);
             Credential credential = getCredential(source);
             LdapView ldapConfig = getLdapConfig(source);
-            BaseFileSystemConfigurationsView fileSystemConfigurationView = getFileSystemConfigurationView(source, credential.getAttributes());
+            Set<BaseFileSystemConfigurationsView> fileSystemConfigurationViews = getFileSystemConfigurationView(source, credential.getAttributes());
             Set<RDSConfig> rdsConfigs = getRdsConfigs(source, workspace);
             Blueprint blueprint = getBlueprint(source, workspace);
             String blueprintText = blueprint.getBlueprintText();
@@ -149,7 +153,7 @@ public class StackV4RequestToTemplatePreparationObjectConverter extends Abstract
                     .withGateway(gateway, gatewaySignKey)
                     .withBlueprintView(blueprintView)
                     .withStackRepoDetailsHdpVersion(blueprintStackInfo.getVersion())
-                    .withFileSystemConfigurationView(fileSystemConfigurationView)
+                    .withFileSystemConfigurationViews(fileSystemConfigurationViews)
                     .withGeneralClusterConfigs(generalClusterConfigs)
                     .withLdapConfig(ldapConfig)
                     .withKerberosConfig(getKerberosConfig(source));
@@ -171,7 +175,7 @@ public class StackV4RequestToTemplatePreparationObjectConverter extends Abstract
                 }
             }
             return builder.build();
-        } catch (BlueprintProcessingException | IOException e) {
+        } catch (BlueprintProcessingException | IllegalArgumentException e) {
             throw new CloudbreakServiceException(e.getMessage(), e);
         }
     }
@@ -213,14 +217,14 @@ public class StackV4RequestToTemplatePreparationObjectConverter extends Abstract
                 .collect(Collectors.toSet());
     }
 
-    private BaseFileSystemConfigurationsView getFileSystemConfigurationView(StackV4Request source, Json credentialAttributes)
-            throws IOException {
-        BaseFileSystemConfigurationsView fileSystemConfigurationView = null;
+    private Set<BaseFileSystemConfigurationsView> getFileSystemConfigurationView(StackV4Request source, Json credentialAttributes) {
+        Set<BaseFileSystemConfigurationsView> fileSystemConfigurationViews = new HashSet<>();
         if (cloudStorageValidationUtil.isCloudStorageConfigured(source.getCluster().getCloudStorage())) {
-            FileSystem fileSystem = getConversionService().convert(source.getCluster().getCloudStorage(), FileSystem.class);
-            fileSystemConfigurationView = fileSystemConfigurationProvider.fileSystemConfiguration(fileSystem, source, credentialAttributes);
+            // TODO: multiple filesystems here, ples convert
+            Set<FileSystem> fileSystems = cloudStorageRequestConverter.convert(source.getCluster().getCloudStorage());
+            fileSystemConfigurationViews = fileSystemConfigurationProvider.fileSystemConfigurations(fileSystems, source, credentialAttributes);
         }
-        return fileSystemConfigurationView;
+        return fileSystemConfigurationViews;
     }
 
     private LdapView getLdapConfig(StackV4Request source) {

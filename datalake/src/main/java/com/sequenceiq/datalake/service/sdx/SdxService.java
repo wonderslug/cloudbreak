@@ -21,7 +21,12 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.request.StackV4Request;
+import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.request.cluster.storage.CloudStorageCdpIdentity;
+import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.request.cluster.storage.CloudStorageRequest;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.request.cluster.storage.CloudStorageV4Request;
+import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.request.cluster.storage.StorageIdentityRequest;
+import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.request.cluster.storage.StorageLocationRequest;
+import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.request.cluster.storage.location.StorageLocationV4Request;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.response.StackV4Response;
 import com.sequenceiq.cloudbreak.auth.altus.Crn;
 import com.sequenceiq.cloudbreak.auth.altus.CrnParseException;
@@ -58,6 +63,9 @@ public class SdxService {
 
     @Inject
     private CloudStorageManifester cloudStorageManifester;
+
+    @Inject
+    private CmCloudStorageConfigDetails
 
     public Set<Long> findByResourceIdsAndStatuses(Set<Long> resourceIds, Set<SdxClusterStatus> statuses) {
         List<SdxCluster> sdxClusters = sdxClusterRepository.findByIdInAndStatusIn(resourceIds, statuses);
@@ -155,9 +163,31 @@ public class SdxService {
             CloudStorageV4Request cloudStorageConfig =
                     cloudStorageManifester.getCloudStorageConfig(environment.getCloudPlatform(),
                             stackV4Request.getCluster().getBlueprintName(), sdxCluster, sdxClusterRequest);
-            stackV4Request.getCluster().setCloudStorage(cloudStorageConfig);
+            Set<StorageLocationV4Request> locations = cloudStorageConfig.getLocations();
+            List<StorageLocationRequest> storageLocationRequests = locations.stream().map(storageLocationV4Request -> {
+                StorageLocationRequest storageLocationRequest = new StorageLocationRequest();
+                // TODO: set this shit
+                return storageLocationRequest;
+            }).collect(Collectors.toList());
+
+            CloudStorageRequest cloudStorageRequest = setIdentities(cloudStorageConfig);
+            cloudStorageRequest.setLocations(storageLocationRequests);
+            stackV4Request.getCluster().setCloudStorage(cloudStorageRequest);
         }
         return stackV4Request;
+    }
+
+    private CloudStorageRequest setIdentities(CloudStorageV4Request cloudStorageConfig) {
+        CloudStorageRequest cloudStorageRequest = new CloudStorageRequest();
+        StorageIdentityRequest storageIdentityRequest = new StorageIdentityRequest();
+        storageIdentityRequest.setType(CloudStorageCdpIdentity.LOG);
+        storageIdentityRequest.setS3(cloudStorageConfig.getS3());
+        storageIdentityRequest.setAdlsGen2(cloudStorageConfig.getAdlsGen2());
+        storageIdentityRequest.setWasb(cloudStorageConfig.getWasb());
+        storageIdentityRequest.setAdls(cloudStorageConfig.getAdls());
+        storageIdentityRequest.setGcs(cloudStorageConfig.getGcs());
+        cloudStorageRequest.setIdentities(List.of(storageIdentityRequest));
+        return cloudStorageRequest;
     }
 
     private boolean isCloudStorageConfigured(SdxClusterRequest clusterRequest) {

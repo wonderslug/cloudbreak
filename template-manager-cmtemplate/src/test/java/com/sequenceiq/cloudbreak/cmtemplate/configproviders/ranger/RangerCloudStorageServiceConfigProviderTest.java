@@ -100,7 +100,7 @@ public class RangerCloudStorageServiceConfigProviderTest {
         generalClusterConfigs.setPrimaryGatewayInstanceDiscoveryFQDN(Optional.of("fqdn"));
 
         return Builder.builder()
-                .withFileSystemConfigurationView(fileSystemConfigurationsView)
+                .withFileSystemConfigurationViews(fileSystemConfigurationsView)
                 .withHostgroupViews(Set.of(gateway, master, worker))
                 .withGeneralClusterConfigs(generalClusterConfigs);
     }

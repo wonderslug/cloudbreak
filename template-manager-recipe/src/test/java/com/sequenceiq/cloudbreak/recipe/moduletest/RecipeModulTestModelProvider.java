@@ -81,70 +81,70 @@ class RecipeModulTestModelProvider {
     static TemplatePreparationObject testTemplateWithSingleS3Storage() {
         return getPreparedBuilder("master")
                 .withBlueprintView(generalBlueprintView("", "2.6", "HDP"))
-                .withFileSystemConfigurationView(getS3ConfigView(getStorageLocationViews(1)))
+                .withFileSystemConfigurationViews(getS3ConfigView(getStorageLocationViews(1)))
                 .build();
     }
 
     static TemplatePreparationObject testTemplateWithTwoS3Storage() {
         return getPreparedBuilder("master")
                 .withBlueprintView(generalBlueprintView("", "2.6", "HDP"))
-                .withFileSystemConfigurationView(getS3ConfigView(getStorageLocationViews(2)))
+                .withFileSystemConfigurationViews(getS3ConfigView(getStorageLocationViews(2)))
                 .build();
     }
 
     static TemplatePreparationObject testTemplateWithSingleGcsStorage() {
         return getPreparedBuilder("master")
                 .withBlueprintView(generalBlueprintView("", "2.6", "HDP"))
-                .withFileSystemConfigurationView(getGcsConfigView(getStorageLocationViews(1)))
+                .withFileSystemConfigurationViews(getGcsConfigView(getStorageLocationViews(1)))
                 .build();
     }
 
     static TemplatePreparationObject testTemplateWithTwoGcsStorage() {
         return getPreparedBuilder("master")
                 .withBlueprintView(generalBlueprintView("", "2.6", "HDP"))
-                .withFileSystemConfigurationView(getGcsConfigView(getStorageLocationViews(2)))
+                .withFileSystemConfigurationViews(getGcsConfigView(getStorageLocationViews(2)))
                 .build();
     }
 
     static TemplatePreparationObject testTemplateWithSingleAdlsGen2Storage() {
         return getPreparedBuilder("master")
                 .withBlueprintView(generalBlueprintView("", "2.6", "HDP"))
-                .withFileSystemConfigurationView(getAdlsGen2ConfigView(getStorageLocationViews(1)))
+                .withFileSystemConfigurationViews(getAdlsGen2ConfigView(getStorageLocationViews(1)))
                 .build();
     }
 
     static TemplatePreparationObject testTemplateWithTwoAdlsGen2Storage() {
         return getPreparedBuilder("master")
                 .withBlueprintView(generalBlueprintView("", "2.6", "HDP"))
-                .withFileSystemConfigurationView(getAdlsGen2ConfigView(getStorageLocationViews(2)))
+                .withFileSystemConfigurationViews(getAdlsGen2ConfigView(getStorageLocationViews(2)))
                 .build();
     }
 
     static TemplatePreparationObject testTemplateWithSingleAdlsStorage() {
         return getPreparedBuilder("master")
                 .withBlueprintView(generalBlueprintView("", "2.6", "HDP"))
-                .withFileSystemConfigurationView(getAdlsConfigView(getStorageLocationViews(1)))
+                .withFileSystemConfigurationViews(getAdlsConfigView(getStorageLocationViews(1)))
                 .build();
     }
 
     static TemplatePreparationObject testTemplateWithTwoAdlsStorage() {
         return getPreparedBuilder("master")
                 .withBlueprintView(generalBlueprintView("", "2.6", "HDP"))
-                .withFileSystemConfigurationView(getAdlsConfigView(getStorageLocationViews(2)))
+                .withFileSystemConfigurationViews(getAdlsConfigView(getStorageLocationViews(2)))
                 .build();
     }
 
     static TemplatePreparationObject testTemplateWithSingleWasbStorage() {
         return getPreparedBuilder("master")
                 .withBlueprintView(generalBlueprintView("", "2.6", "HDP"))
-                .withFileSystemConfigurationView(getWasbConfigView(getStorageLocationViews(1)))
+                .withFileSystemConfigurationViews(getWasbConfigView(getStorageLocationViews(1)))
                 .build();
     }
 
     static TemplatePreparationObject testTemplateWithTwoWasbStorage() {
         return getPreparedBuilder("master")
                 .withBlueprintView(generalBlueprintView("", "2.6", "HDP"))
-                .withFileSystemConfigurationView(getWasbConfigView(getStorageLocationViews(2)))
+                .withFileSystemConfigurationViews(getWasbConfigView(getStorageLocationViews(2)))
                 .build();
     }
 

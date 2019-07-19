@@ -9,14 +9,17 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,12 +43,12 @@ import com.sequenceiq.cloudbreak.cloud.model.StackTags;
 import com.sequenceiq.cloudbreak.cloud.model.StackTemplate;
 import com.sequenceiq.cloudbreak.cloud.model.Subnet;
 import com.sequenceiq.cloudbreak.cloud.model.Volume;
+import com.sequenceiq.cloudbreak.common.json.Json;
 import com.sequenceiq.cloudbreak.converter.InstanceMetadataToImageIdConverter;
 import com.sequenceiq.cloudbreak.core.CloudbreakImageNotFoundException;
 import com.sequenceiq.cloudbreak.domain.FileSystem;
 import com.sequenceiq.cloudbreak.domain.StackAuthentication;
 import com.sequenceiq.cloudbreak.domain.Template;
-import com.sequenceiq.cloudbreak.common.json.Json;
 import com.sequenceiq.cloudbreak.domain.stack.Stack;
 import com.sequenceiq.cloudbreak.domain.stack.instance.InstanceGroup;
 import com.sequenceiq.cloudbreak.domain.stack.instance.InstanceMetaData;
@@ -101,7 +104,7 @@ public class StackToCloudStackConverter {
         Network network = buildNetwork(stack);
         StackTemplate stackTemplate = componentConfigProviderService.getStackTemplate(stack.getId());
         InstanceAuthentication instanceAuthentication = buildInstanceAuthentication(stack.getStackAuthentication());
-        SpiFileSystem cloudFileSystem = buildCloudFileSystem(stack);
+        Set<SpiFileSystem> cloudFileSystem = buildCloudFileSystems(stack);
         String template = null;
         if (stackTemplate != null) {
             template = stackTemplate.getTemplate();
@@ -258,15 +261,16 @@ public class StackToCloudStackConverter {
         return new Security(rules, ig.getSecurityGroup().getSecurityGroupIds());
     }
 
-    private SpiFileSystem buildCloudFileSystem(Stack stack) {
-        SpiFileSystem cloudFileSystem = null;
+    private Set<SpiFileSystem> buildCloudFileSystems(Stack stack) {
+        Set<SpiFileSystem> cloudFileSystems = new HashSet<>();
         if (stack.getCluster() != null) {
-            FileSystem fileSystem = stack.getCluster().getFileSystem();
-            if (fileSystem != null) {
-                cloudFileSystem = converterUtil.convert(fileSystem, SpiFileSystem.class);
+            Set<FileSystem> fileSystems = stack.getCluster().getFileSystems();
+            if (CollectionUtils.isNotEmpty(fileSystems)) {
+                cloudFileSystems = fileSystems.stream().map(fileSystem -> converterUtil.convert(fileSystem, SpiFileSystem.class))
+                        .collect(Collectors.toSet());
             }
         }
-        return cloudFileSystem;
+        return cloudFileSystems;
     }
 
     private Network buildNetwork(Stack stack) {

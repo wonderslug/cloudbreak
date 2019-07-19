@@ -3,9 +3,6 @@ package com.sequenceiq.cloudbreak.cmtemplate.cloudstorage;
 import java.io.IOException;
 import java.util.Set;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -23,22 +20,25 @@ public class CmCloudStorageConfigDetails {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CmCloudStorageConfigDetails.class);
 
-    @Inject
-    private CloudbreakResourceReaderService cloudbreakResourceReaderService;
+    private final CloudbreakResourceReaderService cloudbreakResourceReaderService;
 
-    @Inject
-    private CloudStorageConfigDetails cloudStorageConfigDetails;
+    private final CloudStorageConfigDetails cloudStorageConfigDetails;
 
-    private ConfigQueryEntries configQueryEntries;
+    private final ConfigQueryEntries configQueryEntries;
 
-    @PostConstruct
-    public void init() {
+    public CmCloudStorageConfigDetails(CloudbreakResourceReaderService cloudbreakResourceReaderService, CloudStorageConfigDetails cloudStorageConfigDetails) {
+        this.cloudbreakResourceReaderService = cloudbreakResourceReaderService;
+        this.cloudStorageConfigDetails = cloudStorageConfigDetails;
         String configDefinitions = cloudbreakResourceReaderService.resourceDefinition("cm-cloud-storage-location-specification");
+        configQueryEntries = parseConfigQueryEntries(configDefinitions);
+    }
+
+    private ConfigQueryEntries parseConfigQueryEntries(String configDefinitions) {
         try {
-            configQueryEntries = JsonUtil.readValue(configDefinitions, ConfigQueryEntries.class);
+            return JsonUtil.readValue(configDefinitions, ConfigQueryEntries.class);
         } catch (IOException e) {
             LOGGER.error("Cannot initialize configQueryEntries", e);
-            configQueryEntries = new ConfigQueryEntries();
+            return new ConfigQueryEntries();
         }
     }
 
@@ -47,4 +47,7 @@ public class CmCloudStorageConfigDetails {
         return cloudStorageConfigDetails.queryParameters(cmTemplateProcessor, configQueryEntries, request);
     }
 
+    public ConfigQueryEntries getConfigQueryEntries() {
+        return configQueryEntries;
+    }
 }
