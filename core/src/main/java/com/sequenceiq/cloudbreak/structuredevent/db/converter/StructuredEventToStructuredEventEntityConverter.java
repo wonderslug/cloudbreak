@@ -36,6 +36,7 @@ public class StructuredEventToStructuredEventEntityConverter extends AbstractCon
             structuredEventEntity.setResourceType(operationDetails.getResourceType());
             structuredEventEntity.setResourceId(operationDetails.getResourceId());
             structuredEventEntity.setTimestamp(operationDetails.getTimestamp());
+            structuredEventEntity.setResourceCrn(operationDetails.getResourceCrn());
             if (operationDetails.getWorkspaceId() != null) {
                 structuredEventEntity.setWorkspace(workspaceService.getByIdWithoutAuth(operationDetails.getWorkspaceId()));
             }

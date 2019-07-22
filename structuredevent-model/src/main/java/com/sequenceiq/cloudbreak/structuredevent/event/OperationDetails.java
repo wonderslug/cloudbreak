@@ -16,6 +16,8 @@ public class OperationDetails implements Serializable {
 
     private Long resourceId;
 
+    private String resourceCrn;
+
     private String resourceName;
 
     private String resourceType;
@@ -53,6 +55,14 @@ public class OperationDetails implements Serializable {
         this.userName = userName;
         this.tenant = tenant;
         uuid = UUID.randomUUID().toString();
+    }
+
+    public String getResourceCrn() {
+        return resourceCrn;
+    }
+
+    public void setResourceCrn(String resourceCrn) {
+        this.resourceCrn = resourceCrn;
     }
 
     public StructuredEventType getEventType() {

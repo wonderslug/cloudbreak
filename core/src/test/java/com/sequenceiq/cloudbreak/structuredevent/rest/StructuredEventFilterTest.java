@@ -1,5 +1,6 @@
 package com.sequenceiq.cloudbreak.structuredevent.rest;
 
+import static com.sequenceiq.cloudbreak.structuredevent.rest.urlparsers.RestUrlParser.RESOURCE_CRN;
 import static com.sequenceiq.cloudbreak.structuredevent.rest.urlparsers.RestUrlParser.RESOURCE_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -42,6 +43,18 @@ import com.sequenceiq.flow.ha.NodeConfig;
 
 @ExtendWith(MockitoExtension.class)
 class StructuredEventFilterTest {
+
+    public static final String CRN_STRING = "crn:altus:cloudbreak:us-west-1:x:recipe:7a178f10-25de-4110-8ee6-08b2e92d36bf";
+
+//    public static final String RECIPE_RESPONSE_SAMPLE = "{\"name\":\"hejb\"," +
+//            "\"description\":\"\",\"type\":\"POST_CLUSTER_INSTALL\",\"content\":\"IyEvYmluL2hhc2gKZWNobyBoZWxsbw==\"," +
+//            "\"workspace\":{\"id\":52,\"name\":\"x\"},\"creator\":\"crn:altus:iam:us-west-1:x:user:mokuska2@hortonworks.com\"," +
+//            "\"crn\":\"crn:altus:cloudbreak:us-west-1:x:recipe:7a178f10-25de-4110-8ee6-08b2e92d36bf\"}";
+
+    public static final String RECIPE_RESPONSE_SAMPLE = String.format("{\"name\":\"hejb\","
+            + "\"description\":\"\",\"type\":\"POST_CLUSTER_INSTALL\",\"content\":\"IyEvYmluL2hhc2gKZWNobyBoZWxsbw==\","
+            + "\"workspace\":{\"id\":52,\"name\":\"x\"},\"creator\":\"crn:altus:iam:us-west-1:x:user:mokuska2@hortonworks.com\","
+            + "\"crn\":\"%s\"}", CRN_STRING);
 
     @InjectMocks
     private StructuredEventFilter underTest;
@@ -125,10 +138,38 @@ class StructuredEventFilterTest {
     }
 
     @Test
+    public void testResourceIdParsingWhenValidJsonIsReturnedCrnIsNotPresent() {
+        Map<String, String> params = new HashMap<>();
+        underTest.extendRestParamsFromResponse(params, "{\"id\": \"12345\"}");
+        assertEquals(null, params.get(RESOURCE_CRN), "CRN is not in response, so should not be here as a parameter");
+    }
+
+    @Test
+    public void testResourceIdParsingOnRecipeSampleResponse() {
+        Map<String, String> params = new HashMap<>();
+        underTest.extendRestParamsFromResponse(params, RECIPE_RESPONSE_SAMPLE);
+        assertEquals(null, params.get(RESOURCE_ID), "Should find resourceId in response or if not that is a null");
+    }
+
+    @Test
+    public void testResourceIdParsingOnRecipeSampleResponseCrnExtract() {
+        Map<String, String> params = new HashMap<>();
+        underTest.extendRestParamsFromResponse(params, RECIPE_RESPONSE_SAMPLE);
+        assertEquals(CRN_STRING, params.get(RESOURCE_CRN), "Should find resourceCrn in response");
+    }
+
+    @Test
     public void testResourceIdParsingWhenNonJson() {
         Map<String, String> params = new HashMap<>();
         underTest.extendRestParamsFromResponse(params, "\"id\":12345 Something other written here");
         assertEquals(params.get(RESOURCE_ID), "12345", "Should find resourceId in response");
+    }
+
+    @Test
+    public void testResourceIdParsingWhenNonJsonCrnIsNotPresent() {
+        Map<String, String> params = new HashMap<>();
+        underTest.extendRestParamsFromResponse(params, "\"id\":12345 Something other written here");
+        assertEquals(null, params.get(RESOURCE_CRN), "CRN is not in response, so should not be here as a parameter");
     }
 
     @Test

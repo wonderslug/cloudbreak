@@ -1,6 +1,7 @@
 package com.sequenceiq.cloudbreak.structuredevent.rest;
 
 import static com.sequenceiq.cloudbreak.structuredevent.event.StructuredEventType.REST;
+import static com.sequenceiq.cloudbreak.structuredevent.rest.urlparsers.RestUrlParser.RESOURCE_CRN;
 import static com.sequenceiq.cloudbreak.structuredevent.rest.urlparsers.RestUrlParser.RESOURCE_ID;
 import static com.sequenceiq.cloudbreak.structuredevent.rest.urlparsers.RestUrlParser.RESOURCE_NAME;
 import static com.sequenceiq.cloudbreak.structuredevent.rest.urlparsers.RestUrlParser.RESOURCE_TYPE;
@@ -17,6 +18,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -47,7 +50,9 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.sequenceiq.cloudbreak.auth.security.authentication.AuthenticatedUserService;
@@ -61,7 +66,6 @@ import com.sequenceiq.cloudbreak.structuredevent.event.rest.RestCallDetails;
 import com.sequenceiq.cloudbreak.structuredevent.event.rest.RestRequestDetails;
 import com.sequenceiq.cloudbreak.structuredevent.event.rest.RestResponseDetails;
 import com.sequenceiq.cloudbreak.structuredevent.rest.urlparsers.RestUrlParser;
-import com.sequenceiq.cloudbreak.common.json.JsonUtil;
 import com.sequenceiq.cloudbreak.workspace.controller.WorkspaceEntityType;
 import com.sequenceiq.cloudbreak.workspace.repository.workspace.WorkspaceResourceRepository;
 import com.sequenceiq.flow.ha.NodeConfig;
@@ -235,37 +239,67 @@ public class StructuredEventFilter implements WriterInterceptor, ContainerReques
     }
 
     protected void extendRestParamsFromResponse(Map<String, String> params, CharSequence responseBody) {
-        if (responseBody != null && isResourceIdIsAbsentOrNull(params)) {
-            String resourceId = extractResourceIdFromJson(responseBody);
-            if (StringUtils.isEmpty(resourceId)) {
+        if (responseBody == null) {
+            return;
+        }
+        if (isResourceIdIsAbsentOrNull(params)) {
+            String resourceId = null;
+            try {
+                resourceId = extractPathValueFromJson(responseBody, "id");
+            } catch (JsonValidationException e) {
                 Matcher matcher = extendRestParamsFromResponsePattern.matcher(responseBody);
                 if (matcher.find() && matcher.groupCount() >= 1) {
                     resourceId = matcher.group(1);
                 }
             }
 
-            if (resourceId != null) {
+            if (StringUtils.isNotEmpty(resourceId)) {
                 params.put(RESOURCE_ID, resourceId);
             }
         }
+
+        String resourceCrn = null;
+        try {
+            resourceCrn = extractPathValueFromJson(responseBody, "crn");
+        } catch (JsonValidationException e) {
+            LOGGER.debug("Resource crn is not available");
+        }
+        if (StringUtils.isNotEmpty(resourceCrn)) {
+            params.put(RESOURCE_CRN, resourceCrn);
+        }
     }
 
-    private String extractResourceIdFromJson(CharSequence responseBody) {
-        String resourceId = null;
+    //TODO: pull up to JsonUtil (that class already has similar, but without FAIL_ON_TRAILING_TOKENS)
+    private Optional<JsonNode> getJsonNode(String content) {
+        ObjectMapper om = new ObjectMapper();
+        om.enable(DeserializationFeature.FAIL_ON_READING_DUP_TREE_KEY);
+        om.enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
+        om.enable(DeserializationFeature.FAIL_ON_INVALID_SUBTYPE);
         try {
-            if (JsonUtil.isValid(responseBody.toString())) {
-                JsonNode jsonNode = JsonUtil.readTree(responseBody.toString());
-                JsonNode idNode = jsonNode.path("id");
-                if (idNode.isMissingNode()) {
-                    LOGGER.debug("Response was a JSON but no ID available");
-                } else {
-                    resourceId = idNode.asText();
-                }
-            }
-        } catch (IOException e) {
-            LOGGER.error("Json parsing failed for ", e);
+            return Optional.of(om.readTree(content));
+        } catch (IOException ignore) {
+            return Optional.empty();
         }
-        return resourceId;
+    }
+
+    private String extractPathValueFromJson(CharSequence responseBody, String nodePath) {
+        AtomicReference<String> result = new AtomicReference<>();
+        Optional<JsonNode> responseJson = getJsonNode(responseBody.toString());
+        responseJson.ifPresentOrElse(
+                jsonNode -> {
+                    JsonNode node = jsonNode.path(nodePath);
+                    if (node.isMissingNode()) {
+                        LOGGER.debug("Response is a JSON but no \"{}\" is available", nodePath);
+                    } else {
+                        result.set(node.asText());
+                    }
+                },
+                () -> {
+                    LOGGER.error("Response is not a valid JSON");
+                    throw new JsonValidationException();
+                }
+        );
+        return result.get();
     }
 
     private boolean isResourceIdIsAbsentOrNull(Map<String, String> params) {
@@ -280,15 +314,27 @@ public class StructuredEventFilter implements WriterInterceptor, ContainerReques
         String resourceType = null;
         String resourceId = null;
         String resourceName = null;
+        String resourceCrn = null;
         if (restParams != null) {
             resourceType = restParams.get(RESOURCE_TYPE);
             resourceId = restParams.get(RESOURCE_ID);
             resourceName = restParams.get(RESOURCE_NAME);
+            resourceCrn = restParams.get(RESOURCE_CRN);
         }
-        return new OperationDetails(requestTime, REST, resourceType, StringUtils.isNotEmpty(resourceId) ? Long.valueOf(resourceId) : null, resourceName,
-                nodeConfig.getId(), cbVersion, workspaceId,
-                cloudbreakUser != null ? cloudbreakUser.getUserId() : "", cloudbreakUser != null ? cloudbreakUser.getUsername() : "",
+        OperationDetails operationDetails = new OperationDetails(
+                requestTime,
+                REST,
+                resourceType,
+                StringUtils.isNotEmpty(resourceId) ? Long.valueOf(resourceId) : null,
+                resourceName,
+                nodeConfig.getId(),
+                cbVersion,
+                workspaceId,
+                cloudbreakUser != null ? cloudbreakUser.getUserId() : "",
+                cloudbreakUser != null ? cloudbreakUser.getUsername() : "",
                 cloudbreakUser.getTenant());
+        operationDetails.setResourceCrn(resourceCrn);
+        return operationDetails;
     }
 
     private RestRequestDetails createRequestDetails(ContainerRequestContext requestContext, String body) {

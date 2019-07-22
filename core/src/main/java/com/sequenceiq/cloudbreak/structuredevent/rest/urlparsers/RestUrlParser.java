@@ -13,6 +13,8 @@ public abstract class RestUrlParser {
 
     public static final String RESOURCE_ID = "RESOURCE_ID";
 
+    public static final String RESOURCE_CRN = "RESOURCE_CRN";
+
     public static final String RESOURCE_NAME = "RESOURCE_NAME";
 
     public static final String RESOURCE_EVENT = "RESOURCE_EVENT";

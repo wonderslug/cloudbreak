@@ -54,6 +54,16 @@ public class StructuredEventEntity implements WorkspaceAwareResource {
     @JoinColumn(name = "users_user_id")
     private User user;
 
+    private String resourceCrn;
+
+    public String getResourceCrn() {
+        return resourceCrn;
+    }
+
+    public void setResourceCrn(String resourceCrn) {
+        this.resourceCrn = resourceCrn;
+    }
+
     public Long getId() {
         return id;
     }

@@ -2,7 +2,7 @@ package com.sequenceiq.cloudbreak.service.audit;
 
 import static com.sequenceiq.cloudbreak.exception.NotFoundException.notFound;
 
-import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
@@ -12,17 +12,17 @@ import org.springframework.stereotype.Service;
 
 import com.sequenceiq.cloudbreak.api.endpoint.v4.audits.responses.AuditEventV4Response;
 import com.sequenceiq.cloudbreak.api.util.ConverterUtil;
-import com.sequenceiq.cloudbreak.workspace.resource.WorkspaceResource;
 import com.sequenceiq.cloudbreak.comparator.audit.AuditEventComparator;
 import com.sequenceiq.cloudbreak.domain.StructuredEventEntity;
-import com.sequenceiq.cloudbreak.workspace.model.User;
-import com.sequenceiq.cloudbreak.workspace.model.Workspace;
-import com.sequenceiq.cloudbreak.workspace.repository.workspace.WorkspaceResourceRepository;
 import com.sequenceiq.cloudbreak.service.AbstractWorkspaceAwareResourceService;
 import com.sequenceiq.cloudbreak.service.RestRequestThreadLocalService;
 import com.sequenceiq.cloudbreak.service.user.UserService;
 import com.sequenceiq.cloudbreak.service.workspace.WorkspaceService;
 import com.sequenceiq.cloudbreak.structuredevent.db.StructuredEventRepository;
+import com.sequenceiq.cloudbreak.workspace.model.User;
+import com.sequenceiq.cloudbreak.workspace.model.Workspace;
+import com.sequenceiq.cloudbreak.workspace.repository.workspace.WorkspaceResourceRepository;
+import com.sequenceiq.cloudbreak.workspace.resource.WorkspaceResource;
 
 @Service
 public class AuditEventService extends AbstractWorkspaceAwareResourceService<StructuredEventEntity> {
@@ -53,17 +53,21 @@ public class AuditEventService extends AbstractWorkspaceAwareResourceService<Str
         return converterUtil.convert(event, AuditEventV4Response.class);
     }
 
-    public List<AuditEventV4Response> getAuditEventsByWorkspaceId(Long workspaceId, String resourceType, Long resourceId) {
+    public List<AuditEventV4Response> getAuditEventsByWorkspaceId(Long workspaceId, String resourceType, String identifier) {
         User user = userService.getOrCreate(restRequestThreadLocalService.getCloudbreakUser());
         Workspace workspace = getWorkspaceService().get(workspaceId, user);
-        List<AuditEventV4Response> auditEventV4Responses = getEventsForUserWithTypeAndResourceIdByWorkspace(workspace, resourceType, resourceId);
+        List<StructuredEventEntity> events = getEventsForUserWithTypeAndIdentifierByWorkspace(workspace, resourceType, identifier);
+        List<AuditEventV4Response> auditEventV4Responses = events != null ? converterUtil.convertAll(events, AuditEventV4Response.class) : new LinkedList<>();
         auditEventV4Responses.sort(new AuditEventComparator().reversed());
         return auditEventV4Responses;
     }
 
-    private List<AuditEventV4Response> getEventsForUserWithTypeAndResourceIdByWorkspace(Workspace workspace, String resourceType, Long resourceId) {
-        List<StructuredEventEntity> events = structuredEventRepository.findByWorkspaceAndResourceTypeAndResourceId(workspace, resourceType, resourceId);
-        return events != null ? converterUtil.convertAll(events, AuditEventV4Response.class) : Collections.emptyList();
+    private List<StructuredEventEntity> getEventsForUserWithTypeAndIdentifierByWorkspace(Workspace workspace, String resourceType, String identifier) {
+        Optional<Long> resourceId = getIdentifierAsLongIfAvailable(identifier);
+        if (resourceId.isPresent()) {
+            return structuredEventRepository.findByWorkspaceAndResourceTypeAndResourceId(workspace, resourceType, resourceId.get());
+        }
+        return structuredEventRepository.findByWorkspaceAndResourceTypeAndResourceCrn(workspace, resourceType, identifier);
     }
 
     @Override
@@ -85,4 +89,13 @@ public class AuditEventService extends AbstractWorkspaceAwareResourceService<Str
     protected void prepareCreation(StructuredEventEntity resource) {
 
     }
+
+    private Optional<Long> getIdentifierAsLongIfAvailable(String identifier) {
+        try {
+            return Optional.of(Long.parseLong(identifier));
+        } catch (NumberFormatException ignore) {
+            return Optional.empty();
+        }
+    }
+
 }

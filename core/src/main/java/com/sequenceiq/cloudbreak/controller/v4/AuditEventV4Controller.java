@@ -29,19 +29,19 @@ public class AuditEventV4Controller implements AuditEventV4Endpoint {
     }
 
     @Override
-    public AuditEventV4Responses getAuditEvents(Long workspaceId, String resourceType, Long resourceId) {
-        List<AuditEventV4Response> auditEventsByWorkspaceId = auditEventService.getAuditEventsByWorkspaceId(workspaceId, resourceType, resourceId);
+    public AuditEventV4Responses getAuditEvents(Long workspaceId, String resourceType, String identifier) {
+        List<AuditEventV4Response> auditEventsByWorkspaceId = auditEventService.getAuditEventsByWorkspaceId(workspaceId, resourceType, identifier);
         return new AuditEventV4Responses(auditEventsByWorkspaceId);
 
     }
 
     @Override
-    public Response getAuditEventsZip(Long workspaceId, String resourceType, Long resourceId) {
-        Collection<AuditEventV4Response> auditEvents = getAuditEvents(workspaceId, resourceType, resourceId).getResponses();
-        return getAuditEventsZipResponse(auditEvents, resourceType, resourceId);
+    public Response getAuditEventsZip(Long workspaceId, String resourceType, String identifier) {
+        Collection<AuditEventV4Response> auditEvents = getAuditEvents(workspaceId, resourceType, identifier).getResponses();
+        return getAuditEventsZipResponse(auditEvents, resourceType, identifier);
     }
 
-    private Response getAuditEventsZipResponse(Collection<AuditEventV4Response> auditEventV4Responses, String resourceType, Long resourceId) {
+    private Response getAuditEventsZipResponse(Collection<AuditEventV4Response> auditEventV4Responses, String resourceType, String identifier) {
         StreamingOutput streamingOutput = output -> {
             try (ZipOutputStream zipOutputStream = new ZipOutputStream(output)) {
                 zipOutputStream.putNextEntry(new ZipEntry("struct-events.json"));
@@ -49,7 +49,7 @@ public class AuditEventV4Controller implements AuditEventV4Endpoint {
                 zipOutputStream.closeEntry();
             }
         };
-        String fileName = String.format("audit-%s-%d.zip", resourceType, resourceId);
+        String fileName = String.format("audit-%s-%s.zip", resourceType, identifier);
         return Response.ok(streamingOutput).header("content-disposition", String.format("attachment; filename = %s", fileName)).build();
     }
 }
