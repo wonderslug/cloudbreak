@@ -7,6 +7,7 @@ import javax.validation.Valid;
 import org.springframework.stereotype.Controller;
 
 import com.sequenceiq.freeipa.api.v1.kerberosmgmt.KerberosMgmtV1Endpoint;
+import com.sequenceiq.freeipa.api.v1.kerberosmgmt.model.VaultCleanupRequest;
 import com.sequenceiq.freeipa.api.v1.kerberosmgmt.model.HostRequest;
 import com.sequenceiq.freeipa.api.v1.kerberosmgmt.model.ServiceKeytabRequest;
 import com.sequenceiq.freeipa.api.v1.kerberosmgmt.model.ServiceKeytabResponse;
@@ -41,5 +42,10 @@ public class KerberosMgmtV1Controller implements KerberosMgmtV1Endpoint {
     public void deleteHost(@Valid HostRequest request) throws FreeIpaClientException {
         String accountId = crnService.getCurrentAccountId();
         kerberosMgmtV1Service.deleteHost(request, accountId);
+    }
+
+    public void cleanupClusterSecrets(@Valid VaultCleanupRequest request) {
+        String accountId = crnService.getCurrentAccountId();
+        kerberosMgmtV1Service.cleanupByCluster(request, accountId);
     }
 }

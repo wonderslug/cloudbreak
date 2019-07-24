@@ -1,8 +1,8 @@
 package com.sequenceiq.freeipa.kerberosmgmt.v1;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -17,6 +17,7 @@ import com.googlecode.jsonrpc4j.JsonRpcClientException;
 import com.sequenceiq.cloudbreak.service.secret.model.SecretResponse;
 import com.sequenceiq.cloudbreak.service.secret.model.StringToSecretResponseConverter;
 import com.sequenceiq.cloudbreak.service.secret.service.SecretService;
+import com.sequenceiq.freeipa.api.v1.kerberosmgmt.model.VaultCleanupRequest;
 import com.sequenceiq.freeipa.api.v1.kerberosmgmt.model.HostRequest;
 import com.sequenceiq.freeipa.api.v1.kerberosmgmt.model.RoleRequest;
 import com.sequenceiq.freeipa.api.v1.kerberosmgmt.model.ServiceKeytabRequest;
@@ -56,6 +57,12 @@ public class KerberosMgmtV1Service {
 
     private static final String IPA_STACK_NOT_FOUND = "Stack for IPA server not found.";
 
+    private static final String VAULT_SECRET_TYPE = "ServiceKeytab";
+
+    private static final String KEYTAB_SUB_TYPE = "keytab";
+
+    private static final String PRINCIPAL_SUB_TYPE = "serviceprincipal";
+
     private static final int DUPLICATE_ENTRY_ERROR_CODE = 4002;
 
     @Inject
@@ -89,8 +96,8 @@ public class KerberosMgmtV1Service {
         } else {
             serviceKeytab = getServiceKeytab(service.getKrbprincipalname(), ipaClient);
         }
-        response.setKeytab(getSecretResponseForKeytab(accountId, serviceKeytab));
-        response.setServicePrincipal(getSecretResponseForPrincipal(accountId, service.getKrbprincipalname()));
+        response.setKeytab(getSecretResponseForKeytab(request, accountId, serviceKeytab));
+        response.setServicePrincipal(getSecretResponseForPrincipal(request, accountId, service.getKrbprincipalname()));
         return response;
     }
 
@@ -103,8 +110,8 @@ public class KerberosMgmtV1Service {
 
         String servicePrincipal = request.getServiceName() + "/" + request.getServerHostName() + "@" + realm;
         String serviceKeytab = getExistingServiceKeytab(servicePrincipal, ipaClient);
-        response.setKeytab(getSecretResponseForKeytab(accountId, serviceKeytab));
-        response.setServicePrincipal(getSecretResponseForPrincipal(accountId, servicePrincipal));
+        response.setKeytab(getSecretResponseForKeytab(request, accountId, serviceKeytab));
+        response.setServicePrincipal(getSecretResponseForPrincipal(request, accountId, servicePrincipal));
         return response;
     }
 
@@ -115,6 +122,13 @@ public class KerberosMgmtV1Service {
         String canonicalPrincipal = constructCanonicalPrincipal(request.getServiceName(), request.getServerHostName(), realm);
         ipaClient = freeIpaClientFactory.getFreeIpaClientForStack(freeIpaStack);
         ipaClient.deleteService(canonicalPrincipal);
+        //Delete the vault secrets associated with the service principal
+        if (Strings.isNullOrEmpty(request.getClusterCrn())) {
+            LOGGER.warn("Cluster CRN not provided. Auto-generating one");
+            request.setClusterCrn(generateClusterCrn(accountId, request.getEnvironmentCrn()));
+        }
+        cleanupByServicePrincipal(getVaultPathPrefixForPrincipal(request, accountId, PRINCIPAL_SUB_TYPE));
+        cleanupByServicePrincipal(getVaultPathPrefixForPrincipal(request, accountId, KEYTAB_SUB_TYPE));
     }
 
     public void deleteHost(HostRequest request, String accountId) throws FreeIpaClientException {
@@ -130,6 +144,60 @@ public class KerberosMgmtV1Service {
             ipaClient.deleteService(service);
         }
         ipaClient.deleteHost(request.getServerHostName());
+        //Delete the vault secrets associated with the host
+        if (Strings.isNullOrEmpty(request.getClusterCrn())) {
+            LOGGER.warn("Cluster CRN not provided. Auto-generating one");
+            request.setClusterCrn(generateClusterCrn(accountId, request.getEnvironmentCrn()));
+        }
+        cleanupByHost(getVaultPathPrefixForHost(request, accountId, PRINCIPAL_SUB_TYPE));
+        cleanupByHost(getVaultPathPrefixForHost(request, accountId, KEYTAB_SUB_TYPE));
+    }
+
+    public void cleanupByCluster(VaultCleanupRequest request, String accountId) {
+        if (Strings.isNullOrEmpty(request.getClusterCrn())) {
+            LOGGER.warn("Cluster CRN not provided. Vault is not cleaned-up");
+            return;
+        }
+        String keytabPrefix = getVaultPathPrefixForCluster(request, accountId, KEYTAB_SUB_TYPE);
+        // Sample pathPrefix: "/enginePath/appPath/account-id/Type/SubType/envCrn/clusterCrn"
+        secretService.listEntries(keytabPrefix).stream().forEach(path -> {
+            String newPath = keytabPrefix + "/" + path;
+            cleanupByHost(newPath);
+        });
+        String servicePrincipalPrefix = getVaultPathPrefixForCluster(request, accountId, PRINCIPAL_SUB_TYPE);
+        secretService.listEntries(servicePrincipalPrefix).stream().forEach(path -> {
+            String newPath = servicePrincipalPrefix + "/" + path;
+            cleanupByHost(newPath);
+        });
+    }
+
+    /**
+     * Identifies all the secrets in the hostPath and deletes them
+     * @param hostPath Path for a particular host in a cluster.
+     */
+    public void cleanupByHost(String hostPath) {
+        // Sample hostPath: "/enginePath/appPath/account-id/Type/SubType/envCrn/clusterCrn/hostname"
+        LOGGER.debug("Looking for the service princiapls unser path: " + hostPath);
+        secretService.listEntries(hostPath).stream().forEach(path -> {
+            String newPath = hostPath + (hostPath.endsWith("/") ? "" : "/") + path;
+            cleanupByServicePrincipal(newPath);
+        });
+    }
+
+    /**
+     * Identifies all the secrets in the servicePrincipalPath and deletes them.
+     * @param servicePrincipalPath Path for particular service in given host in a cluster.
+     *
+     * This is where the vault secrets are stored.
+     */
+    public void cleanupByServicePrincipal(String servicePrincipalPath) {
+        // Sample pathPrefix: "/enginePath/appPath/account-id/Type/SubType/envCrn/clusterCrn/hostname/serviceName"
+        LOGGER.debug("Performing a cleanup of all the secrets located under path: " + servicePrincipalPath);
+        secretService.cleanup(servicePrincipalPath);
+    }
+
+    public List<String> list(String pathPrefix) {
+        return secretService.listEntries(pathPrefix);
     }
 
     private Stack getFreeIpaStack(String envCrn, String accountId) {
@@ -253,9 +321,9 @@ public class KerberosMgmtV1Service {
                 .isPresent();
     }
 
-    private SecretResponse getSecretResponseForPrincipal(String accountId, String principal) {
+    private SecretResponse getSecretResponseForPrincipal(ServiceKeytabRequest request, String accountId, String principal) {
         try {
-            String path = constructVaultPath(accountId, "ServiceKeytab", "serviceprincipal");
+            String path = constructVaultPath(request, accountId, VAULT_SECRET_TYPE, PRINCIPAL_SUB_TYPE);
             String secret = secretService.put(path, principal);
             return stringToSecretResponseConverter.convert(secret);
         } catch (Exception exception) {
@@ -264,9 +332,9 @@ public class KerberosMgmtV1Service {
         }
     }
 
-    private SecretResponse getSecretResponseForKeytab(String accountId, String keytab) {
+    private SecretResponse getSecretResponseForKeytab(ServiceKeytabRequest request, String accountId, String keytab) {
         try {
-            String path = constructVaultPath(accountId, "ServiceKeytab", "keytab");
+            String path = constructVaultPath(request, accountId, VAULT_SECRET_TYPE, KEYTAB_SUB_TYPE);
             String secret = secretService.put(path, keytab);
             return stringToSecretResponseConverter.convert(secret);
         } catch (Exception exception) {
@@ -275,9 +343,38 @@ public class KerberosMgmtV1Service {
         }
     }
 
-    private String constructVaultPath(String accountId, String type, String subtype) {
-        return String.format("%s/%s/%s/%s-%s", accountId, type, subtype,
-                UUID.randomUUID().toString(), Long.toHexString(System.currentTimeMillis()));
+    private String getVaultPathPrefixForCluster(VaultCleanupRequest request, String accountId, String subType) {
+        return String.format("%s/%s/%s/%s/%s", accountId, VAULT_SECRET_TYPE, subType,
+                request.getEnvironmentCrn(), request.getClusterCrn());
+    }
+
+    private String getVaultPathPrefixForHost(HostRequest request, String accountId, String subType) {
+        return String.format("%s/%s/%s/%s/%s/%s", accountId, VAULT_SECRET_TYPE, subType,
+                request.getEnvironmentCrn(), request.getClusterCrn(), request.getServerHostName());
+    }
+
+    private String getVaultPathPrefixForPrincipal(ServicePrincipalRequest request, String accountId, String subType) {
+        return String.format("%s/%s/%s/%s/%s/%s/%s", accountId, VAULT_SECRET_TYPE, subType,
+                request.getEnvironmentCrn(), request.getClusterCrn(), request.getServerHostName(),
+                request.getServiceName());
+    }
+
+    private String constructVaultPath(ServiceKeytabRequest request, String accountId, String type, String subtype) {
+        // Sample Vault Path "/enginePath/appPath/account-id/Type/SubType/envCrn/clusterCrn/hostname/serviceName"
+        String clusterCrn;
+        if (request.getClusterCrn() == null) {
+            LOGGER.warn("Cluster CRN not provided. Auto-generating one");
+            clusterCrn = generateClusterCrn(accountId, request.getEnvironmentCrn());
+        } else {
+            clusterCrn = request.getClusterCrn();
+        }
+        return String.format("%s/%s/%s/%s/%s/%s/%s", accountId, type, subtype,
+                request.getEnvironmentCrn(), clusterCrn, request.getServerHostName(),
+                request.getServiceName());
+    }
+
+    private String generateClusterCrn(String accountId, String envCrn) {
+        return accountId + "-" + envCrn;
     }
 
     private static String constructCanonicalPrincipal(String serviceName, String hostName, String realm) {
