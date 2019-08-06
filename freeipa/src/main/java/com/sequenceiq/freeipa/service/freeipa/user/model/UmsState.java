@@ -20,28 +20,30 @@ public class UmsState {
     // Regular users
     private Map<String, User> userMap;
 
-    private Map<String, GetRightsResponse> userRightsMap;
+//    private Map<String, GetRightsResponse> userRightsMap;
 
     // Admin Users for an environment.
     private Map<String, User> adminUserMap;
+
     private Map<String, GetRightsResponse> adminUserRightsMap = new HashMap<>();
 
     private Map<String, MachineUser> adminMachineUserMap = new HashMap<>();
 
     private Map<String, MachineUser> machineUserMap;
 
-    private Map<String, GetRightsResponse> machineUserRightsMap;
+//    private Map<String, GetRightsResponse> machineUserRightsMap;
 
-    public UmsState(Map<String, Group> groupMap, Map<String, User> adminUserMap, Map<String, GetRightsResponse> adminUserRightsMap, Map<String, MachineUser> adminMachineUserMap, Map<String, User> userMap, Map<String, GetRightsResponse> userRightsMap,
-                    Map<String, MachineUser> machineUserMap, Map<String, GetRightsResponse> machineUserRightsMap) {
+    public UmsState(Map<String, Group> groupMap, Map<String, User> adminUserMap,
+                    Map<String, MachineUser> adminMachineUserMap, Map<String, User> userMap,
+                    Map<String, MachineUser> machineUserMap) {
         this.groupMap = requireNonNull(groupMap);
         this.adminUserMap = requireNonNull(adminUserMap);
         this.adminUserRightsMap = requireNonNull(adminUserRightsMap);
         this.adminMachineUserMap = adminMachineUserMap;
         this.userMap = requireNonNull(userMap);
-        this.userRightsMap = requireNonNull(userRightsMap);
+//        this.userRightsMap = requireNonNull(userRightsMap);
         this.machineUserMap = requireNonNull(machineUserMap);
-        this.machineUserRightsMap = requireNonNull(machineUserRightsMap);
+//        this.machineUserRightsMap = requireNonNull(machineUserRightsMap);
     }
 
     public UsersState getUsersState(String environmentCrn) {
@@ -165,17 +167,17 @@ public class UmsState {
 
         private Map<String, User> userMap = new HashMap<>();
 
-        private Map<String, GetRightsResponse> userRightsMap = new HashMap<>();
+//        private Map<String, GetRightsResponse> userRightsMap = new HashMap<>();
 
         private Map<String, User> adminUserMap = new HashMap<>();
 
-        private Map<String, GetRightsResponse> adminUserRightsMap = new HashMap<>();
+//        private Map<String, GetRightsResponse> adminUserRightsMap = new HashMap<>();
 
         private Map<String, MachineUser> adminMachineUserMap = new HashMap<>();
 
         private Map<String, MachineUser> machineUserMap = new HashMap<>();
 
-        private Map<String, GetRightsResponse> machineUserRightsMap = new HashMap<>();
+//        private Map<String, GetRightsResponse> machineUserRightsMap = new HashMap<>();
 
         public void addGroup(Group group) {
             groupMap.put(group.getCrn(), group);
@@ -184,7 +186,7 @@ public class UmsState {
         public void addUser(User user, GetRightsResponse rights) {
             String userCrn = user.getCrn();
             userMap.put(userCrn, user);
-            userRightsMap.put(userCrn, rights);
+//            userRightsMap.put(userCrn, rights);
         }
 
         public void addAdminUser(User user) {
@@ -202,11 +204,11 @@ public class UmsState {
         public void addMachineUser(MachineUser machineUser, GetRightsResponse rights) {
             String machineUserCrn = machineUser.getCrn();
             machineUserMap.put(machineUserCrn, machineUser);
-            machineUserRightsMap.put(machineUserCrn, rights);
+//            machineUserRightsMap.put(machineUserCrn, rights);
         }
 
         public UmsState build() {
-            return new UmsState(groupMap, adminUserMap, adminUserRightsMap, adminMachineUserMap, userMap, userRightsMap, machineUserMap, machineUserRightsMap);
+            return new UmsState(groupMap, adminUserMap, adminMachineUserMap, userMap, machineUserMap);
         }
     }
 }
