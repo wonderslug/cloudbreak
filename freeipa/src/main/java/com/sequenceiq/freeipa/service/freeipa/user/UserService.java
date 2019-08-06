@@ -110,16 +110,12 @@ public class UserService {
         try {
 
             // TODO allow filtering on machine users as well
-
             List<Stack> stacks = stackService.getAllByAccountId(accountId);
             if (stacks == null || stacks.size() == 0) {
                 // there is no environment created, but someone trying to play with user sync.
                 throw new RuntimeException("No Environment found, please create at least one environment for user sync.");
             }
             LOGGER.debug("Found {} stacks for account {}", stacks.size(), accountId);
-
-            // TODO: Need to build a map based on environment CRN.
-
 
             if (environmentsFilter != null && !environmentsFilter.isEmpty()) {
                 stacks = stacks.stream()
