@@ -84,7 +84,7 @@ public class UserService {
         // TODO: Fix this for environment filter.
         Set<String> environmentsFilter = new HashSet<>();
         environmentsFilter.add(stack.getEnvironmentCrn());
-        Map<String,UmsState> envToUmsStateMap = umsUsersStateProvider.getEnvToUmsStateMap(accountId, actorCrn, environmentsFilter, null);
+        Map<String, UmsState> envToUmsStateMap = umsUsersStateProvider.getEnvToUmsStateMap(accountId, actorCrn, environmentsFilter, null);
         return synchronizeStack(stack, envToUmsStateMap.get(stack.getEnvironmentCrn()), Set.of());
     }
 
@@ -112,8 +112,7 @@ public class UserService {
             // environmentCRN -> {umsState}
             // Then for each stack (which is pulled for list of environments, below code, call envUmsStateMap.get(environmentCRN)
 
-            //Map<String, UmsState> environmentToUsersMap =
-            Map<String,UmsState> envToUmsStateMap = umsUsersStateProvider.getEnvToUmsStateMap(accountId, actorCrn, userCrnFilter, environmentsFilter) ;
+            Map<String, UmsState> envToUmsStateMap = umsUsersStateProvider.getEnvToUmsStateMap(accountId, actorCrn, userCrnFilter, environmentsFilter);
 
 
             // TODO: fix me
