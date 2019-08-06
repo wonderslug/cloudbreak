@@ -3,7 +3,7 @@ package com.sequenceiq.freeipa.service.freeipa.user;
 import static java.util.Objects.requireNonNull;
 
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -98,17 +98,43 @@ public class UserService {
     }
 
     public SyncStatusDetail syncAllUsersForStack(String accountId, String actorCrn, Stack stack) {
-        UmsState umsState = umsUsersStateProvider.getUmsState(accountId, actorCrn);
+        // TODO: Fix this for environment filter.
+        UmsState umsState = umsUsersStateProvider.getUmsState(accountId, actorCrn, null);
         return synchronizeStack(stack, umsState, Set.of());
     }
 
     private void asyncSynchronizeUsers(String operationId, String accountId, String actorCrn, List<Stack> stacks,
             Set<String> userCrnFilter, Set<String> machineUserCrnFilter) {
         try {
-            boolean filterUsers = !userCrnFilter.isEmpty() || !machineUserCrnFilter.isEmpty();
 
-            UmsState umsState = filterUsers ? umsUsersStateProvider.getUserFilteredUmsState(accountId, actorCrn, userCrnFilter, machineUserCrnFilter)
-                    : umsUsersStateProvider.getUmsState(accountId, actorCrn);
+            // TODO allow filtering on machine users as well
+
+            List<Stack> stacks = stackService.getAllByAccountId(accountId);
+            if (stacks == null || stacks.size() == 0) {
+                // there is no environment created, but someone trying to play with user sync.
+                throw new RuntimeException("No Environment found, please create at least one environment for user sync.");
+            }
+            LOGGER.debug("Found {} stacks for account {}", stacks.size(), accountId);
+
+            // TODO: Need to build a map based on environment CRN.
+
+
+            if (environmentsFilter != null && !environmentsFilter.isEmpty()) {
+                stacks = stacks.stream()
+                        .filter(stack -> environmentsFilter.contains(stack.getEnvironmentCrn()))
+                        .collect(Collectors.toList());
+            } else {
+                // If there is no environment passed, that means this is full sync.
+                // For having environment specific map, we need to extract out all envs crns from stack
+                stacks.stream().forEach(s -> environmentsFilter.add(s.getEnvironmentCrn()));
+            }
+
+            // environmentCRN -> {umsState}
+            // Then for each stack (which is pulled for list of environments, below code, call envUmsStateMap.get(environmentCRN)
+
+            //Map<String, UmsState> environmentToUsersMap =
+            UmsState umsState = filterUsers ? umsUsersStateProvider.getUserFilteredUmsState(accountId, actorCrn, userCrnFilter, environmentsFilter)
+                    : umsUsersStateProvider.getUmsState(accountId, actorCrn, environmentsFilter);
             LOGGER.debug("UmsState = {}", umsState);
             Set<String> userIdFilter = filterUsers ? umsState.getUsernamesFromCrns(userCrnFilter, machineUserCrnFilter)
                     : Set.of();
