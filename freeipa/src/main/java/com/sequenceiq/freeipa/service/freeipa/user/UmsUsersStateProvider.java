@@ -1,5 +1,6 @@
 package com.sequenceiq.freeipa.service.freeipa.user;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -36,12 +37,12 @@ public class UmsUsersStateProvider {
             throw new RuntimeException("Environment Filter argument is null of empty");
         }
 
-        List<User> users;
-        List<MachineUser> machineUsers = null;
-        List<Group> groups;
 
         try {
-            // if for all users
+            List<User> users;
+            List<Group> groups;
+            List<MachineUser> machineUsers;
+
             if (userCrns == null || userCrns.size() == 0) {
                 users = umsClient.listAllUsers(actorCrn, accountId, Optional.empty());
                 //allUsers.forEach(u -> umsStateBuilder.addUser(u, umsClient.getRightsForUser(actorCrn, u.getCrn(), null, Optional.empty())));
@@ -64,22 +65,20 @@ public class UmsUsersStateProvider {
                     groupCrns.addAll(rights.getGroupCrnList());
                 });
 
+                machineUsers = new ArrayList<>();
                 groups = umsClient.listGroups(actorCrn, accountId, List.copyOf(groupCrns), Optional.empty());
             }
 
-
-            return getEnvToUmsStateMap(accountId,actorCrn,environmentsFilter,users,machineUsers,groups);
+            // TODO: check for machine users
+            return getEnvToUmsStateMap(accountId, actorCrn, environmentsFilter, users, machineUsers, groups);
 
         } catch (RuntimeException e) {
             throw new UmsOperationException(String.format("Error during UMS operation: %s", e.getMessage()));
         }
     }
 
-    private Map<String, UmsState> getEnvToUmsStateMap(String accountId, String actorCrn,
-                                                      Set<String> environmentsFilter, List<User> users,
-                                                      List<MachineUser> machineUsers, List<Group> groups ) {
-
-
+    private Map<String, UmsState> getEnvToUmsStateMap(
+        String accountId, String actorCrn, Set<String> environmentsFilter, List<User> users, List<MachineUser> machineUsers, List<Group> groups) {
         UmsState.Builder umsStateBuilder = new UmsState.Builder();
 
         // TODO: No need of CDP Groups to be sync'ed
@@ -90,17 +89,14 @@ public class UmsUsersStateProvider {
 
         environmentsFilter.stream().forEach(envCRN -> {
             processForEnvironmentRights(umsStateBuilder, actorCrn, envCRN, users, machineUsers);
-            envUmsStateMap.put(envCRN,umsStateBuilder.build());
+            envUmsStateMap.put(envCRN, umsStateBuilder.build());
         });
 
         return envUmsStateMap;
     }
 
-
     private void processForEnvironmentRights(Builder umsStateBuilder, String actorCrn, String envCRN, List<User> allUsers, List<MachineUser> allMachineUsers) {
-
         // for all users, check right for the passed envCRN
-
         for (User u : allUsers) {
 
             // TODO: Remove commented code
