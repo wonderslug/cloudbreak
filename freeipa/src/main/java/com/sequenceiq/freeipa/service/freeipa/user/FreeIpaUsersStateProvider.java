@@ -17,8 +17,6 @@ import com.sequenceiq.freeipa.service.freeipa.user.model.UsersState;
 
 @Service
 public class FreeIpaUsersStateProvider {
-    private static final Logger LOGGER = LoggerFactory.getLogger(FreeIpaUsersStateProvider.class);
-
     // TODO add other Cloudera-managed users (e.g., Kerberos and LDAP users?)
     @VisibleForTesting
     static final List<String> IPA_ONLY_USERS = List.of("admin");
@@ -27,6 +25,8 @@ public class FreeIpaUsersStateProvider {
     // TODO handle name conflicts between ipa and ums? e.g., should ums "admins" be ipa "admins"?
     @VisibleForTesting
     static final List<String> IPA_ONLY_GROUPS = List.of("admins", "editors", "ipausers", "trust admins");
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(FreeIpaUsersStateProvider.class);
 
     public UsersState getUsersState(FreeIpaClient freeIpaClient) throws FreeIpaClientException {
         LOGGER.debug("Retrieving all users from FreeIPA");
