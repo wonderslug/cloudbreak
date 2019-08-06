@@ -99,8 +99,10 @@ public class UserService {
 
     public SyncStatusDetail syncAllUsersForStack(String accountId, String actorCrn, Stack stack) {
         // TODO: Fix this for environment filter.
-        UmsState umsState = umsUsersStateProvider.getUmsState(accountId, actorCrn, null);
-        return synchronizeStack(stack, umsState, Set.of());
+        Set<String> environmentsFilter = new HashSet<>();
+        environmentsFilter.add(stack.getEnvironmentCrn());
+        Map<String,UmsState> envToUmsStateMap = umsUsersStateProvider.getEnvToUmsStateMap(accountId, actorCrn, environmentsFilter, null);
+        return synchronizeStack(stack, envToUmsStateMap.get(stack.getEnvironmentCrn()), Set.of());
     }
 
     private void asyncSynchronizeUsers(String operationId, String accountId, String actorCrn, List<Stack> stacks,
@@ -133,18 +135,15 @@ public class UserService {
             // Then for each stack (which is pulled for list of environments, below code, call envUmsStateMap.get(environmentCRN)
 
             //Map<String, UmsState> environmentToUsersMap =
-            UmsState umsState = filterUsers ? umsUsersStateProvider.getUserFilteredUmsState(accountId, actorCrn, userCrnFilter, environmentsFilter)
-                    : umsUsersStateProvider.getUmsState(accountId, actorCrn, environmentsFilter);
-            LOGGER.debug("UmsState = {}", umsState);
-            Set<String> userIdFilter = filterUsers ? umsState.getUsernamesFromCrns(userCrnFilter, machineUserCrnFilter)
-                    : Set.of();
+            Map<String,UmsState> envToUmsStateMap = umsUsersStateProvider.getEnvToUmsStateMap(accountId, actorCrn, userCrnFilter, environmentsFilter) ;
+
+
+            // TODO: fix me
+            Set<String> userIdFilter = Set.of();
 
             Map<String, Future<SyncStatusDetail>> statusFutures = stacks.stream()
                     .collect(Collectors.toMap(Stack::getEnvironmentCrn,
-                            stack -> asyncTaskExecutor.submit(() -> {
-                                MDCBuilder.buildMdcContext(stack);
-                                return synchronizeStack(stack, umsState, userIdFilter);
-                            })));
+                            stack -> asyncTaskExecutor.submit(() -> synchronizeStack(stack, envToUmsStateMap.get(stack.getEnvironmentCrn()), userIdFilter))));
 
             List<SuccessDetails> success = new ArrayList<>();
             List<FailureDetails> failure = new ArrayList<>();

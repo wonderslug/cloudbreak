@@ -30,58 +30,50 @@ public class UmsUsersStateProvider {
     @Inject
     private GrpcUmsClient umsClient;
 
-    public Map<String, UmsState> getUmsState(String accountId, String actorCrn, Set<String> environmentsFilter) {
+    public Map<String, UmsState> getEnvToUmsStateMap(String accountId, String actorCrn, Set<String> environmentsFilter, Set<String> userCrns) {
         if (environmentsFilter == null || environmentsFilter.size() == 0) {
             LOGGER.error("Environment Filter argument is null of empty");
             throw new RuntimeException("Environment Filter argument is null of empty");
         }
 
+        List<User> users;
+        List<MachineUser> machineUsers = null;
+        List<Group> groups;
 
         try {
-            List<User> allUsers = umsClient.listAllUsers(actorCrn, accountId, Optional.empty());
-            //allUsers.forEach(u -> umsStateBuilder.addUser(u, umsClient.getRightsForUser(actorCrn, u.getCrn(), null, Optional.empty())));
+            // if for all users
+            if (userCrns == null || userCrns.size() == 0) {
+                users = umsClient.listAllUsers(actorCrn, accountId, Optional.empty());
+                //allUsers.forEach(u -> umsStateBuilder.addUser(u, umsClient.getRightsForUser(actorCrn, u.getCrn(), null, Optional.empty())));
 
-            List<MachineUser> allMachineUsers = umsClient.listAllMachineUsers(actorCrn, accountId, Optional.empty());
-            //allMachineUsers.forEach(u -> umsStateBuilder.addMachineUser(u, umsClient.getRightsForUser(actorCrn, u.getCrn(), null, Optional.empty())));
+                machineUsers = umsClient.listAllMachineUsers(actorCrn, accountId, Optional.empty());
+                //allMachineUsers.forEach(u -> umsStateBuilder.addMachineUser(u, umsClient.getRightsForUser(actorCrn, u.getCrn(), null, Optional.empty())));
 
-            // TODO: No need to fetch groups
-            List<Group> allGroups = umsClient.listAllGroups(actorCrn, accountId, Optional.empty());
-            return getEnvToUmsStateMap(accountId,actorCrn,environmentsFilter,allUsers,allMachineUsers,allGroups);
+                // TODO: No need to fetch groups
+                groups = umsClient.listAllGroups(actorCrn, accountId, Optional.empty());
+
+            } else {
+                // filter for set of users
+                Set<String> groupCrns = new HashSet<>();
+                users = umsClient.listUsers(actorCrn, accountId, List.copyOf(userCrns), Optional.empty());
+                users.forEach(u -> {
+                    // TODO: No need of Rights call here
+                    GetRightsResponse rights = umsClient.getRightsForUser(actorCrn, u.getCrn(), null, Optional.empty());
+                    // below line is used in common private method
+                    //umsStateBuilder.addUser(u, rights);
+                    groupCrns.addAll(rights.getGroupCrnList());
+                });
+
+                groups = umsClient.listGroups(actorCrn, accountId, List.copyOf(groupCrns), Optional.empty());
+            }
+
+
+            return getEnvToUmsStateMap(accountId,actorCrn,environmentsFilter,users,machineUsers,groups);
 
         } catch (RuntimeException e) {
             throw new UmsOperationException(String.format("Error during UMS operation: %s", e.getMessage()));
         }
     }
-
-    public Map<String, UmsState> getUserFilteredUmsState(String accountId, String actorCrn, Set<String> userCrns, Set<String> environmentsFilter) {
-        // TODO allow filtering on machine users as well once that's exposed in the API
-        UmsState.Builder umsStateBuilder = new UmsState.Builder();
-        try {
-            Set<String> groupCrns = new HashSet<>();
-            List<User> users = umsClient.listUsers(actorCrn, accountId, List.copyOf(userCrns), Optional.empty());
-            users.forEach(u -> {
-                // TODO: No need of Rights call here
-                GetRightsResponse rights = umsClient.getRightsForUser(actorCrn, u.getCrn(), null, Optional.empty());
-                // below line is used in common private method
-                //umsStateBuilder.addUser(u, rights);
-                groupCrns.addAll(rights.getGroupCrnList());
-            });
-
-            List<Group> groups = umsClient.listGroups(actorCrn, accountId, List.copyOf(groupCrns), Optional.empty());
-            umsClient.listMachineUsers(actorCrn, accountId, List.copyOf(machineUserCrns), Optional.empty())
-                    .forEach(u -> {
-                        GetRightsResponse rights = umsClient.getRightsForUser(actorCrn, u.getCrn(), null, Optional.empty());
-                        umsStateBuilder.addMachineUser(u, rights);
-                        groupCrns.addAll(rights.getGroupCrnList());
-                    });
-
-            return getEnvToUmsStateMap(accountId,actorCrn,environmentsFilter,users,null,groups);
-        } catch (RuntimeException e) {
-            throw new UmsOperationException(String.format("Error during UMS operation: %s", e.getMessage()));
-        }
-    }
-
-
 
     private Map<String, UmsState> getEnvToUmsStateMap(String accountId, String actorCrn,
                                                       Set<String> environmentsFilter, List<User> users,
@@ -136,8 +128,8 @@ public class UmsUsersStateProvider {
 
             // else no other user is for this environment.
         }
-            // machine users
 
+        // machine users
         for (MachineUser machineUser : allMachineUsers) {
 
             // TODO: Remove commented code
