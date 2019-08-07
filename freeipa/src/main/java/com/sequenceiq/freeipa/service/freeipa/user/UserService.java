@@ -117,21 +117,33 @@ public class UserService {
             }
             LOGGER.debug("Found {} stacks for account {}", stacks.size(), accountId);
 
+            Map<String, UmsState> envToUmsStateMap;
+            // environmentCRN -> {umsState}
+            // Then for each stack (which is pulled for list of environments, below code, call envUmsStateMap.get(environmentCRN)
             if (environmentsFilter != null && !environmentsFilter.isEmpty()) {
                 stacks = stacks.stream()
                         .filter(stack -> environmentsFilter.contains(stack.getEnvironmentCrn()))
                         .collect(Collectors.toList());
+                envToUmsStateMap = umsUsersStateProvider.getEnvToUmsStateMap(accountId, actorCrn, environmentsFilter, userCrnFilter);
+
             } else {
                 // If there is no environment passed, that means this is full sync.
                 // For having environment specific map, we need to extract out all envs crns from stack
-                stacks.stream().forEach(s -> environmentsFilter.add(s.getEnvironmentCrn()));
+                final Set<String> envs = new HashSet<>();
+                // check if this is valid CRN, there are many junk and old in DB
+                stacks.stream().forEach(s -> {
+                    String envCrn = s.getEnvironmentCrn();
+                    envs.add(envCrn);
+                });
+
+                envToUmsStateMap = umsUsersStateProvider.getEnvToUmsStateMap(accountId, actorCrn, envs, userCrnFilter);
+
+//                for (Stack s : stacks) {
+//                    String envCrn = s.getEnvironmentCrn();
+//                    environmentsFilter.add(envCrn);
+////                    stacks.stream().forEach(s -> environmentsFilter.add(s.getEnvironmentCrn()));
+//                }
             }
-
-            // environmentCRN -> {umsState}
-            // Then for each stack (which is pulled for list of environments, below code, call envUmsStateMap.get(environmentCRN)
-
-            Map<String, UmsState> envToUmsStateMap = umsUsersStateProvider.getEnvToUmsStateMap(accountId, actorCrn, userCrnFilter, environmentsFilter);
-
 
             // TODO: fix me
             Set<String> userIdFilter = Set.of();
@@ -171,6 +183,8 @@ public class UserService {
     }
 
     private SyncStatusDetail synchronizeStack(Stack stack, UmsState umsState, Set<String> userIdFilter) {
+
+        // if umsState is empty, then there is no users found for this env
         // TODO improve exception handling
         String environmentCrn = stack.getEnvironmentCrn();
         try {

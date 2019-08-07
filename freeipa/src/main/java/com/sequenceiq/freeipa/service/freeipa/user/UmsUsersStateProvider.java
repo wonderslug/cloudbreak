@@ -37,7 +37,6 @@ public class UmsUsersStateProvider {
             throw new RuntimeException("Environment Filter argument is null of empty");
         }
 
-
         try {
             List<User> users;
             List<Group> groups;
@@ -95,7 +94,8 @@ public class UmsUsersStateProvider {
         return envUmsStateMap;
     }
 
-    private void processForEnvironmentRights(Builder umsStateBuilder, String actorCrn, String envCRN, List<User> allUsers, List<MachineUser> allMachineUsers) {
+    private void processForEnvironmentRights(
+        Builder umsStateBuilder, String actorCrn, String envCRN, List<User> allUsers, List<MachineUser> allMachineUsers) {
         // for all users, check right for the passed envCRN
         for (User u : allUsers) {
 
@@ -113,6 +113,7 @@ public class UmsUsersStateProvider {
 //                continue;
 //            }
 
+            // TODO: Optimize, First check if READ is there or not, if not there, there is no point in checking for WRITE.
             if (umsClient.checkRight(actorCrn, u.getCrn(), ResourceAction.WRITE.getAuthorizationName(), envCRN, Optional.empty())) {
                 // this is admin user having write access
                 umsStateBuilder.addAdminUser(u);
