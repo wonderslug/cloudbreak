@@ -1,25 +1,5 @@
 package com.sequenceiq.freeipa.service.freeipa.user;
 
-import static java.util.Objects.requireNonNull;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import javax.inject.Inject;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.core.task.AsyncTaskExecutor;
-import org.springframework.stereotype.Service;
-
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Multimap;
 import com.sequenceiq.cloudbreak.auth.altus.Crn;
 import com.sequenceiq.cloudbreak.auth.altus.CrnParseException;
@@ -45,6 +25,22 @@ import com.sequenceiq.freeipa.service.freeipa.user.model.UmsState;
 import com.sequenceiq.freeipa.service.freeipa.user.model.UsersState;
 import com.sequenceiq.freeipa.service.freeipa.user.model.UsersStateDifference;
 import com.sequenceiq.freeipa.service.stack.StackService;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.stream.Collectors;
+
+import javax.inject.Inject;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.task.AsyncTaskExecutor;
+import org.springframework.stereotype.Service;
 
 @Service
 public class UserService {
@@ -192,6 +188,11 @@ public class UserService {
             LOGGER.info("Syncing Environment {}", environmentCrn);
             UsersState umsUsersState = umsState.getUsersState(environmentCrn);
             LOGGER.debug("UMS UsersState = {}", umsUsersState);
+            if (umsUsersState.getUsers() == null || umsUsersState.getUsers().size() == 0) {
+                String message = "Failed to synchronize environment " + stack.getEnvironmentCrn() + " No User to sync for this environment";
+                LOGGER.warn(message);
+                return SyncStatusDetail.fail(environmentCrn, message);
+            }
 
             FreeIpaClient freeIpaClient = freeIpaClientFactory.getFreeIpaClientForStack(stack);
             UsersState ipaUsersState = userIdFilter.isEmpty() ? freeIpaUsersStateProvider.getUsersState(freeIpaClient)
