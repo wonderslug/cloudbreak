@@ -168,6 +168,7 @@ public class UserService {
 
         // if umsState is empty, then there is no users found for this env
         // TODO improve exception handling
+        // TODO: Check if ums user has any user to be sync'ed, if not, skip.
         String environmentCrn = stack.getEnvironmentCrn();
         try {
             LOGGER.info("Syncing Environment {}", environmentCrn);
