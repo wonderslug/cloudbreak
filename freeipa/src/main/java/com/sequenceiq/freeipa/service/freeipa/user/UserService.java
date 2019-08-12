@@ -172,7 +172,7 @@ public class UserService {
             });
             syncOperationStatusService.completeOperation(operationId, success, failure);
         } catch (RuntimeException e) {
-            LOGGER.debug("caught exception", e);
+            LOGGER.error("Error while user sync:{}", e.getMessage());
             syncOperationStatusService.failOperation(operationId, e.getLocalizedMessage());
             throw e;
         }
