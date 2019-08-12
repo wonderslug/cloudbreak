@@ -6,7 +6,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Profile;
 
 import com.sequenceiq.cloudbreak.service.secret.service.SecretService;
-import com.sequenceiq.flow.reactor.ErrorHandlerAwareReactorEventFactory;
 import com.sequenceiq.freeipa.api.v1.freeipa.stack.FreeIpaV1Endpoint;
 
 import reactor.bus.EventBus;
@@ -26,6 +25,6 @@ public class TestConfigurationForServiceIntegration {
     @MockBean
     private EventBus eventBus;
 
-    @MockBean
-    private ErrorHandlerAwareReactorEventFactory eventFactory;
+//    @MockBean
+//    private ErrorHandlerAwareReactorEventFactory eventFactory;
 }

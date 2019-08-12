@@ -48,6 +48,7 @@ import com.sequenceiq.cloudbreak.cloud.event.platform.GetVirtualMachineRecommend
 import com.sequenceiq.cloudbreak.cloud.event.platform.GetVirtualMachineRecommendtaionRequest;
 import com.sequenceiq.cloudbreak.cloud.event.platform.PlatformParametersRequest;
 import com.sequenceiq.cloudbreak.cloud.event.platform.PlatformParametersResult;
+import com.sequenceiq.cloudbreak.cloud.event.platform.CloudReactorRequestProvider;
 import com.sequenceiq.cloudbreak.cloud.model.CloudAccessConfigs;
 import com.sequenceiq.cloudbreak.cloud.model.CloudEncryptionKeys;
 import com.sequenceiq.cloudbreak.cloud.model.CloudGateWays;
@@ -83,6 +84,9 @@ public class CloudParameterService {
 
     @Inject
     private ErrorHandlerAwareReactorEventFactory eventFactory;
+
+    @Inject
+    private CloudReactorRequestProvider cloudReactorRequestProvider;
 
     @Retryable(value = GetCloudParameterException.class, maxAttempts = 5, backoff = @Backoff(delay = 1000, multiplier = 2, maxDelay = 10000))
     public PlatformVariants getPlatformVariants() {
@@ -304,8 +308,8 @@ public class CloudParameterService {
     @Retryable(value = GetCloudParameterException.class, maxAttempts = 5, backoff = @Backoff(delay = 1000, multiplier = 2, maxDelay = 10000))
     public CloudRegions getRegionsV2(ExtendedCloudCredential cloudCredential, String region, String variant, Map<String, String> filters) {
         LOGGER.debug("Get platform regions");
-        GetPlatformRegionsRequestV2 getPlatformRegionsRequest =
-                new GetPlatformRegionsRequestV2(cloudCredential, cloudCredential, variant, region, filters);
+        GetPlatformRegionsRequestV2 getPlatformRegionsRequest = cloudReactorRequestProvider
+                .getPlatformRegionsRequestV2(cloudCredential, cloudCredential, variant, region, filters);
         eventBus.notify(getPlatformRegionsRequest.selector(), Event.wrap(getPlatformRegionsRequest));
         try {
             GetPlatformRegionsResultV2 res = getPlatformRegionsRequest.await();

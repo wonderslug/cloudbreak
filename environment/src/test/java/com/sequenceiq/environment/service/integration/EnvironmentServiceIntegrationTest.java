@@ -12,6 +12,7 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
@@ -33,10 +34,14 @@ import com.sequenceiq.cloudbreak.cloud.event.credential.CredentialVerificationRe
 import com.sequenceiq.cloudbreak.cloud.event.credential.InitCodeGrantFlowRequest;
 import com.sequenceiq.cloudbreak.cloud.event.credential.InteractiveLoginRequest;
 import com.sequenceiq.cloudbreak.cloud.event.credential.InteractiveLoginResult;
+import com.sequenceiq.cloudbreak.cloud.event.platform.CloudReactorRequestProvider;
+import com.sequenceiq.cloudbreak.cloud.event.platform.GetPlatformRegionsRequestV2;
+import com.sequenceiq.cloudbreak.cloud.event.platform.GetPlatformRegionsResultV2;
 import com.sequenceiq.cloudbreak.cloud.event.platform.ResourceDefinitionRequest;
 import com.sequenceiq.cloudbreak.cloud.event.platform.ResourceDefinitionResult;
 import com.sequenceiq.cloudbreak.cloud.model.CloudCredential;
 import com.sequenceiq.cloudbreak.cloud.model.CloudCredentialStatus;
+import com.sequenceiq.cloudbreak.cloud.model.CloudRegions;
 import com.sequenceiq.cloudbreak.cloud.model.CredentialStatus;
 import com.sequenceiq.cloudbreak.service.secret.service.SecretService;
 import com.sequenceiq.environment.api.v1.credential.model.parameters.aws.AwsCredentialParameters;
@@ -47,6 +52,12 @@ import com.sequenceiq.environment.api.v1.credential.model.request.CredentialRequ
 import com.sequenceiq.environment.api.v1.credential.model.response.CredentialResponse;
 import com.sequenceiq.environment.api.v1.credential.model.response.CredentialResponses;
 import com.sequenceiq.environment.api.v1.credential.model.response.InteractiveCredentialResponse;
+import com.sequenceiq.environment.api.v1.environment.model.request.EnvironmentAuthenticationRequest;
+import com.sequenceiq.environment.api.v1.environment.model.request.EnvironmentNetworkRequest;
+import com.sequenceiq.environment.api.v1.environment.model.request.EnvironmentRequest;
+import com.sequenceiq.environment.api.v1.environment.model.request.LocationRequest;
+import com.sequenceiq.environment.api.v1.environment.model.request.SecurityAccessRequest;
+import com.sequenceiq.environment.api.v1.environment.model.response.DetailedEnvironmentResponse;
 import com.sequenceiq.environment.api.v1.proxy.model.request.ProxyRequest;
 import com.sequenceiq.environment.api.v1.proxy.model.response.ProxyResponse;
 import com.sequenceiq.environment.api.v1.proxy.model.response.ProxyResponses;
@@ -56,9 +67,16 @@ import com.sequenceiq.environment.credential.domain.Credential;
 import com.sequenceiq.environment.credential.repository.CredentialRepository;
 import com.sequenceiq.environment.credential.service.RequestProvider;
 import com.sequenceiq.environment.network.NetworkService;
+import com.sequenceiq.environment.environment.repository.EnvironmentRepository;
+import com.sequenceiq.environment.environment.service.EnvironmentTestData;
 import com.sequenceiq.environment.proxy.domain.ProxyConfig;
 import com.sequenceiq.environment.proxy.repository.ProxyConfigRepository;
 import com.sequenceiq.environment.service.integration.testconfiguration.TestConfigurationForServiceIntegration;
+import com.sequenceiq.flow.reactor.ErrorHandlerAwareReactorEventFactory;
+import com.sequenceiq.flow.reactor.api.event.BaseFlowEvent;
+
+import reactor.bus.Event;
+import reactor.rx.Promise;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         classes = TestConfigurationForServiceIntegration.class)
@@ -94,8 +112,17 @@ public class EnvironmentServiceIntegrationTest {
     @Mock
     private InitCodeGrantFlowRequest initCodeGrantFlowRequest;
 
+    @Mock
+    private GetPlatformRegionsRequestV2 getPlatformRegionsRequestV2;
+
     @MockBean
-    private RequestProvider requestProvider;
+    private RequestProvider environmentRequestProvider;
+
+    @MockBean
+    private CloudReactorRequestProvider cloudReactorRequestProvider;
+
+    @MockBean
+    private ErrorHandlerAwareReactorEventFactory eventFactory;
 
     @MockBean
     private UmsAuthorizationService umsAuthorizationService;
@@ -108,6 +135,9 @@ public class EnvironmentServiceIntegrationTest {
 
     @Inject
     private CredentialRepository credentialRepository;
+
+    @Inject
+    private EnvironmentRepository environmentRepository;
 
     @Inject
     private SecretService secretService;
@@ -141,8 +171,64 @@ public class EnvironmentServiceIntegrationTest {
 
     @AfterEach
     public void clienUpDb() {
+        environmentRepository.deleteAll();
         proxyConfigRepository.deleteAll();
         credentialRepository.deleteAll();
+    }
+
+    @Test
+    public void testEnvironmentCreate() throws InterruptedException {
+        createAwsCredential("testcredential");
+        EnvironmentRequest request = getEnvironmentRequest();
+
+        when(cloudReactorRequestProvider.getPlatformRegionsRequestV2(any(), any(), any(), any(), any()))
+                .thenReturn(getPlatformRegionsRequestV2);
+        CloudRegions cloudRegions = EnvironmentTestData.getCloudRegions();
+        when(getPlatformRegionsRequestV2.await())
+                .thenReturn(new GetPlatformRegionsResultV2(1L, cloudRegions));
+        DetailedEnvironmentResponse result = client.environmentV1Endpoint().post(request);
+    }
+
+    private EnvironmentRequest getEnvironmentRequest() {
+        EnvironmentRequest request = new EnvironmentRequest();
+        request.setCredentialName("testcredential");
+        request.setName("testenvironment");
+        request.setCloudPlatform("AWS");
+        request.setDescription("testdescription");
+        EnvironmentAuthenticationRequest authenticationRequest = new EnvironmentAuthenticationRequest();
+        authenticationRequest.setPublicKeyId("testkeyid");
+        authenticationRequest.setPublicKey("ssh-rsa"); //TODO most NOT NULL, de ez tuti hogy lehet null (pl aws)
+        request.setAuthentication(authenticationRequest);
+        LocationRequest locationRequest = new LocationRequest();
+        locationRequest.setName("r1");
+        request.setLocation(locationRequest);
+        request.setRegions(Set.of("r1"));
+        EnvironmentNetworkRequest networkRequest = new EnvironmentNetworkRequest();
+        networkRequest.setNetworkCidr("0.0.0.0/0");
+        request.setNetwork(networkRequest);
+        SecurityAccessRequest securityAccess = new SecurityAccessRequest();
+        securityAccess.setCidr("0.0.0.0/0");
+        request.setSecurityAccess(securityAccess);
+        return request;
+    }
+
+    private void createAwsCredential(String name) throws InterruptedException {
+        credentialRequest.setAws(getAwsKeyBasedCredentialParameters(false, "yyy", "zzzz"));
+        credentialRequest.setCloudPlatform("AWS");
+        credentialRequest.setName(name);
+
+        when(environmentRequestProvider.getResourceDefinitionRequest(any(), any())).thenReturn(resourceDefinitionRequest);
+        when(environmentRequestProvider.getCredentialVerificationRequest(any(), any())).thenAnswer(
+                invocation -> new CredentialVerificationMockRequest(invocation.getArgument(0), invocation.getArgument(1))
+        );
+        when(resourceDefinitionRequest.await()).thenReturn(new ResourceDefinitionResult(1L, DEFINITION_AWS));
+
+        Promise<Boolean> thisisarealtrue = new Promise<Boolean>();
+        thisisarealtrue.accept(Boolean.TRUE);
+        when(eventFactory.createEventWithErrHandler(any(), any()))
+                .thenReturn(new Event<>(new BaseFlowEvent("", 1L, "", thisisarealtrue)));
+
+        CredentialResponse response = client.credentialV1Endpoint().post(credentialRequest);
     }
 
     @Test
@@ -151,8 +237,8 @@ public class EnvironmentServiceIntegrationTest {
         credentialRequest.setCloudPlatform("AWS");
         credentialRequest.setName("testcredential");
 
-        when(requestProvider.getResourceDefinitionRequest(any(), any())).thenReturn(resourceDefinitionRequest);
-        when(requestProvider.getCredentialVerificationRequest(any(), any())).thenAnswer(
+        when(environmentRequestProvider.getResourceDefinitionRequest(any(), any())).thenReturn(resourceDefinitionRequest);
+        when(environmentRequestProvider.getCredentialVerificationRequest(any(), any())).thenAnswer(
                 invocation -> new CredentialVerificationMockRequest(invocation.getArgument(0), invocation.getArgument(1))
         );
         when(resourceDefinitionRequest.await()).thenReturn(new ResourceDefinitionResult(1L, DEFINITION_AWS));
@@ -176,7 +262,7 @@ public class EnvironmentServiceIntegrationTest {
         credentialRequest.setAzure(azureCredentialRequestParameters);
 
         InteractiveLoginResult interactiveLoginResult = new InteractiveLoginResult(1L, Map.of("user_code", USER_CODE, "verification_url", VERIFICATION_URL));
-        when(requestProvider.getInteractiveLoginRequest(any(), any())).thenReturn(interactiveLoginRequest);
+        when(environmentRequestProvider.getInteractiveLoginRequest(any(), any())).thenReturn(interactiveLoginRequest);
         when(interactiveLoginRequest.await()).thenReturn(interactiveLoginResult);
         InteractiveCredentialResponse result = client.credentialV1Endpoint().interactiveLogin(credentialRequest);
         assertEquals(result.getUserCode(), USER_CODE);
@@ -200,7 +286,7 @@ public class EnvironmentServiceIntegrationTest {
 
         InitCodeGrantFlowResponse initCodeGrantFlowResponse = new InitCodeGrantFlowResponse(1L, Map.of());
 
-        when(requestProvider.getInitCodeGrantFlowRequest(any(), any())).thenReturn(initCodeGrantFlowRequest);
+        when(environmentRequestProvider.getInitCodeGrantFlowRequest(any(), any())).thenReturn(initCodeGrantFlowRequest);
         when(initCodeGrantFlowRequest.await()).thenReturn(initCodeGrantFlowResponse);
         Response result = client.credentialV1Endpoint().initCodeGrantFlow(credentialRequest);
     }*/
