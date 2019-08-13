@@ -75,7 +75,7 @@ public class UmsUsersStateProvider {
 
             return envUsersStateMap;
         } catch (RuntimeException e) {
-            throw new UmsOperationException(String.format("Error during UMS operation: %s", e.getMessage()));
+            throw new UmsOperationException(String.format("Error during UMS operation: {}", e));
         } finally {
             UmsUsersStateProvider.requestId.remove();
         }
