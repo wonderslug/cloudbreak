@@ -82,7 +82,7 @@ public class UmsUsersStateProvider {
     }
 
     private boolean isEnvironmentUser(String enviromentCrn, GetRightsResponse rightsResponse) {
-        
+
         List<RoleAssignment> rolesAssignedList = rightsResponse.getRoleAssignmentList();
         for (RoleAssignment roleAssigned : rolesAssignedList) {
             // TODO: should come from IAM Roles and check against Role Object
