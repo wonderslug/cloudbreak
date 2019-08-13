@@ -2,24 +2,6 @@ package com.sequenceiq.freeipa.service.freeipa.user;
 
 import static java.util.Objects.requireNonNull;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import javax.inject.Inject;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.core.task.AsyncTaskExecutor;
-import org.springframework.stereotype.Service;
-
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Multimap;
 import com.sequenceiq.cloudbreak.auth.altus.Crn;
@@ -46,6 +28,25 @@ import com.sequenceiq.freeipa.service.freeipa.user.model.UmsState;
 import com.sequenceiq.freeipa.service.freeipa.user.model.UsersState;
 import com.sequenceiq.freeipa.service.freeipa.user.model.UsersStateDifference;
 import com.sequenceiq.freeipa.service.stack.StackService;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import javax.inject.Inject;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.task.AsyncTaskExecutor;
+import org.springframework.stereotype.Service;
 
 @Service
 public class UserService {
@@ -102,7 +103,8 @@ public class UserService {
         // TODO: Fix this for environment filter.
         Set<String> environmentsFilter = new HashSet<>();
         environmentsFilter.add(stack.getEnvironmentCrn());
-        Map<String, UmsState> envToUmsStateMap = umsUsersStateProvider.getEnvToUmsStateMap(accountId, actorCrn, environmentsFilter, Set.of(), Set.of());
+        Map<String, UmsState> envToUmsStateMap =
+            umsUsersStateProvider.getEnvToUmsStateMap(accountId, actorCrn, environmentsFilter, Set.of(), Set.of(), Optional.empty());
         return synchronizeStack(stack, envToUmsStateMap.get(stack.getEnvironmentCrn()), Set.of());
     }
 
@@ -112,7 +114,8 @@ public class UserService {
             Set<String> envs = stacks.stream().map(Stack::getEnvironmentCrn).collect(Collectors.toSet());
             // environmentCRN -> {umsState}
             // Then for each stack (which is pulled for list of environments, below code, call envUmsStateMap.get(environmentCRN)
-            Map<String, UmsState> envToUmsStateMap = umsUsersStateProvider.getEnvToUmsStateMap(accountId, actorCrn, envs, userCrnFilter, machineUserCrnFilter);
+            Map<String, UmsState> envToUmsStateMap =
+                umsUsersStateProvider.getEnvToUmsStateMap(accountId, actorCrn, envs, userCrnFilter, machineUserCrnFilter, Optional.empty());
 
             // TODO: fix me
             Set<String> userIdFilter = Set.of();
@@ -166,7 +169,8 @@ public class UserService {
             LOGGER.info("Syncing Environment {}", environmentCrn);
             UsersState umsUsersState = umsState.getUsersState(environmentCrn);
             LOGGER.debug("UMS UsersState = {}", umsUsersState);
-            if (umsUsersState.getUsers() == null || umsUsersState.getUsers().size() == 0) {
+            if (umsUsersState.getUsers() == null ||
+                umsUsersState.getUsers().size() == 0) {
                 String message = "Failed to synchronize environment " + stack.getEnvironmentCrn() + " No User to sync for this environment";
                 LOGGER.warn(message);
                 return SyncStatusDetail.fail(environmentCrn, message);
