@@ -17,6 +17,7 @@ import com.sequenceiq.cloudbreak.grpc.ManagedChannelWrapper;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -71,44 +72,20 @@ public class GrpcUmsClient {
     }
 
     /**
-     * Retrieves group Map from UMS for given set of users.
+     * Retrieves group list for a specified member from UMS.
      *
      * @param accountId the account Id
      * @param requestId an optional request Id
-     * @param users the users list for which all groups needs to be populated. if null or empty then returns empty map
-     * @return the map of user to list of groups
+     * @param memberCrn the member to list
+     * @return the list of group crns associated with this member
      */
-    public void getUsersToGroupsMap(
-        Map<String, List<Group>> usersToGroupMap, String actorCrn, String accountId, List<User> users, Optional<String> requestId) {
-
+    public List<String> listGroupsForMember(String actorCrn, String accountId, String memberCrn, Optional<String> requestId) {
         try (ManagedChannelWrapper channelWrapper = makeWrapper()) {
             UmsClient client = makeClient(channelWrapper.getChannel(), actorCrn);
-            LOGGER.debug("Listing group information for account {} using request ID {}", accountId, requestId);
-            for (User u : users) {
-                List<Group> groups = client.listGroupsForMembers(requestId.orElse(UUID.randomUUID().toString()), accountId, u.getCrn());
-                usersToGroupMap.put(u.getCrn(), groups);
-                LOGGER.debug("{} Groups found for account {}", groups.size(), accountId);
-            }
-        }
-    }
-
-    /**
-     * Retrieves group Map from UMS for given set of machine users.
-     *
-     * @param accountId    the account Id
-     * @param requestId    an optional request Id
-     * @param machineUsers the machine users list for which all groups needs to be populated. if null or empty then returns empty map
-     * @return the map of machine user to list of groups
-     */
-    public void getMachineUsersToGroupsMap(Map<String, List<Group>> usersToGroupMap, String actorCrn, String accountId, List<MachineUser> machineUsers, Optional<String> requestId) {
-        try (ManagedChannelWrapper channelWrapper = makeWrapper()) {
-            UmsClient client = makeClient(channelWrapper.getChannel(), actorCrn);
-            LOGGER.debug("Listing group information for account {} using request ID {}", accountId, requestId);
-            for (MachineUser u : machineUsers) {
-                List<Group> groups = client.listGroupsForMembers(requestId.orElse(UUID.randomUUID().toString()), accountId, u.getCrn());
-                usersToGroupMap.put(u.getCrn(), groups);
-                LOGGER.debug("{} Groups found for account {}", groups.size(), accountId);
-            }
+            LOGGER.debug("Listing group information for member {} in account {} using request ID {}", memberCrn, accountId, requestId);
+            List<String> groups = client.listGroupsForMembers(requestId.orElse(UUID.randomUUID().toString()), accountId, memberCrn);
+            LOGGER.debug("{} Groups found for account {}", groups.size(), accountId);
+            return groups;
         }
     }
 

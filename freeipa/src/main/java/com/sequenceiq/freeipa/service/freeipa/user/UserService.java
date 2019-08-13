@@ -42,7 +42,6 @@ import com.sequenceiq.freeipa.service.freeipa.FreeIpaClientFactory;
 import com.sequenceiq.freeipa.service.freeipa.user.model.FmsGroup;
 import com.sequenceiq.freeipa.service.freeipa.user.model.FmsUser;
 import com.sequenceiq.freeipa.service.freeipa.user.model.SyncStatusDetail;
-import com.sequenceiq.freeipa.service.freeipa.user.model.UmsState;
 import com.sequenceiq.freeipa.service.freeipa.user.model.UsersState;
 import com.sequenceiq.freeipa.service.freeipa.user.model.UsersStateDifference;
 import com.sequenceiq.freeipa.service.stack.StackService;
@@ -102,8 +101,9 @@ public class UserService {
         // TODO: Fix this for environment filter.
         Set<String> environmentsFilter = new HashSet<>();
         environmentsFilter.add(stack.getEnvironmentCrn());
-        Map<String, UmsState> envToUmsStateMap = umsUsersStateProvider.getEnvToUmsStateMap(accountId, actorCrn, environmentsFilter, Set.of(), Set.of());
-        return synchronizeStack(stack, envToUmsStateMap.get(stack.getEnvironmentCrn()), Set.of());
+        Map<String, UsersState> envToUmsUsersStateMap = umsUsersStateProvider
+                .getEnvToUmsUsersStateMap(accountId, actorCrn, environmentsFilter, Set.of(), Set.of());
+        return synchronizeStack(stack, envToUmsUsersStateMap.get(stack.getEnvironmentCrn()), Set.of());
     }
 
     private void asyncSynchronizeUsers(String operationId, String accountId, String actorCrn, List<Stack> stacks,
@@ -112,7 +112,8 @@ public class UserService {
             Set<String> envs = stacks.stream().map(Stack::getEnvironmentCrn).collect(Collectors.toSet());
             // environmentCRN -> {umsState}
             // Then for each stack (which is pulled for list of environments, below code, call envUmsStateMap.get(environmentCRN)
-            Map<String, UmsState> envToUmsStateMap = umsUsersStateProvider.getEnvToUmsStateMap(accountId, actorCrn, envs, userCrnFilter, machineUserCrnFilter);
+            Map<String, UsersState> envToUmsStateMap = umsUsersStateProvider
+                    .getEnvToUmsUsersStateMap(accountId, actorCrn, envs, userCrnFilter, machineUserCrnFilter);
 
             // TODO: fix me
             Set<String> userIdFilter = Set.of();
@@ -156,7 +157,7 @@ public class UserService {
         }
     }
 
-    private SyncStatusDetail synchronizeStack(Stack stack, UmsState umsState, Set<String> userIdFilter) {
+    private SyncStatusDetail synchronizeStack(Stack stack, UsersState umsUsersState, Set<String> userIdFilter) {
 
         // if umsState is empty, then there is no users found for this env
         // TODO improve exception handling
@@ -164,7 +165,6 @@ public class UserService {
         String environmentCrn = stack.getEnvironmentCrn();
         try {
             LOGGER.info("Syncing Environment {}", environmentCrn);
-            UsersState umsUsersState = umsState.getUsersState(environmentCrn);
             LOGGER.debug("UMS UsersState = {}", umsUsersState);
             if (umsUsersState.getUsers() == null || umsUsersState.getUsers().size() == 0) {
                 String message = "Failed to synchronize environment " + stack.getEnvironmentCrn() + " No User to sync for this environment";

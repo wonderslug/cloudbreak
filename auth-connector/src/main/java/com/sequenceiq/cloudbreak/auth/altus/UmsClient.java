@@ -106,9 +106,9 @@ public class UmsClient {
      * @param requestId             the request ID for the request
      * @param accountId             the account ID
      * @param userCrn               User CRN for which groups are fetched.
-     * @return the list of groups
+     * @return the list of group crns
      */
-    public List<Group> listGroupsForMembers(String requestId, String accountId, String userCrn) {
+    public List<String> listGroupsForMembers(String requestId, String accountId, String userCrn) {
         checkNotNull(accountId);
         checkNotNull(userCrn);
 
@@ -117,16 +117,16 @@ public class UmsClient {
             .setMember(actor.build());
 
         ListGroupsForMemberResponse response;
-        List<String> grps = new ArrayList<>();
+        List<String> groups = new ArrayList<>();
         do {
             response = newStub(requestId).listGroupsForMember(request.build());
             for (int i = 0; i < response.getGroupCrnCount(); i++) {
                 String grpCRN = response.getGroupCrn(i);
-                grps.add(grpCRN);
+                groups.add(grpCRN);
             }
         } while (response.hasNextPageToken());
 
-        return listGroups(requestId, accountId, grps);
+        return groups;
     }
 
     /**
