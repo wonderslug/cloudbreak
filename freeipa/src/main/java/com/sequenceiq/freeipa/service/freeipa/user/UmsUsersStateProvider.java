@@ -138,6 +138,7 @@ public class UmsUsersStateProvider {
             userStateBuilder.addUser(fmsUser);
             rightsResponse.getGroupCrnList().stream().forEach(gcrn -> {
                 userStateBuilder.addMemberToGroup(crnToFmsGroup.get(gcrn).getName(), fmsUser.getName());
+                userStateBuilder.addGroup(crnToFmsGroup.get(gcrn));
             });
             if (isEnvironmentAdmin(environmentCrn, rightsResponse)) {
                 userStateBuilder.addMemberToGroup("admins", fmsUser.getName());
