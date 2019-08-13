@@ -27,7 +27,8 @@ public class UmsUsersStateProvider {
     @Inject
     private GrpcUmsClient umsClient;
 
-    private final String environmentWrite = "environments/write";
+    //    private final String environmentWrite = "environments/write";
+    private final String environmentWrite = "environments/setPassword";
 
     public Map<String, UmsState> getEnvToUmsStateMap(String accountId, String actorCrn, Set<String> environmentsFilter,
                 Set<String> userCrns, Set<String> machineUserCrns) {

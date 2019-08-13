@@ -85,7 +85,7 @@ public class GrpcUmsClient {
             UmsClient client = makeClient(channelWrapper.getChannel(), actorCrn);
             LOGGER.debug("Listing group information for account {} using request ID {}", accountId, requestId);
             for (User u : users) {
-                List<Group> groups = client.listGroupsForMembers(requestId.orElse(UUID.randomUUID().toString()), accountId, u.getCrn());
+                List<Group> groups = client.listGroupsForMembers(requestId.orElse(UUID.randomUUID().toString()), accountId, u.getCrn(), false);
                 usersToGroupMap.put(u.getCrn(), groups);
                 LOGGER.debug("{} Groups found for account {}", groups.size(), accountId);
             }
@@ -100,12 +100,13 @@ public class GrpcUmsClient {
      * @param machineUsers the machine users list for which all groups needs to be populated. if null or empty then returns empty map
      * @return the map of machine user to list of groups
      */
-    public void getMachineUsersToGroupsMap(Map<String, List<Group>> usersToGroupMap, String actorCrn, String accountId, List<MachineUser> machineUsers, Optional<String> requestId) {
+    public void getMachineUsersToGroupsMap(
+        Map<String, List<Group>> usersToGroupMap, String actorCrn, String accountId, List<MachineUser> machineUsers, Optional<String> requestId) {
         try (ManagedChannelWrapper channelWrapper = makeWrapper()) {
             UmsClient client = makeClient(channelWrapper.getChannel(), actorCrn);
             LOGGER.debug("Listing group information for account {} using request ID {}", accountId, requestId);
             for (MachineUser u : machineUsers) {
-                List<Group> groups = client.listGroupsForMembers(requestId.orElse(UUID.randomUUID().toString()), accountId, u.getCrn());
+                List<Group> groups = client.listGroupsForMembers(requestId.orElse(UUID.randomUUID().toString()), accountId, u.getCrn(), true);
                 usersToGroupMap.put(u.getCrn(), groups);
                 LOGGER.debug("{} Groups found for account {}", groups.size(), accountId);
             }
@@ -291,8 +292,9 @@ public class GrpcUmsClient {
         try (ManagedChannelWrapper channelWrapper = makeWrapper()) {
             AuthorizationClient client = new AuthorizationClient(channelWrapper.getChannel(), actorCrn);
             LOGGER.info("Checking right {} for user {}!", right, userCrn);
-            //client.checkRight(requestId.orElse(UUID.randomUUID().toString()), userCrn, right, null);
-            client.checkRight(requestId.orElse(UUID.randomUUID().toString()), userCrn, right, resource);
+            client.checkRight(requestId.orElse(UUID.randomUUID().toString()), userCrn, right, null);
+            //TODO: Resource related checkRight support is in progress.
+            //client.checkRight(requestId.orElse(UUID.randomUUID().toString()), userCrn, right, resource);
             LOGGER.info("User {} has right {}!", userCrn, right);
             return true;
         } catch (Exception e) {

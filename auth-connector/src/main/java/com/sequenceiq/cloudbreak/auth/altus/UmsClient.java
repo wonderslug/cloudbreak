@@ -105,14 +105,20 @@ public class UmsClient {
      *
      * @param requestId             the request ID for the request
      * @param accountId             the account ID
-     * @param userCrn               User CRN for which groups are fetched.
+     * @param memberCrn               User CRN for which groups are fetched.
+     * @param forMachineUser
      * @return the list of groups
      */
-    public List<Group> listGroupsForMembers(String requestId, String accountId, String userCrn) {
+    public List<Group> listGroupsForMembers(String requestId, String accountId, String memberCrn, boolean forMachineUser) {
         checkNotNull(accountId);
-        checkNotNull(userCrn);
+        checkNotNull(memberCrn);
 
-        Actor.Builder actor = Actor.newBuilder().setAccountId(accountId).setUserIdOrCrn(userCrn);
+        Actor.Builder actor;
+        if (forMachineUser) {
+            actor = Actor.newBuilder().setAccountId(accountId).setMachineUserNameOrCrn(memberCrn);
+        } else {
+            actor = Actor.newBuilder().setAccountId(accountId).setUserIdOrCrn(memberCrn);
+        }
         ListGroupsForMemberRequest.Builder request = ListGroupsForMemberRequest.newBuilder()
             .setMember(actor.build());
 
