@@ -3,6 +3,8 @@ package com.sequenceiq.freeipa.service.freeipa.user;
 import com.cloudera.thunderhead.service.usermanagement.UserManagementProto.GetRightsResponse;
 import com.cloudera.thunderhead.service.usermanagement.UserManagementProto.Group;
 import com.cloudera.thunderhead.service.usermanagement.UserManagementProto.MachineUser;
+import com.cloudera.thunderhead.service.usermanagement.UserManagementProto.ResourceRoleAssignment;
+import com.cloudera.thunderhead.service.usermanagement.UserManagementProto.RoleAssignment;
 import com.cloudera.thunderhead.service.usermanagement.UserManagementProto.User;
 import com.sequenceiq.cloudbreak.auth.altus.GrpcUmsClient;
 import com.sequenceiq.cloudbreak.auth.altus.exception.UmsOperationException;
@@ -10,7 +12,6 @@ import com.sequenceiq.freeipa.service.freeipa.user.model.FmsGroup;
 import com.sequenceiq.freeipa.service.freeipa.user.model.FmsUser;
 import com.sequenceiq.freeipa.service.freeipa.user.model.UsersState;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -81,12 +82,47 @@ public class UmsUsersStateProvider {
     }
 
     private boolean isEnvironmentUser(String enviromentCrn, GetRightsResponse rightsResponse) {
-        // TODO
+        
+        List<RoleAssignment> rolesAssignedList = rightsResponse.getRoleAssignmentList();
+        for (RoleAssignment roleAssigned : rolesAssignedList) {
+            // TODO: should come from IAM Roles and check against Role Object
+            if (roleAssigned.getRole().getCrn().contains("PowerUser") ||
+                roleAssigned.getRole().getCrn().contains("EnvironmentAdmin")) {
+                return true;
+                // admins are also users
+            }
+        }
+
+        List<ResourceRoleAssignment> resourceRoleAssignedList = rightsResponse.getResourceRolesAssignmentList();
+        for (ResourceRoleAssignment resourceRoleAssigned : resourceRoleAssignedList) {
+            // TODO: should come from IAM Roles and check against Role Object
+            if (resourceRoleAssigned.getResourceRole().getCrn().contains("EnvironmentAdmin") ||
+                (resourceRoleAssigned.getResourceRole().getCrn().contains("EnvironmentUser"))) {
+                return true;
+            }
+        }
+
         return false;
     }
 
     private boolean isEnvironmentAdmin(String enviromentCrn, GetRightsResponse rightsResponse) {
-        // TODO
+        List<RoleAssignment> rolesAssignedList = rightsResponse.getRoleAssignmentList();
+        for (RoleAssignment roleAssigned : rolesAssignedList) {
+            // TODO: should come from IAM Roles and check against Role Object
+            if (roleAssigned.getRole().getCrn().contains("PowerUser") ||
+                roleAssigned.getRole().getCrn().contains("EnvironmentAdmin")) {
+                return true;
+            }
+        }
+
+        List<ResourceRoleAssignment> resourceRoleAssignedList = rightsResponse.getResourceRolesAssignmentList();
+        for (ResourceRoleAssignment resourceRoleAssigned : resourceRoleAssignedList) {
+            // TODO: should come from IAM Roles and check against Role Object
+            if (resourceRoleAssigned.getResourceRole().getCrn().contains("EnvironmentAdmin")) {
+                return true;
+            }
+        }
+
         return false;
     }
 
@@ -105,41 +141,6 @@ public class UmsUsersStateProvider {
                 userStateBuilder.addMemberToGroup("admins", fmsUser.getName());
             }
         }
-    }
-
-    private List<User> getUsersWithEnvironmentRights(
-        String actorCrn, String envCRN, List<User> allUsers) {
-        Optional<String> requestIdOptional = Optional.ofNullable(requestId.get());
-
-        List<User> rightfulUsers = new ArrayList<>();
-        // for all users, check right for the passed envCRN
-        for (User u : allUsers) {
-
-            if (umsClient.checkRight(actorCrn, u.getCrn(), environmentWrite, envCRN, requestIdOptional)) {
-                // if (true) {
-                rightfulUsers.add(u);
-            }
-        }
-        return rightfulUsers;
-
-    }
-
-    private List<MachineUser> getMachineUsersWithEnvironmentRights(
-        String actorCrn, String envCRN, List<MachineUser> allMachineUsers) {
-        Optional<String> requestIdOptional = Optional.ofNullable(requestId.get());
-
-        List<MachineUser> rightfulMachineUsers = new ArrayList<>();
-        // machine users
-        for (MachineUser machineUser : allMachineUsers) {
-
-            // Machine User can be a power user also
-            if (umsClient.checkRight(actorCrn, machineUser.getCrn(), environmentWrite, envCRN, requestIdOptional)) {
-                // this is admin user having write access
-                rightfulMachineUsers.add(machineUser);
-            }
-        }
-
-        return rightfulMachineUsers;
     }
 
     private List<String> getGroupCrnsForMember(
