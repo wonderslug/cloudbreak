@@ -8,6 +8,8 @@ import com.cloudera.thunderhead.service.usermanagement.UserManagementProto.RoleA
 import com.cloudera.thunderhead.service.usermanagement.UserManagementProto.User;
 import com.sequenceiq.cloudbreak.auth.altus.GrpcUmsClient;
 import com.sequenceiq.cloudbreak.auth.altus.exception.UmsOperationException;
+import com.sequenceiq.cloudbreak.logger.LoggerContextKey;
+import com.sequenceiq.cloudbreak.logger.MDCBuilder;
 import com.sequenceiq.freeipa.service.freeipa.user.model.FmsGroup;
 import com.sequenceiq.freeipa.service.freeipa.user.model.FmsUser;
 import com.sequenceiq.freeipa.service.freeipa.user.model.UsersState;
@@ -39,11 +41,12 @@ public class UmsUsersStateProvider {
     private final String environmentWrite = "environments/write";
 
     public Map<String, UsersState> getEnvToUmsUsersStateMap(String accountId, String actorCrn, Set<String> environmentsFilter,
-                                                            Set<String> userCrns, Set<String> machineUserCrns, Optional<String> requestId) {
+                                                            Set<String> userCrns, Set<String> machineUserCrns, Optional<String> requestIdOptional) {
         try {
-            Optional<String> requestIdOptional =
-                (requestId.isPresent()) ? requestId : Optional.of(UUID.randomUUID().toString());
-            UmsUsersStateProvider.requestId.set(requestIdOptional.get());
+            if (!requestIdOptional.isPresent()) {
+                requestIdOptional = Optional.ofNullable(MDCBuilder.getMdcContextMap().get(LoggerContextKey.REQUEST_ID.toString()));
+            }
+            requestId.set(requestIdOptional.orElse(UUID.randomUUID().toString()));
             LOGGER.debug("Getting UMS state for environments {} with requestId {}", environmentsFilter, requestIdOptional);
 
             Map<String, UsersState> envUsersStateMap = new HashMap<>();
@@ -62,12 +65,12 @@ public class UmsUsersStateProvider {
 
                 users.stream().forEach(u -> {
                     FmsUser fmsUser = umsUserToUser(u);
-                    handleUser(userStateBuilder, crnToFmsGroup, actorCrn, accountId, u.getCrn(), fmsUser, envCRN);
+                    handleUser(userStateBuilder, crnToFmsGroup, actorCrn, u.getCrn(), fmsUser, envCRN);
                 });
 
                 machineUsers.stream().forEach(mu -> {
                     FmsUser fmsUser = umsMachineUserToUser(mu);
-                    handleUser(userStateBuilder, crnToFmsGroup, actorCrn, accountId, mu.getCrn(), fmsUser, envCRN);
+                    handleUser(userStateBuilder, crnToFmsGroup, actorCrn, mu.getCrn(), fmsUser, envCRN);
                 });
 
                 envUsersStateMap.put(envCRN, userStateBuilder.build());
@@ -127,27 +130,19 @@ public class UmsUsersStateProvider {
     }
 
     private void handleUser(UsersState.Builder userStateBuilder, Map<String, FmsGroup> crnToFmsGroup,
-            String actorCrn, String accountId, String memberCrn, FmsUser fmsUser, String environmentCrn) {
+            String actorCrn, String memberCrn, FmsUser fmsUser, String environmentCrn) {
         Optional<String> requestIdOptional = Optional.ofNullable(requestId.get());
 
         GetRightsResponse rightsResponse = umsClient.getRightsForUser(actorCrn, memberCrn, environmentCrn, requestIdOptional);
         if (isEnvironmentUser(environmentCrn, rightsResponse)) {
             userStateBuilder.addUser(fmsUser);
-            // TODO get group membership from GetRightsResponse instead of separate call
-            getGroupCrnsForMember(actorCrn, accountId, memberCrn).stream().forEach(gcrn -> {
+            rightsResponse.getGroupCrnList().stream().forEach(gcrn -> {
                 userStateBuilder.addMemberToGroup(crnToFmsGroup.get(gcrn).getName(), fmsUser.getName());
             });
             if (isEnvironmentAdmin(environmentCrn, rightsResponse)) {
                 userStateBuilder.addMemberToGroup("admins", fmsUser.getName());
             }
         }
-    }
-
-    private List<String> getGroupCrnsForMember(
-            String accountId, String actorCrn, String memberCrn) {
-        Optional<String> requestIdOptional = Optional.ofNullable(requestId.get());
-
-        return umsClient.listGroupsForMember(actorCrn, accountId, memberCrn, requestIdOptional);
     }
 
     private FmsUser umsUserToUser(User umsUser) {
