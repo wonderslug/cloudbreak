@@ -39,11 +39,11 @@ public class UmsUsersStateProvider {
     private final String environmentWrite = "environments/write";
 
     public Map<String, UsersState> getEnvToUmsUsersStateMap(String accountId, String actorCrn, Set<String> environmentsFilter,
-                Set<String> userCrns, Set<String> machineUserCrns) {
+                                                            Set<String> userCrns, Set<String> machineUserCrns, Optional<String> requestId) {
         try {
-            // TODO propagate requestId from originating request
-            Optional<String> requestIdOptional = Optional.of(UUID.randomUUID().toString());
-            requestId.set(requestIdOptional.get());
+            Optional<String> requestIdOptional =
+                (requestId.isPresent()) ? requestId : Optional.of(UUID.randomUUID().toString());
+            UmsUsersStateProvider.requestId.set(requestIdOptional.get());
             LOGGER.debug("Getting UMS state for environments {} with requestId {}", environmentsFilter, requestIdOptional);
 
             Map<String, UsersState> envUsersStateMap = new HashMap<>();
@@ -77,7 +77,7 @@ public class UmsUsersStateProvider {
         } catch (RuntimeException e) {
             throw new UmsOperationException(String.format("Error during UMS operation: %s", e.getMessage()));
         } finally {
-            requestId.remove();
+            UmsUsersStateProvider.requestId.remove();
         }
     }
 

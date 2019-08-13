@@ -2,24 +2,6 @@ package com.sequenceiq.freeipa.service.freeipa.user;
 
 import static java.util.Objects.requireNonNull;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import javax.inject.Inject;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.core.task.AsyncTaskExecutor;
-import org.springframework.stereotype.Service;
-
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Multimap;
 import com.sequenceiq.cloudbreak.auth.altus.Crn;
@@ -45,6 +27,26 @@ import com.sequenceiq.freeipa.service.freeipa.user.model.SyncStatusDetail;
 import com.sequenceiq.freeipa.service.freeipa.user.model.UsersState;
 import com.sequenceiq.freeipa.service.freeipa.user.model.UsersStateDifference;
 import com.sequenceiq.freeipa.service.stack.StackService;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import javax.inject.Inject;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.task.AsyncTaskExecutor;
+import org.springframework.stereotype.Service;
 
 @Service
 public class UserService {
@@ -74,6 +76,10 @@ public class UserService {
 
     public SyncOperationStatus synchronizeUsers(String accountId, String actorCrn, Set<String> environmentCrnFilter,
             Set<String> userCrnFilter, Set<String> machineUserCrnFilter) {
+
+        // TODO: Get it from header
+        Optional<String> requestId = Optional.of(UUID.randomUUID().toString());
+
         validateParameters(accountId, actorCrn, environmentCrnFilter, userCrnFilter, machineUserCrnFilter);
         LOGGER.debug("Synchronizing users in account {} for environmentCrns {}, userCrns {}, and machineUserCrns {}",
                 accountId, environmentCrnFilter, userCrnFilter, machineUserCrnFilter);
@@ -88,32 +94,35 @@ public class UserService {
         SyncOperation syncOperation = syncOperationStatusService
                 .startOperation(accountId, SyncOperationType.USER_SYNC, environmentCrnFilter, union(userCrnFilter, machineUserCrnFilter));
 
+        LOGGER.info("Operation Id: {}, request id: {}", syncOperation.getOperationId(), requestId.get());
+
         if (syncOperation.getStatus() == SynchronizationStatus.RUNNING) {
             MDCBuilder.addFlowIdToMdcContext(syncOperation.getOperationId());
-            asyncTaskExecutor.submit(() -> asyncSynchronizeUsers(syncOperation.getOperationId(), accountId, actorCrn, stacks,
-                        userCrnFilter, machineUserCrnFilter));
+            asyncTaskExecutor.submit(() -> asyncSynchronizeUsers(
+                syncOperation.getOperationId(), accountId, actorCrn, stacks, userCrnFilter, machineUserCrnFilter, requestId));
         }
 
         return syncOperationToSyncOperationStatus.convert(syncOperation);
     }
 
-    public SyncStatusDetail syncAllUsersForStack(String accountId, String actorCrn, Stack stack) {
+    public SyncStatusDetail syncAllUsersForStack(String accountId, String actorCrn, Stack stack, Optional<String> requestId) {
         // TODO: Fix this for environment filter.
         Set<String> environmentsFilter = new HashSet<>();
         environmentsFilter.add(stack.getEnvironmentCrn());
         Map<String, UsersState> envToUmsUsersStateMap = umsUsersStateProvider
-                .getEnvToUmsUsersStateMap(accountId, actorCrn, environmentsFilter, Set.of(), Set.of());
+            .getEnvToUmsUsersStateMap(accountId, actorCrn, environmentsFilter, Set.of(), Set.of(), requestId);
         return synchronizeStack(stack, envToUmsUsersStateMap.get(stack.getEnvironmentCrn()), Set.of());
     }
 
-    private void asyncSynchronizeUsers(String operationId, String accountId, String actorCrn, List<Stack> stacks,
-            Set<String> userCrnFilter, Set<String> machineUserCrnFilter) {
+    private void asyncSynchronizeUsers(
+        String operationId, String accountId, String actorCrn, List<Stack> stacks,
+        Set<String> userCrnFilter, Set<String> machineUserCrnFilter, Optional<String> requestId) {
         try {
             Set<String> envs = stacks.stream().map(Stack::getEnvironmentCrn).collect(Collectors.toSet());
             // environmentCRN -> {umsState}
             // Then for each stack (which is pulled for list of environments, below code, call envUmsStateMap.get(environmentCRN)
             Map<String, UsersState> envToUmsStateMap = umsUsersStateProvider
-                    .getEnvToUmsUsersStateMap(accountId, actorCrn, envs, userCrnFilter, machineUserCrnFilter);
+                .getEnvToUmsUsersStateMap(accountId, actorCrn, envs, userCrnFilter, machineUserCrnFilter, requestId);
 
             // TODO: fix me
             Set<String> userIdFilter = Set.of();
