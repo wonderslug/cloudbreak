@@ -1,10 +1,12 @@
 package com.sequenceiq.environment.network.dto;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.collections4.MapUtils;
+import org.springframework.util.CollectionUtils;
 
 import com.sequenceiq.cloudbreak.cloud.model.CloudSubnet;
 import com.sequenceiq.environment.api.v1.environment.model.base.PrivateSubnetCreation;
@@ -28,6 +30,14 @@ public class NetworkDto {
 
     private final MockParams mock;
 
+    private final CumulusYarnParams cumulus;
+
+    private final GcpParams gcp;
+
+    private final OpenstackParams openstack;
+
+    private final Set<String> subnetIds;
+
     private final String networkCidr;
 
     private final Map<String, CloudSubnet> subnetMetas;
@@ -44,6 +54,10 @@ public class NetworkDto {
         this.azure = builder.azure;
         this.yarn = builder.yarn;
         this.mock = builder.mock;
+        this.cumulus = builder.cumulus;
+        this.gcp = builder.gcp;
+        this.openstack = builder.openstack;
+        this.subnetIds = CollectionUtils.isEmpty(builder.subnetIds) ? new HashSet<>() : builder.subnetIds;
         this.subnetMetas = MapUtils.isEmpty(builder.subnetMetas) ? new HashMap<>() : builder.subnetMetas;
         this.networkCidr = builder.networkCidr;
         this.networkId = builder.networkId;
@@ -81,6 +95,18 @@ public class NetworkDto {
 
     public MockParams getMock() {
         return mock;
+    }
+
+    public CumulusYarnParams getCumulus() {
+        return cumulus;
+    }
+
+    public GcpParams getGcp() {
+        return gcp;
+    }
+
+    public OpenstackParams getOpenstack() {
+        return openstack;
     }
 
     public Set<String> getSubnetIds() {
@@ -128,6 +154,14 @@ public class NetworkDto {
 
         private MockParams mock;
 
+        private CumulusYarnParams cumulus;
+
+        private GcpParams gcp;
+
+        private OpenstackParams openstack;
+
+        private Set<String> subnetIds;
+
         private Map<String, CloudSubnet> subnetMetas;
 
         private String networkCidr;
@@ -160,6 +194,21 @@ public class NetworkDto {
 
         public Builder withAzure(AzureParams azure) {
             this.azure = azure;
+            return this;
+        }
+
+        public Builder withOpenstack(OpenstackParams openstack) {
+            this.openstack = openstack;
+            return this;
+        }
+
+        public Builder withCumulus(CumulusYarnParams cumulus) {
+            this.cumulus = cumulus;
+            return this;
+        }
+
+        public Builder withGcp(GcpParams gcp) {
+            this.gcp = gcp;
             return this;
         }
 
