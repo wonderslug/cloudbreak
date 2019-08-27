@@ -1,5 +1,7 @@
 package com.sequenceiq.environment.network.v1.converter;
 
+import static com.sequenceiq.environment.CloudPlatform.AZURE;
+
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -81,7 +83,7 @@ public class AzureEnvironmentNetworkConverter extends EnvironmentBaseNetworkConv
 
     @Override
     public CloudPlatform getCloudPlatform() {
-        return CloudPlatform.AZURE;
+        return AZURE;
     }
 
     @Override

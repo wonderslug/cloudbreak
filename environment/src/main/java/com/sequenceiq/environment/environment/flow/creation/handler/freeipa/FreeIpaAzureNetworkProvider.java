@@ -1,5 +1,7 @@
 package com.sequenceiq.environment.environment.flow.creation.handler.freeipa;
 
+import static com.sequenceiq.environment.CloudPlatform.AZURE;
+
 import java.util.Set;
 
 import org.springframework.stereotype.Component;
@@ -39,6 +41,6 @@ public class FreeIpaAzureNetworkProvider implements FreeIpaNetworkProvider {
 
     @Override
     public CloudPlatform cloudPlatform() {
-        return CloudPlatform.AZURE;
+        return AZURE;
     }
 }
