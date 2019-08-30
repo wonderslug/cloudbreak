@@ -65,4 +65,6 @@ public interface InstanceMetaDataRepository extends DisabledBaseRepository<Insta
             + " i.instanceStatus <> 'TERMINATED' AND i.instanceGroup.stack.id= :stackId")
     List<InstanceMetaData> getPrimaryGatewayByInstanceGroup(@Param("stackId") Long stackId, @Param("instanceGroupId") Long instanceGroupId);
 
+    Long countByInstanceGroupIn(List<InstanceGroup> instanceGroups);
+
 }

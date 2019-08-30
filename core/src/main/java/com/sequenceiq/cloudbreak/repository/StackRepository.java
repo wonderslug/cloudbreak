@@ -190,6 +190,7 @@ public interface StackRepository extends WorkspaceResourceRepository<Stack, Long
             + "WHERE instanceGroupType = 'GATEWAY' "
             + "AND instanceMetadataType = 'GATEWAY_PRIMARY' "
             + "AND s.terminated = null "
+            + "AND im.instanceStatus <> 'TERMINATED' "
             + "AND c.clusterManagerIp IS NOT NULL "
             + "AND c.status = 'AVAILABLE' "
             + "AND (s.type is not 'TEMPLATE' OR s.type is null)")

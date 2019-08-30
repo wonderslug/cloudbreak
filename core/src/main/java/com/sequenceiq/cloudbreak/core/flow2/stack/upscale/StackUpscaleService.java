@@ -27,9 +27,9 @@ import com.sequenceiq.cloudbreak.cloud.model.CloudResource;
 import com.sequenceiq.cloudbreak.cloud.model.CloudResourceStatus;
 import com.sequenceiq.cloudbreak.cloud.model.CloudVmMetaDataStatus;
 import com.sequenceiq.cloudbreak.cloud.model.InstanceStatus;
+import com.sequenceiq.cloudbreak.common.service.TransactionService;
+import com.sequenceiq.cloudbreak.common.service.TransactionService.TransactionExecutionException;
 import com.sequenceiq.cloudbreak.common.type.BillingStatus;
-import com.sequenceiq.common.api.type.CommonResourceType;
-import com.sequenceiq.cloudbreak.exception.NotFoundException;
 import com.sequenceiq.cloudbreak.converter.spi.StackToCloudStackConverter;
 import com.sequenceiq.cloudbreak.core.flow2.stack.CloudbreakFlowMessageService;
 import com.sequenceiq.cloudbreak.core.flow2.stack.StackContext;
@@ -38,18 +38,19 @@ import com.sequenceiq.cloudbreak.domain.Resource;
 import com.sequenceiq.cloudbreak.domain.stack.Stack;
 import com.sequenceiq.cloudbreak.domain.stack.instance.InstanceGroup;
 import com.sequenceiq.cloudbreak.domain.stack.instance.InstanceMetaData;
+import com.sequenceiq.cloudbreak.exception.NotFoundException;
 import com.sequenceiq.cloudbreak.message.Msg;
 import com.sequenceiq.cloudbreak.reactor.api.event.StackFailureEvent;
+import com.sequenceiq.cloudbreak.repository.InstanceMetaDataRepository;
 import com.sequenceiq.cloudbreak.service.CloudbreakException;
 import com.sequenceiq.cloudbreak.service.OperationException;
 import com.sequenceiq.cloudbreak.service.StackUpdater;
-import com.sequenceiq.cloudbreak.common.service.TransactionService;
-import com.sequenceiq.cloudbreak.common.service.TransactionService.TransactionExecutionException;
 import com.sequenceiq.cloudbreak.service.cluster.ClusterService;
-import com.sequenceiq.cloudbreak.structuredevent.event.CloudbreakEventService;
 import com.sequenceiq.cloudbreak.service.stack.InstanceGroupService;
 import com.sequenceiq.cloudbreak.service.stack.flow.MetadataSetupService;
 import com.sequenceiq.cloudbreak.service.stack.flow.TlsSetupService;
+import com.sequenceiq.cloudbreak.structuredevent.event.CloudbreakEventService;
+import com.sequenceiq.common.api.type.CommonResourceType;
 
 @Service
 public class StackUpscaleService {
@@ -82,6 +83,9 @@ public class StackUpscaleService {
 
     @Inject
     private TransactionService transactionService;
+
+    @Inject
+    private InstanceMetaDataRepository instanceMetaDataRepository;
 
     public void startAddInstances(Stack stack, Integer scalingAdjustment) {
         String statusReason = format("Adding %s new instance(s) to the infrastructure.", scalingAdjustment);
@@ -205,23 +209,9 @@ public class StackUpscaleService {
 
     private Long getFirstValidPrivateId(List<InstanceGroup> instanceGroups) {
         LOGGER.debug("Get first valid PrivateId of instanceGroups");
-        long highest = 0;
-        for (InstanceGroup instanceGroup : instanceGroups) {
-            LOGGER.debug("Checking of instanceGroup: {}", instanceGroup.getGroupName());
-            for (InstanceMetaData metaData : instanceGroup.getAllInstanceMetaData()) {
-                Long privateId = metaData.getPrivateId();
-                LOGGER.debug("InstanceMetaData metaData: privateId: {}, instanceGroupName: {}, instanceId: {}, status: {}",
-                        privateId, metaData.getInstanceGroupName(), metaData.getInstanceId(), metaData.getInstanceStatus());
-                if (privateId == null) {
-                    continue;
-                }
-                if (privateId > highest) {
-                    highest = privateId;
-                }
-            }
-        }
-        LOGGER.debug("Highest privateId: {}", highest);
-        return highest == 0 ? 0 : highest + 1;
+        Long instanceCount = instanceMetaDataRepository.countByInstanceGroupIn(instanceGroups);
+        LOGGER.info("Number of instance metadata for cluster: {}", instanceCount);
+        return instanceCount;
     }
 
     public void mountDisksOnNewHosts(Stack stack) {
