@@ -59,13 +59,13 @@ public class StackResponseHardwareInfoProvider implements ResponseProvider {
 
         Template template = instanceGroup.getTemplate();
         Set<InstanceMetaData> allInstanceMetaData = instanceGroup.getAllInstanceMetaData();
-        Optional<HostGroup> hostGroup = Optional.empty();
-        if (stack.getCluster() != null) {
-            hostGroup = hostGroupService.findHostGroupInClusterByName(stack.getCluster().getId(), instanceGroup.getGroupName());
-        }
+//        Optional<HostGroup> hostGroup = Optional.empty();
+//        if (stack.getCluster() != null) {
+//            hostGroup = hostGroupService.findHostGroupInClusterByName(stack.getCluster().getId(), instanceGroup.getGroupName());
+//        }
 
         HardwareInfoGroupV4Response hardwareInfoGroupResponse = new HardwareInfoGroupV4Response();
-        hostGroup.ifPresent(group -> hardwareInfoGroupResponse.setRecoveryMode(group.getRecoveryMode()));
+//        hostGroup.ifPresent(group -> hardwareInfoGroupResponse.setRecoveryMode(group.getRecoveryMode()));
         hardwareInfoGroupResponse.setName(instanceGroup.getGroupName());
 
 
@@ -82,19 +82,19 @@ public class StackResponseHardwareInfoProvider implements ResponseProvider {
             hardwareInfoResponse.setPublicIp(instanceMetaData.getPublicIp());
             hardwareInfoResponse.setSshPort(instanceMetaData.getSshPort());
 
-            Optional<HostMetadata> hostMetadata = Optional.empty();
+//            Optional<HostMetadata> hostMetadata = Optional.empty();
             if (stack.getCluster() != null) {
-                hostMetadata = hostMetadataService.findHostInClusterByName(stack.getCluster().getId(), instanceMetaData.getDiscoveryFQDN());
+//                hostMetadata = hostMetadataService.findHostInClusterByName(stack.getCluster().getId(), instanceMetaData.getDiscoveryFQDN());
                 if (template != null) {
                     hardwareInfoResponse.setTemplate(converterUtil.convert(template, InstanceTemplateV4Response.class));
                 }
             }
 
-            if (hostMetadata.isPresent()) {
-                hardwareInfoResponse.setGroupName(hostMetadata.get().getHostGroup().getName());
-                hardwareInfoResponse.setName(hostMetadata.get().getHostName());
-                hardwareInfoResponse.setState(hostMetadata.get().getHostMetadataState().name());
-            }
+//            if (hostMetadata.isPresent()) {
+//                hardwareInfoResponse.setGroupName(hostMetadata.get().getHostGroup().getName());
+//                hardwareInfoResponse.setName(hostMetadata.get().getHostName());
+//                hardwareInfoResponse.setState(hostMetadata.get().getHostMetadataState().name());
+//            }
 
             try {
                 if (isImagePresented(instanceMetaData)) {

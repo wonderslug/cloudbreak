@@ -28,7 +28,7 @@ public class ClusterApiViewToClusterViewV4ResponseConverter extends CompactViewT
         clusterViewResponse.setServerIp(source.getClusterManagerIp());
         clusterViewResponse.setBlueprint(getConversionService().convert(source.getBlueprint(), BlueprintV4ViewResponse.class));
         clusterViewResponse.setStatus(source.getStatus());
-        clusterViewResponse.setHostGroups(convertHostGroupsToJson(source.getHostGroups()));
+//        clusterViewResponse.setHostGroups(convertHostGroupsToJson(source.getHostGroups()));
         addSharedServiceResponse(source, clusterViewResponse);
         return clusterViewResponse;
     }

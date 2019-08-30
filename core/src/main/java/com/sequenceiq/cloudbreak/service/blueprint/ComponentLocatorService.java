@@ -16,9 +16,10 @@ import org.springframework.stereotype.Service;
 import com.sequenceiq.cloudbreak.blueprint.AmbariBlueprintProcessorFactory;
 import com.sequenceiq.cloudbreak.cmtemplate.CmTemplateProcessorFactory;
 import com.sequenceiq.cloudbreak.domain.stack.cluster.Cluster;
-import com.sequenceiq.cloudbreak.domain.stack.cluster.host.HostGroup;
+import com.sequenceiq.cloudbreak.domain.stack.instance.InstanceGroup;
 import com.sequenceiq.cloudbreak.domain.stack.instance.InstanceMetaData;
 import com.sequenceiq.cloudbreak.service.hostgroup.HostGroupService;
+import com.sequenceiq.cloudbreak.service.stack.InstanceGroupService;
 import com.sequenceiq.cloudbreak.template.processor.BlueprintTextProcessor;
 
 @Service
@@ -36,6 +37,9 @@ public class ComponentLocatorService {
     @Inject
     private BlueprintService blueprintService;
 
+    @Inject
+    private InstanceGroupService instanceGroupService;
+
     public Map<String, List<String>> getComponentLocation(Cluster cluster, Collection<String> componentNames) {
         return getComponentAttribute(cluster, componentNames, InstanceMetaData::getDiscoveryFQDN);
     }
@@ -44,14 +48,9 @@ public class ComponentLocatorService {
         return getComponentAttribute(cluster, componentNames, InstanceMetaData::getPrivateIp);
     }
 
-    public Map<String, List<String>> getComponentLocation(Long clusterId, BlueprintTextProcessor blueprintTextProcessor,
+    public Map<String, List<String>> getComponentLocation(Long stackId, BlueprintTextProcessor blueprintTextProcessor,
             Collection<String> componentNames) {
-        return getComponentAttribute(clusterId, blueprintTextProcessor, componentNames, InstanceMetaData::getDiscoveryFQDN);
-    }
-
-    public Map<String, List<String>> getComponentPrivateIp(Long clusterId, BlueprintTextProcessor blueprintTextProcessor,
-            Collection<String> componentNames) {
-        return getComponentAttribute(clusterId, blueprintTextProcessor, componentNames, InstanceMetaData::getPrivateIp);
+        return getComponentAttribute(stackId, blueprintTextProcessor, componentNames, InstanceMetaData::getDiscoveryFQDN);
     }
 
     private Map<String, List<String>> getComponentAttribute(Cluster cluster, Collection<String> componentNames, Function<InstanceMetaData, String> fqdn) {
@@ -59,10 +58,11 @@ public class ComponentLocatorService {
         String blueprintText = cluster.getBlueprint().getBlueprintText();
         BlueprintTextProcessor processor = isAmbariBlueprint(cluster) ? ambariBlueprintProcessorFactory.get(blueprintText)
                 : cmTemplateProcessorFactory.get(blueprintText);
-        for (HostGroup hg : hostGroupService.getByCluster(cluster.getId())) {
-            Set<String> hgComponents = new HashSet<>(processor.getComponentsInHostGroup(hg.getName()));
+        Set<InstanceGroup> instanceGroups = instanceGroupService.findByStackId(cluster.getStack().getId());
+        for (InstanceGroup instanceGroup : instanceGroups) {
+            Set<String> hgComponents = new HashSet<>(processor.getComponentsInHostGroup(instanceGroup.getGroupName()));
             hgComponents.retainAll(componentNames);
-            fillList(fqdn, result, hg, hgComponents);
+            fillList(fqdn, result, instanceGroup, hgComponents);
         }
         return result;
     }
@@ -71,20 +71,20 @@ public class ComponentLocatorService {
         return blueprintService.isAmbariBlueprint(cluster.getBlueprint());
     }
 
-    private Map<String, List<String>> getComponentAttribute(Long clusterId, BlueprintTextProcessor blueprintTextProcessor,
+    private Map<String, List<String>> getComponentAttribute(Long stackId, BlueprintTextProcessor blueprintTextProcessor,
             Collection<String> componentNames, Function<InstanceMetaData, String> fqdn) {
         Map<String, List<String>> result = new HashMap<>();
-        for (HostGroup hg : hostGroupService.getByCluster(clusterId)) {
-            Set<String> hgComponents = new HashSet<>(blueprintTextProcessor.getComponentsInHostGroup(hg.getName()));
+        Set<InstanceGroup> instanceGroups = instanceGroupService.findByStackId(stackId);
+        for (InstanceGroup instanceGroup : instanceGroups) {
+            Set<String> hgComponents = new HashSet<>(blueprintTextProcessor.getComponentsInHostGroup(instanceGroup.getGroupName()));
             hgComponents.retainAll(componentNames);
-            fillList(fqdn, result, hg, hgComponents);
+            fillList(fqdn, result, instanceGroup, hgComponents);
         }
         return result;
     }
 
-    private void fillList(Function<InstanceMetaData, String> fqdn, Map<String, List<String>> result, HostGroup hg, Set<String> hgComponents) {
-        List<String> attributeList = hg.getConstraint().getInstanceGroup().getNotDeletedInstanceMetaDataSet().stream()
-                .map(fqdn).collect(Collectors.toList());
+    private void fillList(Function<InstanceMetaData, String> fqdn, Map<String, List<String>> result, InstanceGroup instanceGroup, Set<String> hgComponents) {
+        List<String> attributeList = instanceGroup.getNotDeletedInstanceMetaDataSet().stream().map(fqdn).collect(Collectors.toList());
         for (String service : hgComponents) {
             List<String> storedAttributes = result.get(service);
             if (storedAttributes == null) {

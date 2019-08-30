@@ -93,7 +93,7 @@ public class ServiceEndpointCollector {
                 Collection<ExposedService> knownExposedServices = getExposedServices(cluster.getBlueprint());
                 Gateway gateway = cluster.getGateway();
                 Map<String, Collection<ClusterExposedServiceV4Response>> clusterExposedServiceMap = new HashMap<>();
-                Map<String, List<String>> privateIps = componentLocatorService.getComponentLocation(cluster.getId(), processor,
+                Map<String, List<String>> privateIps = componentLocatorService.getComponentLocation(cluster.getStack().getId(), processor,
                         knownExposedServices.stream().map(ExposedService::getServiceName).collect(Collectors.toSet()));
                 if (gateway != null) {
                     for (GatewayTopology gatewayTopology : gateway.getTopologies()) {
