@@ -155,16 +155,15 @@ public class FreeIpaClient {
     public void userSetPassword(String user, String password) throws FreeIpaClientException {
         // FreeIPA expires any password that is set by another user. Work around this by
         // performing a separate API call to set the password expiration into the future
-        userMod(user, "userpassword", password);
-        userMod(user, "setattr", "krbPasswordExpiration=20380101000000Z");
+        Map<String, Object> kvArgs = new HashMap<>();
+        kvArgs.put("userpassword", password);
+        kvArgs.put("setattr", "krbPasswordExpiration=20380101000000Z");
+        userMod(user, kvArgs);
     }
 
-    public User userMod(String user, String key, Object value) throws FreeIpaClientException {
+    public User userMod(String user, Map<String, Object> kvArgs) throws FreeIpaClientException {
         List<String> flags = List.of(user);
-        Map<String, Object> params = Map.of(
-                key, value
-        );
-        return (User) invoke("user_mod", flags, params, User.class).getResult();
+        return (User) invoke("user_mod", flags, kvArgs, User.class).getResult();
     }
 
     public Group groupAdd(String group) throws FreeIpaClientException {
