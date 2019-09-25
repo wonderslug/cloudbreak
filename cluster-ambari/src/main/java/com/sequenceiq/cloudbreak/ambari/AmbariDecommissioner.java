@@ -45,12 +45,12 @@ import com.sequenceiq.ambari.client.AmbariClient;
 import com.sequenceiq.ambari.client.services.ServiceAndHostService;
 import com.sequenceiq.cloudbreak.ambari.filter.HostFilterService;
 import com.sequenceiq.cloudbreak.ambari.flow.AmbariClientPollerObject;
-import com.sequenceiq.cloudbreak.ambari.flow.AmbariDFSSpaceRetrievalTask;
-import com.sequenceiq.cloudbreak.ambari.flow.AmbariHostsLeaveStatusCheckerTask;
+import com.sequenceiq.cloudbreak.ambari.flow.AmbariDFSSpaceRetrievalService;
+import com.sequenceiq.cloudbreak.ambari.flow.AmbariHostsLeaveStatusCheckerService;
 import com.sequenceiq.cloudbreak.ambari.flow.AmbariHostsWithNames;
 import com.sequenceiq.cloudbreak.ambari.flow.AmbariOperationService;
-import com.sequenceiq.cloudbreak.ambari.flow.DNDecommissionStatusCheckerTask;
-import com.sequenceiq.cloudbreak.ambari.flow.RSDecommissionStatusCheckerTask;
+import com.sequenceiq.cloudbreak.ambari.flow.DNDecommissionStatusCheckerService;
+import com.sequenceiq.cloudbreak.ambari.flow.RSDecommissionStatusCheckerService;
 import com.sequenceiq.cloudbreak.client.HttpClientConfig;
 import com.sequenceiq.cloudbreak.cloud.model.VolumeSetAttributes;
 import com.sequenceiq.cloudbreak.cluster.service.NotEnoughNodeException;
@@ -103,13 +103,13 @@ public class AmbariDecommissioner {
     private PollingService<AmbariClientPollerObject> ambariClientPollingService;
 
     @Inject
-    private DNDecommissionStatusCheckerTask dnDecommissionStatusCheckerTask;
+    private DNDecommissionStatusCheckerService dnDecommissionStatusCheckerTask;
 
     @Inject
-    private RSDecommissionStatusCheckerTask rsDecommissionStatusCheckerTask;
+    private RSDecommissionStatusCheckerService rsDecommissionStatusCheckerTask;
 
     @Inject
-    private AmbariHostsLeaveStatusCheckerTask hostsLeaveStatusCheckerTask;
+    private AmbariHostsLeaveStatusCheckerService hostsLeaveStatusCheckerTask;
 
     @Inject
     private PollingService<AmbariHostsWithNames> ambariHostLeave;
@@ -404,9 +404,9 @@ public class AmbariDecommissioner {
     }
 
     private Map<String, Map<Long, Long>> getDFSSpace(Stack stack, AmbariClient client) {
-        AmbariDFSSpaceRetrievalTask dfsSpaceTask = new AmbariDFSSpaceRetrievalTask();
+        AmbariDFSSpaceRetrievalService dfsSpaceTask = new AmbariDFSSpaceRetrievalService();
         PollingResult result = ambariClientPollingService.pollWithTimeoutSingleFailure(dfsSpaceTask, new AmbariClientPollerObject(stack, client),
-                AmbariDFSSpaceRetrievalTask.AMBARI_RETRYING_INTERVAL, AmbariDFSSpaceRetrievalTask.AMBARI_RETRYING_COUNT);
+                AmbariDFSSpaceRetrievalService.AMBARI_RETRYING_INTERVAL, AmbariDFSSpaceRetrievalService.AMBARI_RETRYING_COUNT);
         if (result == SUCCESS) {
             return dfsSpaceTask.getDfsSpace();
         } else {

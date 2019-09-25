@@ -9,27 +9,27 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.cloudera.api.swagger.client.ApiClient;
-import com.sequenceiq.cloudbreak.cm.polling.task.AbstractClouderaManagerCommandCheckerTask;
-import com.sequenceiq.cloudbreak.cm.polling.task.ClouderaManagerApplyHostTemplateListenerTask;
-import com.sequenceiq.cloudbreak.cm.polling.task.ClouderaManagerDecommissionHostListenerTask;
-import com.sequenceiq.cloudbreak.cm.polling.task.ClouderaManagerDeployClientConfigListenerTask;
-import com.sequenceiq.cloudbreak.cm.polling.task.ClouderaManagerParcelActivationListenerTask;
-import com.sequenceiq.cloudbreak.cm.polling.task.ClouderaManagerGenerateCredentialsListenerTask;
-import com.sequenceiq.cloudbreak.cm.polling.task.ClouderaManagerHostStatusChecker;
-import com.sequenceiq.cloudbreak.cm.polling.task.ClouderaManagerKerberosConfigureListenerTask;
-import com.sequenceiq.cloudbreak.cm.polling.task.ClouderaManagerParcelRepoChecker;
-import com.sequenceiq.cloudbreak.cm.polling.task.ClouderaManagerRefreshServiceConfigsListenerTask;
-import com.sequenceiq.cloudbreak.cm.polling.task.ClouderaManagerRestartServicesListenerTask;
-import com.sequenceiq.cloudbreak.cm.polling.task.ClouderaManagerServiceStartListenerTask;
-import com.sequenceiq.cloudbreak.cm.polling.task.ClouderaManagerStartManagementServiceListenerTask;
-import com.sequenceiq.cloudbreak.cm.polling.task.ClouderaManagerStartupListenerTask;
-import com.sequenceiq.cloudbreak.cm.polling.task.ClouderaManagerStopListenerTask;
-import com.sequenceiq.cloudbreak.cm.polling.task.ClouderaManagerStopManagementServiceListenerTask;
-import com.sequenceiq.cloudbreak.cm.polling.task.ClouderaManagerTemplateInstallChecker;
+import com.sequenceiq.cloudbreak.cm.polling.service.AbstractClouderaManagerCommandCheckerService;
+import com.sequenceiq.cloudbreak.cm.polling.service.ClouderaManagerApplyHostTemplateListenerService;
+import com.sequenceiq.cloudbreak.cm.polling.service.ClouderaManagerDecommissionHostListenerService;
+import com.sequenceiq.cloudbreak.cm.polling.service.ClouderaManagerDeployClientConfigListenerService;
+import com.sequenceiq.cloudbreak.cm.polling.service.ClouderaManagerParcelActivationListenerService;
+import com.sequenceiq.cloudbreak.cm.polling.service.ClouderaManagerGenerateCredentialsListenerService;
+import com.sequenceiq.cloudbreak.cm.polling.service.ClouderaManagerHostStatusChecker;
+import com.sequenceiq.cloudbreak.cm.polling.service.ClouderaManagerKerberosConfigureListenerService;
+import com.sequenceiq.cloudbreak.cm.polling.service.ClouderaManagerParcelRepoChecker;
+import com.sequenceiq.cloudbreak.cm.polling.service.ClouderaManagerRefreshServiceConfigsListenerService;
+import com.sequenceiq.cloudbreak.cm.polling.service.ClouderaManagerRestartServicesListenerService;
+import com.sequenceiq.cloudbreak.cm.polling.service.ClouderaManagerServiceStartListenerService;
+import com.sequenceiq.cloudbreak.cm.polling.service.ClouderaManagerStartManagementServiceListenerService;
+import com.sequenceiq.cloudbreak.cm.polling.service.ClouderaManagerStartupListenerService;
+import com.sequenceiq.cloudbreak.cm.polling.service.ClouderaManagerStopListenerService;
+import com.sequenceiq.cloudbreak.cm.polling.service.ClouderaManagerStopManagementServiceListenerService;
+import com.sequenceiq.cloudbreak.cm.polling.service.ClouderaManagerTemplateInstallChecker;
 import com.sequenceiq.cloudbreak.domain.stack.Stack;
 import com.sequenceiq.cloudbreak.polling.PollingResult;
 import com.sequenceiq.cloudbreak.polling.PollingService;
-import com.sequenceiq.cloudbreak.polling.StatusCheckerTask;
+import com.sequenceiq.cloudbreak.polling.StatusCheckerService;
 
 @Service
 public class ClouderaManagerPollingServiceProvider {
@@ -49,13 +49,13 @@ public class ClouderaManagerPollingServiceProvider {
     private PollingService<ClouderaManagerCommandPollerObject> clouderaManagerCommandPollerObjectPollingService;
 
     @Inject
-    private ClouderaManagerStartupListenerTask clouderaManagerStartupListenerTask;
+    private ClouderaManagerStartupListenerService clouderaManagerStartupListenerTask;
 
     @Inject
-    private ClouderaManagerServiceStartListenerTask clouderaManagerServiceStartListenerTask;
+    private ClouderaManagerServiceStartListenerService clouderaManagerServiceStartListenerTask;
 
     @Inject
-    private ClouderaManagerStopListenerTask clouderaManagerStopListenerTask;
+    private ClouderaManagerStopListenerService clouderaManagerStopListenerTask;
 
     @Inject
     private ClouderaManagerHostStatusChecker clouderaManagerHostStatusChecker;
@@ -67,34 +67,34 @@ public class ClouderaManagerPollingServiceProvider {
     private ClouderaManagerParcelRepoChecker clouderaManagerParcelRepoChecker;
 
     @Inject
-    private ClouderaManagerKerberosConfigureListenerTask kerberosConfigureListenerTask;
+    private ClouderaManagerKerberosConfigureListenerService kerberosConfigureListenerTask;
 
     @Inject
-    private ClouderaManagerParcelActivationListenerTask parcelActivationListenerTask;
+    private ClouderaManagerParcelActivationListenerService parcelActivationListenerTask;
 
     @Inject
-    private ClouderaManagerDeployClientConfigListenerTask deployClientConfigListenerTask;
+    private ClouderaManagerDeployClientConfigListenerService deployClientConfigListenerTask;
 
     @Inject
-    private ClouderaManagerApplyHostTemplateListenerTask applyHostTemplateListenerTask;
+    private ClouderaManagerApplyHostTemplateListenerService applyHostTemplateListenerTask;
 
     @Inject
-    private ClouderaManagerDecommissionHostListenerTask decommissionHostListenerTask;
+    private ClouderaManagerDecommissionHostListenerService decommissionHostListenerTask;
 
     @Inject
-    private ClouderaManagerStartManagementServiceListenerTask startManagementServiceListenerTask;
+    private ClouderaManagerStartManagementServiceListenerService startManagementServiceListenerTask;
 
     @Inject
-    private ClouderaManagerStopManagementServiceListenerTask stopManagementServiceListenerTask;
+    private ClouderaManagerStopManagementServiceListenerService stopManagementServiceListenerTask;
 
     @Inject
-    private ClouderaManagerRestartServicesListenerTask restartServicesListenerTask;
+    private ClouderaManagerRestartServicesListenerService restartServicesListenerTask;
 
     @Inject
-    private ClouderaManagerGenerateCredentialsListenerTask generateCredentialsListenerTask;
+    private ClouderaManagerGenerateCredentialsListenerService generateCredentialsListenerTask;
 
     @Inject
-    private ClouderaManagerRefreshServiceConfigsListenerTask refreshServiceConfigsListenerTask;
+    private ClouderaManagerRefreshServiceConfigsListenerService refreshServiceConfigsListenerTask;
 
     public PollingResult clouderaManagerStartupPollerObjectPollingService(Stack stack, ApiClient apiClient) {
         LOGGER.debug("Waiting for Cloudera Manager startup. [Server address: {}]", stack.getClusterManagerIp());
@@ -176,7 +176,7 @@ public class ClouderaManagerPollingServiceProvider {
         return pollCommandWithListener(stack, apiClient, commandId, TWELVE_HOUR, generateCredentialsListenerTask);
     }
 
-    private PollingResult pollCMWithListener(Stack stack, ApiClient apiClient, StatusCheckerTask<ClouderaManagerPollerObject> listenerTask) {
+    private PollingResult pollCMWithListener(Stack stack, ApiClient apiClient, StatusCheckerService<ClouderaManagerPollerObject> listenerTask) {
         ClouderaManagerPollerObject clouderaManagerPollerObject = new ClouderaManagerPollerObject(stack, apiClient);
         return clouderaManagerPollerService.pollWithTimeoutSingleFailure(
                 listenerTask,
@@ -186,7 +186,7 @@ public class ClouderaManagerPollingServiceProvider {
     }
 
     private PollingResult pollCommandWithListener(Stack stack, ApiClient apiClient, BigDecimal commandId, int numAttempts,
-            AbstractClouderaManagerCommandCheckerTask<ClouderaManagerCommandPollerObject> listenerTask) {
+            AbstractClouderaManagerCommandCheckerService<ClouderaManagerCommandPollerObject> listenerTask) {
         ClouderaManagerCommandPollerObject clouderaManagerPollerObject = new ClouderaManagerCommandPollerObject(stack, apiClient, commandId);
         return clouderaManagerCommandPollerObjectPollingService.pollWithTimeoutSingleFailure(
                 listenerTask,

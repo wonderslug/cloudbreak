@@ -29,8 +29,8 @@ import com.sequenceiq.cloudbreak.common.model.OrchestratorType;
 import com.sequenceiq.cloudbreak.common.service.HostDiscoveryService;
 import com.sequenceiq.cloudbreak.common.type.ComponentType;
 import com.sequenceiq.cloudbreak.core.CloudbreakImageNotFoundException;
-import com.sequenceiq.cloudbreak.core.bootstrap.service.host.HostBootstrapApiCheckerTask;
-import com.sequenceiq.cloudbreak.core.bootstrap.service.host.HostClusterAvailabilityCheckerTask;
+import com.sequenceiq.cloudbreak.core.bootstrap.service.host.HostBootstrapApiCheckerService;
+import com.sequenceiq.cloudbreak.core.bootstrap.service.host.HostClusterAvailabilityCheckerService;
 import com.sequenceiq.cloudbreak.core.bootstrap.service.host.HostOrchestratorResolver;
 import com.sequenceiq.cloudbreak.core.bootstrap.service.host.context.HostBootstrapApiContext;
 import com.sequenceiq.cloudbreak.core.bootstrap.service.host.context.HostOrchestratorClusterContext;
@@ -75,13 +75,13 @@ public class ClusterBootstrapper {
     private PollingService<HostBootstrapApiContext> hostBootstrapApiPollingService;
 
     @Inject
-    private HostBootstrapApiCheckerTask hostBootstrapApiCheckerTask;
+    private HostBootstrapApiCheckerService hostBootstrapApiCheckerTask;
 
     @Inject
     private PollingService<HostOrchestratorClusterContext> hostClusterAvailabilityPollingService;
 
     @Inject
-    private HostClusterAvailabilityCheckerTask hostClusterAvailabilityCheckerTask;
+    private HostClusterAvailabilityCheckerService hostClusterAvailabilityCheckerTask;
 
     @Inject
     private ClusterBootstrapperErrorHandler clusterBootstrapperErrorHandler;

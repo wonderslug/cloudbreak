@@ -23,7 +23,7 @@ import com.sequenceiq.cloudbreak.client.RestClientUtil;
 import com.sequenceiq.cloudbreak.domain.stack.Stack;
 import com.sequenceiq.cloudbreak.domain.stack.instance.InstanceMetaData;
 import com.sequenceiq.cloudbreak.polling.PollingService;
-import com.sequenceiq.cloudbreak.polling.nginx.NginxCertListenerTask;
+import com.sequenceiq.cloudbreak.polling.nginx.NginxCertListenerService;
 import com.sequenceiq.cloudbreak.polling.nginx.NginxPollerObject;
 import com.sequenceiq.cloudbreak.service.CloudbreakException;
 import com.sequenceiq.cloudbreak.service.GatewayConfigService;
@@ -44,7 +44,7 @@ public class TlsSetupService {
     private PollingService<NginxPollerObject> nginxPollerService;
 
     @Inject
-    private NginxCertListenerTask nginxCertListenerTask;
+    private NginxCertListenerService nginxCertListenerTask;
 
     @Inject
     private GatewayConfigService gatewayConfigService;

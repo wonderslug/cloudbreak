@@ -30,7 +30,7 @@ class FreeIpaCreationRetrievalTaskTest {
     private FreeIpaPollerObject freeIpaPollerObject;
 
     @InjectMocks
-    private FreeIpaCreationRetrievalTask underTest;
+    private FreeIpaCreationRetrievalService underTest;
 
     @Before
     void setup() {

@@ -58,10 +58,10 @@ public class FreeIpaDeleteHandler extends EventSenderAwareHandler<EnvironmentDto
             if (env.isPresent() && isFreeIpaExistsForEnvironment(env.get())) {
                 freeIpaV1Endpoint.delete(env.get().getResourceCrn());
                 Pair<PollingResult, Exception> result = freeIpaPollingService.pollWithTimeout(
-                        new FreeIpaDeleteRetrievalTask(),
+                        new FreeIpaDeleteRetrievalService(),
                         new FreeIpaPollerObject(env.get().getId(), env.get().getResourceCrn(), freeIpaV1Endpoint),
-                        FreeIpaDeleteRetrievalTask.FREEIPA_RETRYING_INTERVAL,
-                        FreeIpaDeleteRetrievalTask.FREEIPA_RETRYING_COUNT,
+                        FreeIpaDeleteRetrievalService.FREEIPA_RETRYING_INTERVAL,
+                        FreeIpaDeleteRetrievalService.FREEIPA_RETRYING_COUNT,
                         SINGLE_FAILURE);
                 if (isSuccess(result.getLeft())) {
                     eventSender().sendEvent(getNextStepObject(environmentDto), environmentDtoEvent.getHeaders());

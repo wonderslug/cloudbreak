@@ -16,12 +16,12 @@ import org.springframework.stereotype.Service;
 
 import com.sequenceiq.ambari.client.AmbariClient;
 import com.sequenceiq.cloudbreak.ambari.flow.AmbariClientPollerObject;
-import com.sequenceiq.cloudbreak.ambari.flow.AmbariComponenstJoinStatusCheckerTask;
-import com.sequenceiq.cloudbreak.ambari.flow.AmbariHealthCheckerTask;
+import com.sequenceiq.cloudbreak.ambari.flow.AmbariComponenstJoinStatusCheckerService;
+import com.sequenceiq.cloudbreak.ambari.flow.AmbariHealthCheckerService;
 import com.sequenceiq.cloudbreak.ambari.flow.AmbariHostsCheckerContext;
-import com.sequenceiq.cloudbreak.ambari.flow.AmbariHostsJoinStatusCheckerTask;
-import com.sequenceiq.cloudbreak.ambari.flow.AmbariHostsStatusCheckerTask;
-import com.sequenceiq.cloudbreak.ambari.flow.AmbariStartupListenerTask;
+import com.sequenceiq.cloudbreak.ambari.flow.AmbariHostsJoinStatusCheckerService;
+import com.sequenceiq.cloudbreak.ambari.flow.AmbariHostsStatusCheckerService;
+import com.sequenceiq.cloudbreak.ambari.flow.AmbariStartupListenerService;
 import com.sequenceiq.cloudbreak.ambari.flow.AmbariStartupPollerObject;
 import com.sequenceiq.cloudbreak.domain.stack.Stack;
 import com.sequenceiq.cloudbreak.domain.stack.cluster.host.HostMetadata;
@@ -45,19 +45,19 @@ public class AmbariPollingServiceProvider {
     private PollingService<AmbariClientPollerObject> ambariHealthChecker;
 
     @Inject
-    private AmbariHostsStatusCheckerTask ambariHostsStatusCheckerTask;
+    private AmbariHostsStatusCheckerService ambariHostsStatusCheckerTask;
 
     @Inject
-    private AmbariStartupListenerTask ambariStartupListenerTask;
+    private AmbariStartupListenerService ambariStartupListenerTask;
 
     @Inject
-    private AmbariHealthCheckerTask ambariHealthCheckerTask;
+    private AmbariHealthCheckerService ambariHealthCheckerTask;
 
     @Inject
-    private AmbariHostsJoinStatusCheckerTask ambariHostsJoinStatusCheckerTask;
+    private AmbariHostsJoinStatusCheckerService ambariHostsJoinStatusCheckerTask;
 
     @Inject
-    private AmbariComponenstJoinStatusCheckerTask ambariComponenstJoinStatusCheckerTask;
+    private AmbariComponenstJoinStatusCheckerService ambariComponenstJoinStatusCheckerTask;
 
     public PollingResult ambariStartupPollerObjectPollingService(Stack stack, AmbariClient defaultAmbariClient, AmbariClient cloudbreakAmbariClient) {
         AmbariStartupPollerObject ambariStartupPollerObject = new AmbariStartupPollerObject(

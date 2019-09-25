@@ -14,7 +14,7 @@ import com.sequenceiq.cloudbreak.ambari.AmbariOperationType;
 import com.sequenceiq.cloudbreak.domain.stack.Stack;
 import com.sequenceiq.cloudbreak.polling.PollingResult;
 import com.sequenceiq.cloudbreak.polling.PollingService;
-import com.sequenceiq.cloudbreak.polling.StatusCheckerTask;
+import com.sequenceiq.cloudbreak.polling.StatusCheckerService;
 
 @Service
 public class AmbariOperationService {
@@ -31,10 +31,10 @@ public class AmbariOperationService {
     private static final Logger LOGGER = LoggerFactory.getLogger(AmbariOperationService.class);
 
     @Inject
-    private AmbariOperationsStatusCheckerTask ambariOperationsStatusCheckerTask;
+    private AmbariOperationsStatusCheckerService ambariOperationsStatusCheckerTask;
 
     @Inject
-    private AmbariOperationsStartCheckerTask ambariOperationsStartCheckerTask;
+    private AmbariOperationsStartCheckerService ambariOperationsStartCheckerTask;
 
     @Inject
     private PollingService<AmbariOperations> operationsPollingService;
@@ -52,7 +52,7 @@ public class AmbariOperationService {
                         ambariOperationType), AMBARI_POLLING_INTERVAL, MAX_ATTEMPTS_FOR_AMBARI_OPS, 1);
     }
 
-    public Pair<PollingResult, Exception> waitForOperations(Stack stack, AmbariClient ambariClient, StatusCheckerTask<AmbariOperations> task,
+    public Pair<PollingResult, Exception> waitForOperations(Stack stack, AmbariClient ambariClient, StatusCheckerService<AmbariOperations> task,
             Map<String, Integer> operationRequests, AmbariOperationType ambariOperationType) {
         return operationsPollingService.pollWithTimeout(task, new AmbariOperations(stack, ambariClient, operationRequests, ambariOperationType),
                 AMBARI_POLLING_INTERVAL, MAX_ATTEMPTS_FOR_AMBARI_OPS, MAX_FAILURE_COUNT);

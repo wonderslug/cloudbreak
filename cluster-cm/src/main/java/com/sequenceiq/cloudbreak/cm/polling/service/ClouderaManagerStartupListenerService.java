@@ -1,0 +1,63 @@
+package com.sequenceiq.cloudbreak.cm.polling.service;
+
+import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
+
+import org.apache.commons.lang3.ArrayUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
+import com.cloudera.api.swagger.ToolsResourceApi;
+import com.cloudera.api.swagger.client.ApiClient;
+import com.cloudera.api.swagger.client.ApiException;
+import com.cloudera.api.swagger.model.ApiEcho;
+import com.sequenceiq.cloudbreak.cluster.service.ClusterBasedStatusCheckerService;
+import com.sequenceiq.cloudbreak.cm.ClouderaManagerOperationFailedException;
+import com.sequenceiq.cloudbreak.cm.polling.ClouderaManagerPollerObject;
+
+@Service
+public class ClouderaManagerStartupListenerService extends ClusterBasedStatusCheckerService<ClouderaManagerPollerObject> {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ClouderaManagerStartupListenerService.class);
+
+    private static final int[] ERROR_CODES = {502, 503, 504};
+
+    private static final String CONNECTION_REFUSED_MESSAGE = "Connection refused";
+
+    private static final String CONNECT_TIMED_OUT = "connect timed out";
+
+    @Override
+    public boolean checkStatus(ClouderaManagerPollerObject clouderaManagerPollerObject) {
+        ApiClient apiClient = clouderaManagerPollerObject.getApiClient();
+        ToolsResourceApi toolsResourceApi = new ToolsResourceApi(apiClient);
+        try {
+            String testMessage = "test";
+            ApiEcho testIfRunning = toolsResourceApi.echo(testMessage);
+            if (testMessage.equals(testIfRunning.getMessage())) {
+                return true;
+            } else {
+                LOGGER.info("test message is different which is strange, returned message: " + testIfRunning.getMessage());
+                return false;
+            }
+        } catch (ApiException e) {
+            String errorMessage = e.getMessage();
+            if (ArrayUtils.contains(ERROR_CODES, e.getCode())
+                    || containsIgnoreCase(errorMessage, CONNECTION_REFUSED_MESSAGE) || containsIgnoreCase(errorMessage, CONNECT_TIMED_OUT)) {
+                LOGGER.debug("Cloudera Manager is not running");
+                return false;
+            } else {
+                throw new ClouderaManagerOperationFailedException("Cloudera Manager startup failed", e);
+            }
+        }
+    }
+
+    @Override
+    public void handleTimeout(ClouderaManagerPollerObject toolsResourceApi) {
+        throw new ClouderaManagerOperationFailedException("Operation timed out. Failed to check Cloudera Manager startup.");
+    }
+
+    @Override
+    public String successMessage(ClouderaManagerPollerObject toolsResourceApi) {
+        return "Cloudera Manager startup finished with success result.";
+    }
+}
