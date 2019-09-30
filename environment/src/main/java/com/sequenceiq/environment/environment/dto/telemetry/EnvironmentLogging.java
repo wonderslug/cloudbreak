@@ -1,6 +1,11 @@
 package com.sequenceiq.environment.environment.dto.telemetry;
 
-public class EnvironmentLogging extends CommonTelemetryParams {
+import java.io.Serializable;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class EnvironmentLogging implements Serializable {
 
     private String storageLocation;
 

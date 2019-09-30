@@ -1,41 +1,50 @@
 package com.sequenceiq.environment.environment.dto.telemetry;
 
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE;
-
 import java.io.Serializable;
+import java.util.Map;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
-@JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class EnvironmentTelemetry implements Serializable {
 
-    private final EnvironmentLogging logging;
+    private EnvironmentLogging logging;
 
-    private final EnvironmentWorkloadAnalytics workloadAnalytics;
+    private Features features;
 
-    private final boolean reportDeploymentLogs;
+    private Map<String, Object> fluentAttributes;
 
-    public EnvironmentTelemetry(@JsonProperty("logging") EnvironmentLogging logging,
-            @JsonProperty("workloadAnalytics") EnvironmentWorkloadAnalytics workloadAnalytics,
-            @JsonProperty("reportDeploymentLogs") boolean reportDeploymentLogs) {
-        this.logging = logging;
-        this.workloadAnalytics = workloadAnalytics;
-        this.reportDeploymentLogs = reportDeploymentLogs;
-    }
+    private String databusEndpoint;
 
     public EnvironmentLogging getLogging() {
         return logging;
     }
 
-    public EnvironmentWorkloadAnalytics getWorkloadAnalytics() {
-        return workloadAnalytics;
+    public void setLogging(EnvironmentLogging logging) {
+        this.logging = logging;
     }
 
-    public boolean isReportDeploymentLogs() {
-        return reportDeploymentLogs;
+    public Features getFeatures() {
+        return features;
+    }
+
+    public void setFeatures(Features features) {
+        this.features = features;
+    }
+
+    public Map<String, Object> getFluentAttributes() {
+        return fluentAttributes;
+    }
+
+    public void setFluentAttributes(Map<String, Object> fluentAttributes) {
+        this.fluentAttributes = fluentAttributes;
+    }
+
+    public String getDatabusEndpoint() {
+        return databusEndpoint;
+    }
+
+    public void setDatabusEndpoint(String databusEndpoint) {
+        this.databusEndpoint = databusEndpoint;
     }
 }
