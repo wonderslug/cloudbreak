@@ -228,7 +228,7 @@ public class AwsNetworkConnectorTest {
         AmazonCloudFormationClient cfClient = Mockito.mock(AmazonCloudFormationClient.class);
         PollTask pollTask = Mockito.mock(PollTask.class);
 
-        when(awsClient.createCloudFormationRetryClient(any(AwsCredentialView.class), eq(networkDeletionRequest.getRegion())))
+        when(awsClient.createCloudFormationRetryClient(any(AwsCredentialView.class), eq(networkDeletionRequest.getRegion().value())))
                 .thenReturn(cloudFormationRetryClient);
         when(awsClient.createCloudFormationClient(any(AwsCredentialView.class), eq(REGION.value()))).thenReturn(cfClient);
         when(awsPollTaskFactory.newAwsTerminateNetworkStatusCheckerTask(cfClient, DELETE_COMPLETE, DELETE_FAILED, ERROR_STATUSES, NETWORK_ID))
@@ -250,7 +250,7 @@ public class AwsNetworkConnectorTest {
         AmazonCloudFormationClient cfClient = Mockito.mock(AmazonCloudFormationClient.class);
         PollTask pollTask = Mockito.mock(PollTask.class);
 
-        when(awsClient.createCloudFormationRetryClient(any(AwsCredentialView.class), eq(networkDeletionRequest.getRegion())))
+        when(awsClient.createCloudFormationRetryClient(any(AwsCredentialView.class), eq(networkDeletionRequest.getRegion().value())))
                 .thenReturn(cloudFormationRetryClient);
         when(awsClient.createCloudFormationClient(any(AwsCredentialView.class), eq(REGION.value()))).thenReturn(cfClient);
         when(awsPollTaskFactory.newAwsTerminateNetworkStatusCheckerTask(cfClient, DELETE_COMPLETE, DELETE_FAILED, ERROR_STATUSES, NETWORK_ID))

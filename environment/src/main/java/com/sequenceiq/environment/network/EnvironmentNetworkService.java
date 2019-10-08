@@ -58,7 +58,8 @@ public class EnvironmentNetworkService {
                 .orElseThrow(() -> new BadRequestException("No network connector for cloud platform: " + environment.getCloudPlatform()));
         NetworkCreationRequest networkCreationRequest = networkCreationRequestFactory.create(environment);
         EnvironmentNetworkConverter converter = environmentNetworkConverterMap.get(getCloudPlatform(environment));
-        CreatedCloudNetwork createdCloudNetwork = networkConnector.createNetworkWithSubnets(networkCreationRequest, getUserFromCrn(environment.getCreator()));
+        CreatedCloudNetwork createdCloudNetwork = networkConnector
+                .createNetworkWithSubnets(networkCreationRequest, getUserFromCrn(environment.getCreator()));
         return converter.setProviderSpecificNetwork(baseNetwork, createdCloudNetwork);
     }
 
@@ -86,6 +87,11 @@ public class EnvironmentNetworkService {
                 .withCloudCredential(cloudCredential)
                 .withNetworkId(environment.getNetwork().getNetworkId())
                 .withSubnetIds(environment.getNetwork().getSubnetIds())
+                .withEnvId(environment.getId())
+                .withEnvName(environment.getName())
+                .withAccountId(environment.getAccountId())
+                .withUserId(environment.getCreator())
+
                 .withRegion(environment.getLocation().getName());
         getNoPublicIp(environment.getNetwork()).ifPresent(builder::withResourceGroup);
         return builder.build();

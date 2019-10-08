@@ -1,57 +1,87 @@
 package com.sequenceiq.cloudbreak.cloud.gcp;
 
+import static com.sequenceiq.cloudbreak.cloud.model.Location.location;
 import static com.sequenceiq.common.api.type.ResourceType.GCP_NETWORK;
 import static com.sequenceiq.common.api.type.ResourceType.GCP_SUBNET;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.inject.Inject;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
-import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Operation;
-import com.google.api.services.compute.model.Subnetwork;
 import com.sequenceiq.cloudbreak.cloud.NetworkConnector;
+import com.sequenceiq.cloudbreak.cloud.context.AuthenticatedContext;
+import com.sequenceiq.cloudbreak.cloud.context.CloudContext;
+import com.sequenceiq.cloudbreak.cloud.gcp.context.GcpContext;
+import com.sequenceiq.cloudbreak.cloud.gcp.context.GcpContextBuilder;
+import com.sequenceiq.cloudbreak.cloud.gcp.network.GcpNetworkResourceBuilder;
+import com.sequenceiq.cloudbreak.cloud.gcp.network.GcpSubnetResourceBuilder;
 import com.sequenceiq.cloudbreak.cloud.gcp.util.GcpStackUtil;
 import com.sequenceiq.cloudbreak.cloud.model.CloudCredential;
 import com.sequenceiq.cloudbreak.cloud.model.CloudResource;
+import com.sequenceiq.cloudbreak.cloud.model.CloudResourceStatus;
 import com.sequenceiq.cloudbreak.cloud.model.Network;
 import com.sequenceiq.cloudbreak.cloud.model.Platform;
+import com.sequenceiq.cloudbreak.cloud.model.Subnet;
 import com.sequenceiq.cloudbreak.cloud.model.Variant;
 import com.sequenceiq.cloudbreak.cloud.model.network.CreatedCloudNetwork;
 import com.sequenceiq.cloudbreak.cloud.model.network.CreatedSubnet;
 import com.sequenceiq.cloudbreak.cloud.model.network.NetworkCreationRequest;
 import com.sequenceiq.cloudbreak.cloud.model.network.NetworkDeletionRequest;
+import com.sequenceiq.cloudbreak.cloud.scheduler.SyncPollingScheduler;
+import com.sequenceiq.cloudbreak.cloud.task.PollTask;
+import com.sequenceiq.cloudbreak.cloud.template.task.ResourcePollTaskFactory;
+import com.sequenceiq.cloudbreak.common.mappable.CloudPlatform;
 import com.sequenceiq.common.api.type.ResourceType;
 
 @Component
 public class GcpNetworkConnector extends AbstractGcpResourceBuilder implements NetworkConnector {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(GcpNetworkConnector.class);
+
     @Inject
     private GcpCloudSubnetProvider gcpCloudSubnetProvider;
 
+    @Inject
+    private GcpNetworkResourceBuilder gcpNetworkResourceBuilder;
+
+    @Inject
+    private GcpSubnetResourceBuilder gcpSubnetResourceBuilder;
+
+    @Inject
+    private GcpContextBuilder contextBuilders;
+
+    @Inject
+    private SyncPollingScheduler<List<CloudResourceStatus>> syncPollingScheduler;
+
+    @Inject
+    private ResourcePollTaskFactory statusCheckFactory;
+
     @Override
     public CreatedCloudNetwork createNetworkWithSubnets(NetworkCreationRequest networkRequest, String creatorUser) {
-        Compute compute = GcpStackUtil.buildCompute(networkRequest.getCloudCredential());
-        String projectId = GcpStackUtil.getProjectId(networkRequest.getCloudCredential());
-        String networkName = getResourceNameService().resourceName(GCP_NETWORK, networkRequest.getEnvName());
-        CloudResource networkNamedResource = createNamedResource(GCP_NETWORK, networkName);
-        try {
-            createNetwork(networkRequest, compute, projectId, networkNamedResource);
+        CloudContext cloudContext = getCloudContext(networkRequest);
+        AuthenticatedContext auth = new AuthenticatedContext(cloudContext, networkRequest.getCloudCredential());
+        Network network = buildNetworkForCreation(networkRequest);
+        GcpContext context = contextBuilders.contextInit(cloudContext, auth, network, null, true);
 
+        try {
+            CloudResource networkResource = createNetwork(context, auth, network);
             List<CreatedSubnet> subnetList = getCloudSubNets(networkRequest);
             for (CreatedSubnet createdSubnet : subnetList) {
-                String subnetName = getResourceNameService().resourceName(GCP_SUBNET, networkRequest.getEnvName());
-                createdSubnet.setSubnetId(subnetName);
-                createSubnet(networkRequest, compute, projectId, networkNamedResource, createdSubnet);
+                createSubnet(context, auth, buildSubnetForCreation(networkRequest, createdSubnet.getCidr()), createdSubnet);
             }
-            return new CreatedCloudNetwork(networkRequest.getEnvName(), networkName, getCreatedSubnets(subnetList));
+            return new CreatedCloudNetwork(networkRequest.getEnvName(), networkResource.getName(), getCreatedSubnets(subnetList));
         } catch (GoogleJsonResponseException e) {
             throw new GcpResourceException(checkException(e), GCP_NETWORK, networkRequest.getEnvName());
         } catch (IOException e) {
@@ -59,53 +89,18 @@ public class GcpNetworkConnector extends AbstractGcpResourceBuilder implements N
         }
     }
 
-    private void createSubnet(NetworkCreationRequest networkRequest, Compute compute, String projectId,
-        CloudResource network, CreatedSubnet createdSubnet) throws IOException {
-        CloudResource subnetResource = createNamedResource(GCP_SUBNET, createdSubnet.getSubnetId());
-
-        Subnetwork gcpSubnet = new Subnetwork();
-        gcpSubnet.setName(createdSubnet.getSubnetId());
-        gcpSubnet.setIpCidrRange(createdSubnet.getCidr());
-        String networkName = network.getName();
-        gcpSubnet.setNetwork(String.format("https://www.googleapis.com/compute/v1/projects/%s/global/networks/%s", projectId, networkName));
-        Compute.Subnetworks.Insert snInsert = compute.subnetworks().insert(projectId, networkRequest.getRegion().getRegionName(), gcpSubnet);
-        try {
-            Operation operation = snInsert.execute();
-            if (operation.getHttpErrorStatusCode() != null) {
-                throw new GcpResourceException(operation.getHttpErrorMessage(), GCP_SUBNET, createdSubnet.getSubnetId());
-            }
-            createOperationAwareCloudResource(subnetResource, operation);
-        } catch (GoogleJsonResponseException e) {
-            throw new GcpResourceException(checkException(e), GCP_SUBNET, createdSubnet.getSubnetId());
-        }
-    }
-
-    private void createNetwork(NetworkCreationRequest networkRequest, Compute compute, String projectId,
-        CloudResource namedResource) throws IOException {
-        com.google.api.services.compute.model.Network gcpNetwork = new com.google.api.services.compute.model.Network();
-        gcpNetwork.setName(namedResource.getName());
-        gcpNetwork.setAutoCreateSubnetworks(false);
-
-        Compute.Networks.Insert networkInsert = compute.networks().insert(projectId, gcpNetwork);
-        Operation operation = networkInsert.execute();
-        if (operation.getHttpErrorStatusCode() != null) {
-            throw new GcpResourceException(operation.getHttpErrorMessage(),
-                    GCP_NETWORK, networkRequest.getStackName());
-        }
-
-        createOperationAwareCloudResource(namedResource, operation);
-    }
-
     @Override
     public void deleteNetworkWithSubnets(NetworkDeletionRequest networkDeletionRequest) {
-        Compute compute = GcpStackUtil.buildCompute(networkDeletionRequest.getCloudCredential());
-        String projectId = GcpStackUtil.getProjectId(networkDeletionRequest.getCloudCredential());
+        CloudContext cloudContext = getCloudContext(networkDeletionRequest);
+        AuthenticatedContext auth = new AuthenticatedContext(cloudContext, networkDeletionRequest.getCloudCredential());
+        Network network = buildNetworkForDeletion(networkDeletionRequest);
+        GcpContext context = contextBuilders.contextInit(cloudContext, auth, network, null, true);
 
         try {
             for (String subnetId : networkDeletionRequest.getSubnetIds()) {
-                deleteSubnet(networkDeletionRequest, compute, projectId, subnetId);
+                deleteSubnet(context, auth, network, subnetId);
             }
-            deleteNetwork(networkDeletionRequest, compute, projectId);
+            deleteNetwork(context, auth, network, networkDeletionRequest.getNetworkId());
         } catch (GoogleJsonResponseException e) {
             exceptionHandler(e, networkDeletionRequest.getStackName(), GCP_NETWORK);
         } catch (IOException e) {
@@ -118,20 +113,101 @@ public class GcpNetworkConnector extends AbstractGcpResourceBuilder implements N
         return null;
     }
 
-    private void deleteNetwork(NetworkDeletionRequest networkDeletionRequest, Compute compute, String projectId) throws IOException {
-        CloudResource networkResource = createNamedResource(GCP_NETWORK, networkDeletionRequest.getNetworkId());
-        Operation operation = compute.networks().delete(projectId, networkDeletionRequest.getNetworkId()).execute();
-        if (operation.getHttpErrorStatusCode() != null) {
-            throw new GcpResourceException(operation.getHttpErrorMessage(), GCP_NETWORK, networkDeletionRequest.getNetworkId());
-        }
-        createOperationAwareCloudResource(networkResource, operation);
+    private CloudContext getCloudContext(NetworkCreationRequest networkRequest) {
+        return new CloudContext(
+                networkRequest.getEnvId(),
+                networkRequest.getEnvName(),
+                CloudPlatform.GCP.name(),
+                CloudPlatform.GCP.name(),
+                location(networkRequest.getRegion()),
+                networkRequest.getUserId(),
+                networkRequest.getAccountId());
     }
 
-    private void deleteSubnet(NetworkDeletionRequest networkDeletionRequest, Compute compute, String projectId, String subnetId) throws IOException {
-        CloudResource subnetResource = createNamedResource(GCP_SUBNET, subnetId);
-        Operation operation = compute.subnetworks().delete(projectId, networkDeletionRequest.getRegion(), subnetId).execute();
-        createOperationAwareCloudResource(subnetResource, operation);
+    private CloudContext getCloudContext(NetworkDeletionRequest networkRequest) {
+        return new CloudContext(
+                networkRequest.getEnvId(),
+                networkRequest.getEnvName(),
+                CloudPlatform.GCP.name(),
+                CloudPlatform.GCP.name(),
+                location(networkRequest.getRegion()),
+                networkRequest.getUserId(),
+                networkRequest.getAccountId());
+    }
 
+    private Network buildNetworkForCreation(NetworkCreationRequest networkRequest) {
+        Subnet subnet = new Subnet(networkRequest.getNetworkCidr());
+        Map<String, Object> params = new HashMap<>();
+        params.put(GcpStackUtil.NETWORK_IP_RANGE, networkRequest.getNetworkCidr());
+        Network result = new Network(subnet, params);
+        return result;
+    }
+
+    private Network buildNetworkForDeletion(NetworkDeletionRequest networkRequest) {
+        Network result = new Network(null);
+        return result;
+    }
+
+    private Network buildSubnetForCreation(NetworkCreationRequest networkRequest, String cidr) {
+        Network network = buildNetworkForCreation(networkRequest);
+        Subnet subnet = new Subnet(cidr);
+        network = new Network(subnet, network.getParameters());
+        return network;
+    }
+
+    private CloudResource createSubnet(GcpContext context, AuthenticatedContext auth, Network network, CreatedSubnet subnet) {
+        CloudResource cloudResource = gcpSubnetResourceBuilder.create(context, auth, network);
+        try {
+            cloudResource = gcpSubnetResourceBuilder.build(context, auth, network, null, cloudResource);
+            PollTask<List<CloudResourceStatus>> task = statusCheckFactory.newPollResourceTask(gcpSubnetResourceBuilder,
+                    auth, Collections.singletonList(cloudResource), context, true);
+            subnet.setSubnetId(cloudResource.getName());
+            List<CloudResourceStatus> pollerResult = syncPollingScheduler.schedule(task);
+        } catch (Exception e) {
+            LOGGER.debug("Skipping resource creation: {}", e.getMessage());
+        }
+        return cloudResource;
+    }
+
+    private CloudResource createNetwork(GcpContext context, AuthenticatedContext auth, Network network) {
+        CloudResource cloudResource = gcpNetworkResourceBuilder.create(context, auth, network);
+        try {
+            cloudResource = gcpNetworkResourceBuilder.build(context, auth, network, null, cloudResource);
+            PollTask<List<CloudResourceStatus>> task = statusCheckFactory.newPollResourceTask(gcpNetworkResourceBuilder,
+                    auth, Collections.singletonList(cloudResource), context, true);
+            List<CloudResourceStatus> pollerResult = syncPollingScheduler.schedule(task);
+        } catch (Exception e) {
+            LOGGER.debug("Skipping resource creation: {}", e.getMessage());
+        }
+        return cloudResource;
+    }
+
+    private void deleteNetwork(GcpContext context, AuthenticatedContext auth, Network network, String networkId) throws IOException {
+        CloudResource networkResource = createNamedResource(GCP_NETWORK, networkId);
+        try {
+            CloudResource deletedResource = gcpNetworkResourceBuilder.delete(context, auth, networkResource, network);
+            if (deletedResource != null) {
+                PollTask<List<CloudResourceStatus>> task = statusCheckFactory.newPollResourceTask(
+                        gcpSubnetResourceBuilder, auth, Collections.singletonList(deletedResource), context, true);
+                List<CloudResourceStatus> pollerResult = syncPollingScheduler.schedule(task);
+            }
+        } catch (Exception e) {
+            LOGGER.debug("Skipping resource creation: {}", e.getMessage());
+        }
+    }
+
+    private void deleteSubnet(GcpContext context, AuthenticatedContext auth, Network network, String subnetId) throws IOException {
+        CloudResource subnetResource = createNamedResource(GCP_SUBNET, subnetId);
+        try {
+            CloudResource deletedResource = gcpSubnetResourceBuilder.delete(context, auth, subnetResource, network);
+            if (deletedResource != null) {
+                PollTask<List<CloudResourceStatus>> task = statusCheckFactory.newPollResourceTask(
+                        gcpSubnetResourceBuilder, auth, Collections.singletonList(deletedResource), context, true);
+                List<CloudResourceStatus> pollerResult = syncPollingScheduler.schedule(task);
+            }
+        } catch (Exception e) {
+            LOGGER.debug("Skipping resource creation: {}", e.getMessage());
+        }
     }
 
     @Override

@@ -54,6 +54,8 @@ public final class GcpStackUtil {
 
     public static final String NETWORK_ID = "networkId";
 
+    public static final String NETWORK_IP_RANGE = "networkRange";
+
     public static final String SHARED_PROJECT_ID = "sharedProjectId";
 
     public static final String SUBNET_ID = "subnetId";
@@ -270,6 +272,14 @@ public final class GcpStackUtil {
 
     public static boolean isExistingNetwork(Network network) {
         return isNotEmpty(getCustomNetworkId(network));
+    }
+
+    public static String getNetworkIpRange(Network network) {
+        return network.getStringParameter(NETWORK_IP_RANGE);
+    }
+
+    public static boolean isNetworkIpRangeDefined(Network network) {
+        return isNotEmpty(getNetworkIpRange(network));
     }
 
     public static boolean isNewSubnetInExistingNetwork(Network network) {

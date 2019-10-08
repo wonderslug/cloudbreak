@@ -211,13 +211,15 @@ public class AwsNetworkConnector implements NetworkConnector {
     @Override
     public void deleteNetworkWithSubnets(NetworkDeletionRequest networkDeletionRequest) {
         AwsCredentialView credentialView = new AwsCredentialView(networkDeletionRequest.getCloudCredential());
-        AmazonCloudFormationRetryClient cloudFormationRetryClient = getCloudFormationRetryClient(credentialView, networkDeletionRequest.getRegion());
+        AmazonCloudFormationRetryClient cloudFormationRetryClient = getCloudFormationRetryClient(credentialView,
+                networkDeletionRequest.getRegion().getRegionName());
         DeleteStackRequest deleteStackRequest = new DeleteStackRequest();
         deleteStackRequest.setStackName(networkDeletionRequest.getStackName());
         cloudFormationRetryClient.deleteStack(deleteStackRequest);
 
         LOGGER.debug("CloudFormation stack deletion request sent with stack name: '{}' ", networkDeletionRequest.getStackName());
-        PollTask<Boolean> pollTask = getDeleteNetworkPollTask(credentialView, networkDeletionRequest.getRegion(), networkDeletionRequest.getStackName());
+        PollTask<Boolean> pollTask = getDeleteNetworkPollTask(credentialView,
+                networkDeletionRequest.getRegion().getRegionName(), networkDeletionRequest.getStackName());
         try {
             awsBackoffSyncPollingScheduler.schedule(pollTask);
         } catch (RuntimeException | InterruptedException | ExecutionException | TimeoutException e) {

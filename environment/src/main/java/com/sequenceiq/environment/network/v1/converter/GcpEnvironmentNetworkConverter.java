@@ -38,7 +38,7 @@ public class GcpEnvironmentNetworkConverter extends EnvironmentBaseNetworkConver
     @Override
     public BaseNetwork setProviderSpecificNetwork(BaseNetwork baseNetwork, CreatedCloudNetwork createdCloudNetwork) {
         GcpNetwork gcpNetwork = (GcpNetwork) baseNetwork;
-        gcpNetwork.setNetworkId(gcpNetwork.getNetworkId());
+        gcpNetwork.setNetworkId(createdCloudNetwork.getNetworkId());
 
         Map<String, Object> properties = createdCloudNetwork.getProperties();
         if (properties == null) {

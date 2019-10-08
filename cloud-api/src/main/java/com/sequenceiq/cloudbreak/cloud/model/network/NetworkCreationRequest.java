@@ -29,6 +29,10 @@ public class NetworkCreationRequest {
 
     private final boolean privateSubnetEnabled;
 
+    private final String userId;
+
+    private final String accountId;
+
     private NetworkCreationRequest(Builder builder) {
         this.envId = builder.envId;
         this.envName = builder.envName;
@@ -41,6 +45,8 @@ public class NetworkCreationRequest {
         this.noFirewallRules = builder.noFirewallRules;
         this.stackName = builder.stackName;
         this.privateSubnetEnabled = builder.privateSubnetEnabled;
+        this.userId = builder.userId;
+        this.accountId = builder.accountId;
     }
 
     public String getEnvName() {
@@ -87,6 +93,14 @@ public class NetworkCreationRequest {
         return privateSubnetEnabled;
     }
 
+    public String getUserId() {
+        return userId;
+    }
+
+    public String getAccountId() {
+        return accountId;
+    }
+
     public static class Builder {
         private Long envId;
 
@@ -110,8 +124,22 @@ public class NetworkCreationRequest {
 
         private boolean privateSubnetEnabled;
 
+        private String userId;
+
+        private String accountId;
+
         public Builder withEnvId(Long envId) {
             this.envId = envId;
+            return this;
+        }
+
+        public Builder withUserId(String userId) {
+            this.userId = userId;
+            return this;
+        }
+
+        public Builder withAccountId(String accountId) {
+            this.accountId = accountId;
             return this;
         }
 
