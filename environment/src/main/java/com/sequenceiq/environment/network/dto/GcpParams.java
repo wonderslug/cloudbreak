@@ -4,7 +4,6 @@ public class GcpParams {
 
     private String networkId;
 
-
     private String sharedProjectId;
 
     private Boolean noPublicIp;

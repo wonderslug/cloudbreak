@@ -5,9 +5,6 @@ import io.swagger.annotations.ApiModel;
 @ApiModel(value = "YarnEnvironmentV1Parameters")
 public class YarnEnvironmentParameters {
 
-    public YarnEnvironmentParameters() {
-    }
-
     private YarnEnvironmentParameters(YarnEnvironmentParameters.Builder builder) {
     }
 

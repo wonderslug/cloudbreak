@@ -5,9 +5,6 @@ import io.swagger.annotations.ApiModel;
 @ApiModel(value = "AzureEnvironmentV1Parameters")
 public class AzureEnvironmentParameters {
 
-    public AzureEnvironmentParameters() {
-    }
-
     private AzureEnvironmentParameters(AzureEnvironmentParameters.Builder builder) {
     }
 

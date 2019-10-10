@@ -2,7 +2,6 @@ package com.sequenceiq.cloudbreak.cloud.openstack.heat;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.inject.Inject;
@@ -14,20 +13,11 @@ import org.springframework.stereotype.Service;
 
 import com.sequenceiq.cloudbreak.cloud.context.AuthenticatedContext;
 import com.sequenceiq.cloudbreak.cloud.exception.CloudConnectorException;
-import com.sequenceiq.cloudbreak.cloud.model.AvailabilityZone;
-import com.sequenceiq.cloudbreak.cloud.model.Group;
-import com.sequenceiq.cloudbreak.cloud.model.Image;
-import com.sequenceiq.cloudbreak.cloud.model.Location;
 import com.sequenceiq.cloudbreak.cloud.openstack.common.OpenStackUtils;
-import com.sequenceiq.cloudbreak.cloud.openstack.view.NeutronNetworkView;
-import com.sequenceiq.cloudbreak.cloud.openstack.view.NovaInstanceView;
-import com.sequenceiq.cloudbreak.cloud.openstack.view.OpenStackGroupView;
 import com.sequenceiq.cloudbreak.common.service.DefaultCostTaggingService;
 import com.sequenceiq.cloudbreak.util.FreeMarkerTemplateUtils;
 
 import freemarker.template.Configuration;
-import freemarker.template.Template;
-import freemarker.template.TemplateException;
 
 @Service
 public class HeatNetworkTemplateBuilder {
@@ -50,27 +40,28 @@ public class HeatNetworkTemplateBuilder {
     private FreeMarkerTemplateUtils freeMarkerTemplateUtils;
 
     public String build(ModelContext modelContext) {
-        try {
-            List<NovaInstanceView> novaInstances = new OpenStackGroupView(modelContext.stackName, modelContext.groups, modelContext.tags).getFlatNovaView();
-            Map<String, Object> model = new HashMap<>();
-            model.put("cb_stack_name", openStackUtil.adjustStackNameLength(modelContext.stackName));
-            model.put("network", modelContext.neutronNetworkView);
-            model.putAll(defaultCostTaggingService.prepareAllTagsForTemplate());
-            AvailabilityZone az = modelContext.location.getAvailabilityZone();
-            if (az != null && az.value() != null) {
-                model.put("availability_zone", az.value());
-            }
-            Template template = new Template(openStackHeatTemplatePath, modelContext.templateString, freemarkerConfiguration);
-            String generatedTemplate = freeMarkerTemplateUtils.processTemplateIntoString(template, model);
-            LOGGER.debug("Generated Heat template: {}", generatedTemplate);
-            return generatedTemplate;
-        } catch (IOException | TemplateException e) {
-            throw new CloudConnectorException("Failed to process the OpenStack HeatTemplateBuilder", e);
-        }
+//        try {
+//            List<NovaInstanceView> novaInstances = new OpenStackGroupView(modelContext.stackName, modelContext.groups, modelContext.tags).getFlatNovaView();
+//            Map<String, Object> model = new HashMap<>();
+//            model.put("cb_stack_name", openStackUtil.adjustStackNameLength(modelContext.stackName));
+//            model.put("network", modelContext.neutronNetworkView);
+//            model.putAll(defaultCostTaggingService.prepareAllTagsForTemplate());
+//            AvailabilityZone az = modelContext.location.getAvailabilityZone();
+//            if (az != null && az.value() != null) {
+//                model.put("availability_zone", az.value());
+//            }
+//            Template template = new Template(openStackHeatTemplatePath, modelContext.templateString, freemarkerConfiguration);
+//            String generatedTemplate = freeMarkerTemplateUtils.processTemplateIntoString(template, model);
+//            LOGGER.debug("Generated Heat template: {}", generatedTemplate);
+//            return generatedTemplate;
+//        } catch (IOException | TemplateException e) {
+//            throw new CloudConnectorException("Failed to process the OpenStack HeatTemplateBuilder", e);
+//        }
+        return null;
     }
 
     public Map<String, String> buildParameters(AuthenticatedContext auth) {
-        Map<String, String> parameters = new HashMap<>();
+        //Map<String, String> parameters = new HashMap<>();
 
 //        KeystoneCredentialView osCredential = new KeystoneCredentialView(auth);
 //        NeutronNetworkView neutronView = new NeutronNetworkView(cloudStack.getNetwork());
@@ -93,18 +84,18 @@ public class HeatNetworkTemplateBuilder {
 //            }
 //        }
 //        parameters.put("app_net_cidr", isBlank(existingSubnetCidr) ? neutronView.getSubnetCIDR() : existingSubnetCidr);
-        return parameters;
+        return new HashMap<>();
     }
 
-    private String formatUserData(String userData) {
-        String[] lines = userData.split("\n");
-        StringBuilder sb = new StringBuilder();
-        for (String line : lines) {
-            // be aware of the OpenStack Heat template formatting
-            sb.append("            ").append(line).append('\n');
-        }
-        return sb.toString();
-    }
+//    private String formatUserData(String userData) {
+//        String[] lines = userData.split("\n");
+//        StringBuilder sb = new StringBuilder();
+//        for (String line : lines) {
+//            // be aware of the OpenStack Heat template formatting
+//            sb.append("            ").append(line).append('\n');
+//        }
+//        return sb.toString();
+//    }
 
     public String getTemplate() {
         try {
@@ -115,69 +106,6 @@ public class HeatNetworkTemplateBuilder {
     }
 
     public static class ModelContext {
-
-        private Location location;
-
-        private String stackName;
-
-        private List<Group> groups;
-
-        private Image instanceUserData;
-
-        private boolean existingNetwork;
-
-        private boolean existingSubnet;
-
-        private NeutronNetworkView neutronNetworkView;
-
-        private String templateString;
-
-        private Map<String, String> tags = new HashMap<>();
-
-        public ModelContext withLocation(Location location) {
-            this.location = location;
-            return this;
-        }
-
-        public ModelContext withStackName(String stackName) {
-            this.stackName = stackName;
-            return this;
-        }
-
-        public ModelContext withGroups(List<Group> groups) {
-            this.groups = groups;
-            return this;
-        }
-
-        public ModelContext withInstanceUserData(Image instanceUserData) {
-            this.instanceUserData = instanceUserData;
-            return this;
-        }
-
-        public ModelContext withExistingNetwork(boolean existingNetwork) {
-            this.existingNetwork = existingNetwork;
-            return this;
-        }
-
-        public ModelContext withExistingSubnet(boolean existingSubnet) {
-            this.existingSubnet = existingSubnet;
-            return this;
-        }
-
-        public ModelContext withNeutronNetworkView(NeutronNetworkView neutronNetworkView) {
-            this.neutronNetworkView = neutronNetworkView;
-            return this;
-        }
-
-        public ModelContext withTemplateString(String templateString) {
-            this.templateString = templateString;
-            return this;
-        }
-
-        public ModelContext withTags(Map<String, String> tags) {
-            this.tags = tags;
-            return this;
-        }
     }
 
 }

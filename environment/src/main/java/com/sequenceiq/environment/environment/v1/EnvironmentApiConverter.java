@@ -208,7 +208,6 @@ public class EnvironmentApiConverter {
                 .build();
     }
 
-
     public LocationDto locationRequestToDto(LocationRequest location) {
         return LocationDto.LocationDtoBuilder.aLocationDto()
                 .withName(location.getName())

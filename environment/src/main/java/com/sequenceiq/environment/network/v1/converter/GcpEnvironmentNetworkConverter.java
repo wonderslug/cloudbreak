@@ -48,11 +48,8 @@ public class GcpEnvironmentNetworkConverter extends EnvironmentBaseNetworkConver
         Object sharedProjectId = properties.get("sharedProjectId");
         gcpNetwork.setSharedProjectId(sharedProjectId == null ? null : sharedProjectId.toString());
 
-        Object noFirewallRules = properties.get("noFirewallRules");
-        gcpNetwork.setNoFirewallRules(noFirewallRules == null ? false : Boolean.valueOf(noFirewallRules.toString()));
-
-        Object noPublicIp = properties.get("noPublicIp");
-        gcpNetwork.setNoPublicIp(noPublicIp == null ? false : Boolean.valueOf(noPublicIp.toString()));
+        gcpNetwork.setNoFirewallRules(Boolean.valueOf(properties.get("noFirewallRules").toString()));
+        gcpNetwork.setNoPublicIp(Boolean.valueOf(properties.get("noPublicIp").toString()));
 
         gcpNetwork.setSubnetMetas(createdCloudNetwork.getSubnets().stream()
                 .collect(Collectors.toMap(

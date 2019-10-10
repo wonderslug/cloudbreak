@@ -49,23 +49,19 @@ public class InstanceTemplateParameterConverter {
     }
 
     public GcpInstanceTemplateV4Parameters convert(GcpInstanceTemplateV1Parameters source) {
-        GcpInstanceTemplateV4Parameters response = new GcpInstanceTemplateV4Parameters();
-        return response;
+        return new GcpInstanceTemplateV4Parameters();
     }
 
     public GcpInstanceTemplateV1Parameters convert(GcpInstanceTemplateV4Parameters source) {
-        GcpInstanceTemplateV1Parameters response = new GcpInstanceTemplateV1Parameters();
-        return response;
+        return new GcpInstanceTemplateV1Parameters();
     }
 
     public OpenStackInstanceTemplateV4Parameters convert(OpenstackInstanceTemplateV1Parameters source) {
-        OpenStackInstanceTemplateV4Parameters response = new OpenStackInstanceTemplateV4Parameters();
-        return response;
+        return new OpenStackInstanceTemplateV4Parameters();
     }
 
     public OpenstackInstanceTemplateV1Parameters convert(OpenStackInstanceTemplateV4Parameters source) {
-        OpenstackInstanceTemplateV1Parameters response = new OpenstackInstanceTemplateV1Parameters();
-        return response;
+        return new OpenstackInstanceTemplateV1Parameters();
     }
 
     public AzureInstanceTemplateV4Parameters convert(AzureInstanceTemplateV1Parameters source) {

@@ -139,13 +139,11 @@ public class GcpNetworkConnector extends AbstractGcpResourceBuilder implements N
         Subnet subnet = new Subnet(networkRequest.getNetworkCidr());
         Map<String, Object> params = new HashMap<>();
         params.put(GcpStackUtil.NETWORK_IP_RANGE, networkRequest.getNetworkCidr());
-        Network result = new Network(subnet, params);
-        return result;
+        return new Network(subnet, params);
     }
 
     private Network buildNetworkForDeletion(NetworkDeletionRequest networkRequest) {
-        Network result = new Network(null);
-        return result;
+        return new Network(null);
     }
 
     private Network buildSubnetForCreation(NetworkCreationRequest networkRequest, String cidr) {
@@ -162,7 +160,7 @@ public class GcpNetworkConnector extends AbstractGcpResourceBuilder implements N
             PollTask<List<CloudResourceStatus>> task = statusCheckFactory.newPollResourceTask(gcpSubnetResourceBuilder,
                     auth, Collections.singletonList(cloudResource), context, true);
             subnet.setSubnetId(cloudResource.getName());
-            List<CloudResourceStatus> pollerResult = syncPollingScheduler.schedule(task);
+            syncPollingScheduler.schedule(task);
         } catch (Exception e) {
             LOGGER.debug("Skipping resource creation: {}", e.getMessage());
         }
@@ -175,7 +173,7 @@ public class GcpNetworkConnector extends AbstractGcpResourceBuilder implements N
             cloudResource = gcpNetworkResourceBuilder.build(context, auth, network, null, cloudResource);
             PollTask<List<CloudResourceStatus>> task = statusCheckFactory.newPollResourceTask(gcpNetworkResourceBuilder,
                     auth, Collections.singletonList(cloudResource), context, true);
-            List<CloudResourceStatus> pollerResult = syncPollingScheduler.schedule(task);
+            syncPollingScheduler.schedule(task);
         } catch (Exception e) {
             LOGGER.debug("Skipping resource creation: {}", e.getMessage());
         }
@@ -189,7 +187,7 @@ public class GcpNetworkConnector extends AbstractGcpResourceBuilder implements N
             if (deletedResource != null) {
                 PollTask<List<CloudResourceStatus>> task = statusCheckFactory.newPollResourceTask(
                         gcpSubnetResourceBuilder, auth, Collections.singletonList(deletedResource), context, true);
-                List<CloudResourceStatus> pollerResult = syncPollingScheduler.schedule(task);
+                syncPollingScheduler.schedule(task);
             }
         } catch (Exception e) {
             LOGGER.debug("Skipping resource creation: {}", e.getMessage());
@@ -203,7 +201,7 @@ public class GcpNetworkConnector extends AbstractGcpResourceBuilder implements N
             if (deletedResource != null) {
                 PollTask<List<CloudResourceStatus>> task = statusCheckFactory.newPollResourceTask(
                         gcpSubnetResourceBuilder, auth, Collections.singletonList(deletedResource), context, true);
-                List<CloudResourceStatus> pollerResult = syncPollingScheduler.schedule(task);
+                syncPollingScheduler.schedule(task);
             }
         } catch (Exception e) {
             LOGGER.debug("Skipping resource creation: {}", e.getMessage());

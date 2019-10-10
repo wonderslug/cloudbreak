@@ -14,9 +14,6 @@ public class GcpEnvironmentNetworkValidator implements EnvironmentNetworkValidat
 
     @Override
     public void validate(NetworkDto networkDto, ValidationResult.ValidationResultBuilder resultBuilder) {
-        if (networkDto != null) {
-
-        }
     }
 
     @Override

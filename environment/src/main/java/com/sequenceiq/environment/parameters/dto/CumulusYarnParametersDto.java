@@ -2,7 +2,6 @@ package com.sequenceiq.environment.parameters.dto;
 
 public class CumulusYarnParametersDto {
 
-
     private CumulusYarnParametersDto(Builder builder) {
     }
 

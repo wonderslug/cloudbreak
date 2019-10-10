@@ -14,9 +14,7 @@ public class OpenstackEnvironmentNetworkValidator implements EnvironmentNetworkV
 
     @Override
     public void validate(NetworkDto networkDto, ValidationResult.ValidationResultBuilder resultBuilder) {
-        if (networkDto != null) {
-            
-        }
+
     }
 
     @Override

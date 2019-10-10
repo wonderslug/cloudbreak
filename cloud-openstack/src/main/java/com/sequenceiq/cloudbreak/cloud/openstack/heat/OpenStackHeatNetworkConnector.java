@@ -5,12 +5,10 @@ import static com.sequenceiq.cloudbreak.cloud.model.Location.location;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import javax.inject.Inject;
 
-import org.openstack4j.api.Builders;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.model.compute.Keypair;
 import org.openstack4j.model.heat.Stack;
@@ -58,33 +56,33 @@ public class OpenStackHeatNetworkConnector implements NetworkConnector {
 
     @Override
     public CreatedCloudNetwork createNetworkWithSubnets(NetworkCreationRequest networkRequest, String creatorUser) {
-        HeatNetworkTemplateBuilder.ModelContext modelContext = new HeatNetworkTemplateBuilder.ModelContext();
-
-        CloudContext cloudContext = getCloudContext(networkRequest);
-        AuthenticatedContext auth = new AuthenticatedContext(cloudContext, networkRequest.getCloudCredential());
-        String stackName = openStackUtil.getStackName(auth);
-
-        String heatTemplate = heatNetworkTemplateBuilder.build(modelContext);
-        Map<String, String> parameters = heatNetworkTemplateBuilder.buildParameters(auth);
-        OSClient<?> client = openStackClient.createOSClient(auth);
-        //InstanceAuthentication instanceAuthentication = new InstanceAuthentication();
-        List<CloudResourceStatus> resources;
-        Stack existingStack = client.heat().stacks().getStackByName(stackName);
-
-        if (existingStack == null) {
-            Stack heatStack = client
-                    .heat()
-                    .stacks()
-                    .create(Builders.stack().name(stackName).template(heatTemplate).disableRollback(false)
-                            .parameters(parameters).timeoutMins(OPERATION_TIMEOUT).build());
-            //List<CloudResource> cloudResources = collectResources(authenticatedContext, notifier, heatStack, stack, neutronNetworkView);
-            //resources = check(auth, cloudResources);
-        } else {
-            LOGGER.debug("Heat stack already exists: {}", existingStack.getName());
-            //List<CloudResource> cloudResources = collectResources(authenticatedContext, notifier, existingStack, stack, neutronNetworkView);
-            //resources = check(auth, cloudResources);
-        }
-        //LOGGER.debug("Launched resources: {}", resources);
+//        HeatNetworkTemplateBuilder.ModelContext modelContext = new HeatNetworkTemplateBuilder.ModelContext();
+//
+//        CloudContext cloudContext = getCloudContext(networkRequest);
+//        AuthenticatedContext auth = new AuthenticatedContext(cloudContext, networkRequest.getCloudCredential());
+//        String stackName = openStackUtil.getStackName(auth);
+//
+//        String heatTemplate = heatNetworkTemplateBuilder.build(modelContext);
+//        Map<String, String> parameters = heatNetworkTemplateBuilder.buildParameters(auth);
+//        OSClient<?> client = openStackClient.createOSClient(auth);
+//        //InstanceAuthentication instanceAuthentication = new InstanceAuthentication();
+//        List<CloudResourceStatus> resources;
+//        Stack existingStack = client.heat().stacks().getStackByName(stackName);
+//
+//        if (existingStack == null) {
+//            Stack heatStack = client
+//                    .heat()
+//                    .stacks()
+//                    .create(Builders.stack().name(stackName).template(heatTemplate).disableRollback(false)
+//                            .parameters(parameters).timeoutMins(OPERATION_TIMEOUT).build());
+//            //List<CloudResource> cloudResources = collectResources(authenticatedContext, notifier, heatStack, stack, neutronNetworkView);
+//            //resources = check(auth, cloudResources);
+//        } else {
+//            LOGGER.debug("Heat stack already exists: {}", existingStack.getName());
+//            //List<CloudResource> cloudResources = collectResources(authenticatedContext, notifier, existingStack, stack, neutronNetworkView);
+//            //resources = check(auth, cloudResources);
+//        }
+//        //LOGGER.debug("Launched resources: {}", resources);
 
 
 

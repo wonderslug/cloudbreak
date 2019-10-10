@@ -1,12 +1,10 @@
 package com.sequenceiq.environment.network.dto;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.collections4.MapUtils;
-import org.springframework.util.CollectionUtils;
 
 import com.sequenceiq.cloudbreak.cloud.model.CloudSubnet;
 import com.sequenceiq.environment.api.v1.environment.model.base.PrivateSubnetCreation;
@@ -36,8 +34,6 @@ public class NetworkDto {
 
     private final OpenstackParams openstack;
 
-    private final Set<String> subnetIds;
-
     private final String networkCidr;
 
     private final Map<String, CloudSubnet> subnetMetas;
@@ -57,7 +53,6 @@ public class NetworkDto {
         this.cumulus = builder.cumulus;
         this.gcp = builder.gcp;
         this.openstack = builder.openstack;
-        this.subnetIds = CollectionUtils.isEmpty(builder.subnetIds) ? new HashSet<>() : builder.subnetIds;
         this.subnetMetas = MapUtils.isEmpty(builder.subnetMetas) ? new HashMap<>() : builder.subnetMetas;
         this.networkCidr = builder.networkCidr;
         this.networkId = builder.networkId;
@@ -159,8 +154,6 @@ public class NetworkDto {
         private GcpParams gcp;
 
         private OpenstackParams openstack;
-
-        private Set<String> subnetIds;
 
         private Map<String, CloudSubnet> subnetMetas;
 

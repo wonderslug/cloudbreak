@@ -5,9 +5,6 @@ import io.swagger.annotations.ApiModel;
 @ApiModel(value = "CumulusEnvironmentV1Parameters")
 public class CumulusEnvironmentParameters {
 
-    public CumulusEnvironmentParameters() {
-    }
-
     private CumulusEnvironmentParameters(CumulusEnvironmentParameters.Builder builder) {
     }
 

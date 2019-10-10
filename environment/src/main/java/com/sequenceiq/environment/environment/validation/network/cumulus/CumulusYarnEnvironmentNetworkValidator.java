@@ -13,9 +13,6 @@ import com.sequenceiq.environment.network.dto.NetworkDto;
 public class CumulusYarnEnvironmentNetworkValidator implements EnvironmentNetworkValidator {
     @Override
     public void validate(NetworkDto networkDto, ValidationResult.ValidationResultBuilder resultBuilder) {
-        if (networkDto != null) {
-
-        }
     }
 
     @Override

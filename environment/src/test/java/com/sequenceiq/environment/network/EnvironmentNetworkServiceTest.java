@@ -139,7 +139,7 @@ class EnvironmentNetworkServiceTest {
 
         assertEquals(STACK_NAME, argumentCaptor.getValue().getStackName());
         assertEquals(cloudCredential, argumentCaptor.getValue().getCloudCredential());
-        assertEquals(environmentDto.getLocation().getName(), argumentCaptor.getValue().getRegion());
+        assertEquals(environmentDto.getLocation().getName(), argumentCaptor.getValue().getRegion().getRegionName());
         assertNull(argumentCaptor.getValue().getResourceGroup());
     }
 
@@ -160,7 +160,7 @@ class EnvironmentNetworkServiceTest {
 
         assertEquals(STACK_NAME, argumentCaptor.getValue().getStackName());
         assertEquals(cloudCredential, argumentCaptor.getValue().getCloudCredential());
-        assertEquals(environmentDto.getLocation().getName(), argumentCaptor.getValue().getRegion());
+        assertEquals(environmentDto.getLocation().getName(), argumentCaptor.getValue().getRegion().getRegionName());
         assertEquals(environmentDto.getNetwork().getAzure().getResourceGroupName(), argumentCaptor.getValue().getResourceGroup());
     }
 

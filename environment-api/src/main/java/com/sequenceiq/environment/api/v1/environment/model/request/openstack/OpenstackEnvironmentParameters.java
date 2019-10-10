@@ -5,9 +5,6 @@ import io.swagger.annotations.ApiModel;
 @ApiModel(value = "OpenstackEnvironmentV1Parameters")
 public class OpenstackEnvironmentParameters {
 
-    public OpenstackEnvironmentParameters() {
-    }
-
     private OpenstackEnvironmentParameters(OpenstackEnvironmentParameters.Builder builder) {
     }
 

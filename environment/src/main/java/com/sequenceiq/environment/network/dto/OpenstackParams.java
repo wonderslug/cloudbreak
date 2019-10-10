@@ -73,7 +73,6 @@ public class OpenstackParams {
             return this;
         }
 
-
         public OpenstackParamsBuilder withNetworkingOption(String networkingOption) {
             this.networkingOption = networkingOption;
             return this;
