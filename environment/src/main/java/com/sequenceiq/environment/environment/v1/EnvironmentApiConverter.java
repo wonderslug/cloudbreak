@@ -416,11 +416,19 @@ public class EnvironmentApiConverter {
                         .withVpcId(p.getVpcId())
                         .withInternetGatewayId(p.getInternetGatewayId())
                         .build()))
-                .withGcp(getIfNotNull(network.getYarn(), p -> EnvironmentNetworkGcpParams.EnvironmentNetworkGcpParamsBuilder
+                .withGcp(getIfNotNull(network.getGcp(), p -> EnvironmentNetworkGcpParams.EnvironmentNetworkGcpParamsBuilder
                         .anEnvironmentNetworkGcpParamsBuilder()
+                        .withNetworkId(p.getNetworkId())
+                        .withNoFirewallRules(p.getNoFirewallRules())
+                        .withNoPublicIp(p.getNoPublicIp())
+                        .withSharedProjectId(p.getSharedProjectId())
                         .build()))
-                .withOpenstack(getIfNotNull(network.getYarn(), p -> EnvironmentNetworkOpenstackParams.EnvironmentNetworkOpenstackParamsBuilder
+                .withOpenstack(getIfNotNull(network.getOpenstack(), p -> EnvironmentNetworkOpenstackParams.EnvironmentNetworkOpenstackParamsBuilder
                         .anEnvironmentNetworkOpenstackParamsBuilder()
+                        .withNetworkId(p.getNetworkId())
+                        .withNetworkingOption(p.getNetworkingOption())
+                        .withPublicNetId(p.getPublicNetId())
+                        .withRouterId(p.getRouterId())
                         .build()))
                 .withCumulus(getIfNotNull(network.getCumulus(), p -> EnvironmentNetworkCumulusYarnParams.EnvironmentNetworkCumulusYarnParamsBuilder
                         .anEnvironmentNetworkCumulusYarnParams()

@@ -11,9 +11,19 @@ public class EnvironmentModelDescription {
     public static final String YARN_SPECIFIC_PARAMETERS = "Yarn parameters";
     public static final String MOCK_PARAMETERS = "Mock parameters";
     public static final String AWS_VPC_ID = "Subnet ids of the specified networks";
+    public static final String GCP_NETWORK_ID = "Gcp network id";
+    public static final String GCP_SHARED_PROJECT_ID = "Gcp shared project id";
+    public static final String GCP_NO_PUBLIC_IP = "Gcp no public ip";
+    public static final String GCP_NO_FIREWALL_RULES = "Gcp no firewall rules";
+
     public static final String AZURE_RESOURCE_GROUP_NAME = "Subnet ids of the specified networks";
     public static final String AZURE_NETWORK_ID = "Subnet ids of the specified networks";
     public static final String AZURE_NO_PUBLIC_IP = "Subnet ids of the specified networks";
+    public static final String OPENSTACK_NETWORK_ID = "Openstack network id";
+    public static final String OPENSTACK_ROUTER_ID = "Openstack router id";
+    public static final String OPENSTACK_PUBLIC_NET_ID = "Openstack public net id";
+    public static final String OPENSTACK_NETWORKING_OPTION_ID = "Openstack networking option id";
+
     public static final String AZURE_NO_FIREWALL_RULES = "Subnet ids of the specified networks";
     public static final String CREATE_FREEIPA = "Create freeipa in environment";
 

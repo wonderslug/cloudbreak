@@ -21,6 +21,7 @@ public class OpenStackCredentialV1ParametersToOpenStackCredentialAttributesConve
     public OpenStackCredentialAttributes convert(OpenstackParameters source) {
         OpenStackCredentialAttributes response = new OpenStackCredentialAttributes();
         doIfNotNull(source.getKeystoneV2(), param -> response.setKeystoneV2(getKeystoneV2(param)));
+
         doIfNotNull(source.getKeystoneV3(), param -> response.setKeystoneV3(getKeystoneV3(param)));
         response.setEndpoint(source.getEndpoint());
         response.setFacing(source.getFacing());

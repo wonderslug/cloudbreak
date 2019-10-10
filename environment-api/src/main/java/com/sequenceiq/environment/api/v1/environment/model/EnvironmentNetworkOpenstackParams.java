@@ -16,19 +16,58 @@ import io.swagger.annotations.ApiModelProperty;
 public class EnvironmentNetworkOpenstackParams {
 
     @Size(max = 255)
-    @ApiModelProperty(value = EnvironmentModelDescription.AWS_VPC_ID, required = true)
-    private String vpcId;
+    @ApiModelProperty(value = EnvironmentModelDescription.OPENSTACK_NETWORK_ID, required = true)
+    private String networkId;
 
-    public String getVpcId() {
-        return vpcId;
+    @ApiModelProperty(value = EnvironmentModelDescription.OPENSTACK_ROUTER_ID, required = true)
+    private String routerId;
+
+    @ApiModelProperty(value = EnvironmentModelDescription.OPENSTACK_PUBLIC_NET_ID, required = true)
+    private String publicNetId;
+
+    @ApiModelProperty(value = EnvironmentModelDescription.OPENSTACK_NETWORKING_OPTION_ID, required = true)
+    private String networkingOption;
+
+    public String getNetworkId() {
+        return networkId;
     }
 
-    public void setVpcId(String vpcId) {
-        this.vpcId = vpcId;
+    public void setNetworkId(String networkId) {
+        this.networkId = networkId;
+    }
+
+    public String getRouterId() {
+        return routerId;
+    }
+
+    public void setRouterId(String routerId) {
+        this.routerId = routerId;
+    }
+
+    public String getPublicNetId() {
+        return publicNetId;
+    }
+
+    public void setPublicNetId(String publicNetId) {
+        this.publicNetId = publicNetId;
+    }
+
+    public String getNetworkingOption() {
+        return networkingOption;
+    }
+
+    public void setNetworkingOption(String networkingOption) {
+        this.networkingOption = networkingOption;
     }
 
     public static final class EnvironmentNetworkOpenstackParamsBuilder {
-        private String vpcId;
+        private String networkId;
+
+        private String routerId;
+
+        private String publicNetId;
+
+        private String networkingOption;
 
         private EnvironmentNetworkOpenstackParamsBuilder() {
         }
@@ -37,14 +76,32 @@ public class EnvironmentNetworkOpenstackParams {
             return new EnvironmentNetworkOpenstackParamsBuilder();
         }
 
-        public EnvironmentNetworkOpenstackParamsBuilder withVpcId(String vpcId) {
-            this.vpcId = vpcId;
+        public EnvironmentNetworkOpenstackParamsBuilder withNetworkId(String networkId) {
+            this.networkId = networkId;
+            return this;
+        }
+
+        public EnvironmentNetworkOpenstackParamsBuilder withRouterId(String routerId) {
+            this.routerId = routerId;
+            return this;
+        }
+
+        public EnvironmentNetworkOpenstackParamsBuilder withPublicNetId(String publicNetId) {
+            this.publicNetId = publicNetId;
+            return this;
+        }
+
+        public EnvironmentNetworkOpenstackParamsBuilder withNetworkingOption(String networkingOption) {
+            this.networkingOption = networkingOption;
             return this;
         }
 
         public EnvironmentNetworkOpenstackParams build() {
             EnvironmentNetworkOpenstackParams environmentNetworkAwsParams = new EnvironmentNetworkOpenstackParams();
-            environmentNetworkAwsParams.setVpcId(vpcId);
+            environmentNetworkAwsParams.setNetworkId(networkId);
+            environmentNetworkAwsParams.setRouterId(routerId);
+            environmentNetworkAwsParams.setPublicNetId(publicNetId);
+            environmentNetworkAwsParams.setNetworkingOption(networkingOption);
             return environmentNetworkAwsParams;
         }
     }

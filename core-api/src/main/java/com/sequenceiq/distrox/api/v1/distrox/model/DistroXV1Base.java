@@ -25,6 +25,12 @@ public abstract class DistroXV1Base implements Serializable, CloudPlatformProvid
     private AzureDistroXV1Parameters azure;
 
     @ApiModelProperty
+    private GcpDistroXV1Parameters gcp;
+
+    @ApiModelProperty
+    private OpenstackDistroXV1Parameters openstack;
+
+    @ApiModelProperty
     private YarnDistroXV1Parameters yarn;
 
     @ApiModelProperty(StackModelDescription.WORKLOAD_ANALYTICS)
@@ -82,5 +88,21 @@ public abstract class DistroXV1Base implements Serializable, CloudPlatformProvid
 
     public void setWorkloadAnalytics(Boolean workloadAnalytics) {
         this.workloadAnalytics = workloadAnalytics;
+    }
+
+    public GcpDistroXV1Parameters getGcp() {
+        return gcp;
+    }
+
+    public void setGcp(GcpDistroXV1Parameters gcp) {
+        this.gcp = gcp;
+    }
+
+    public OpenstackDistroXV1Parameters getOpenstack() {
+        return openstack;
+    }
+
+    public void setOpenstack(OpenstackDistroXV1Parameters openstack) {
+        this.openstack = openstack;
     }
 }
