@@ -7,6 +7,7 @@ import java.util.Optional;
 
 import javax.inject.Inject;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.springframework.stereotype.Component;
 
@@ -85,6 +86,9 @@ public class DistroXV1RequestToStackV4RequestConverter {
         }
         StackV4Request request = new StackV4Request();
         SdxClusterResponse sdxClusterResponse = getSdxClusterResponse(environment);
+        if (StringUtils.isEmpty(source.getName())) {
+            throw new BadRequestException("Name is missing from the request.");
+        }
         request.setName(source.getName());
         request.setType(StackType.WORKLOAD);
         request.setCloudPlatform(getCloudPlatform(environment));
