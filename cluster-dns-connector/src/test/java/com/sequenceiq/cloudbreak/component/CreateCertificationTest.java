@@ -6,7 +6,6 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -21,17 +20,17 @@ import org.springframework.test.context.junit4.SpringRunner;
 import com.sequenceiq.cloudbreak.certificate.PkiUtil;
 import com.sequenceiq.cloudbreak.certificate.service.CertificateCreationService;
 
-@Ignore
+//@Ignore
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = CreateCertificationTest.CreateCertificationTestConfig.class)
 @TestPropertySource(properties = {
         "clusterdns.host=localhost",
-        "clusterdns.port=8982",
+        "clusterdns.port=9983",
         "gateway.cert.polling.attempt=50",
         "gateway.cert.base.domain.name=workload-dev.cloudera.com",
         "altus.ums.host=ums.thunderhead-dev.cloudera.com",
-        "actor.crn=<your-user-crn>",
-        "account.id=<your-account-id>"
+        "actor.crn=crn:cdp:iam:us-west-1:9d74eee4-1cad-45d7-b645-7ccf9edbb73d:user:0cf0a5ed-9883-4593-ab5e-e8840999bd45",
+        "account.id=9d74eee4-1cad-45d7-b645-7ccf9edbb73d"
 })
 public class CreateCertificationTest {
 
@@ -54,7 +53,7 @@ public class CreateCertificationTest {
         String internalFQDN = "ip-10-97-110-78.cloudera.site";
         List<String> strings = certificateCreationService.create(actorCrn,
                 accountId,
-                "cluster-tb",
+                "really-really-long-named-cluster-tbihari2",
                 "env-tb",
                 false,
                 keyPair);
@@ -71,6 +70,7 @@ public class CreateCertificationTest {
     @Configuration
     @ComponentScan(
             basePackages = {"com.sequenceiq.cloudbreak.certificate",
+                    "com.sequenceiq.cloudbreak.dns",
                     "com.sequenceiq.cloudbreak.client",
                     "com.sequenceiq.cloudbreak.auth.altus",
                     "com.sequenceiq.cloudbreak.auth"}

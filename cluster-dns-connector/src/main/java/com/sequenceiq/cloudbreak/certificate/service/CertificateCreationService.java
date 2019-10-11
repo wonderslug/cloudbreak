@@ -49,9 +49,10 @@ public class CertificateCreationService {
         LOGGER.info("Start cert creation");
         Optional<String> requestIdOptional = Optional.ofNullable(MDCBuilder.getMdcContextMap().get(LoggerContextKey.REQUEST_ID.toString()));
         UserManagementProto.Account account = grpcUmsClient.getAccountDetails(actorCrn, actorCrn, requestIdOptional);
-        String externalFQDN = environmentBasedDomainNameProvider.getFullyQualifiedEndpointName(endpoint, environment, account.getWorkloadSubdomain());
+        String externalFQDN = environmentBasedDomainNameProvider.getFullyQualifiedEndpointName("7987a401fcd849f7", environment, account.getWorkloadSubdomain());
+        String externalFQDNToSAN = environmentBasedDomainNameProvider.getFullyQualifiedEndpointName(endpoint, environment, account.getWorkloadSubdomain());
         LOGGER.info("Create cert for {}", externalFQDN);
-        PKCS10CertificationRequest csr = PkiUtil.csr(identity, externalFQDN);
+        PKCS10CertificationRequest csr = PkiUtil.csr(identity, externalFQDN, externalFQDNToSAN);
         String pollingRequestId = grpcClusterDnsClient
                 .createCertificate(actorCrn, accountId, endpoint, environment, wildcard, csr.getEncoded(), requestIdOptional);
         return polling(actorCrn, pollingRequestId);
