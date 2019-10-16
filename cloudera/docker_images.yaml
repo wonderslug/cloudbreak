@@ -5,7 +5,3 @@ docker_images:
    docker_environment: docker-private.infra.cloudera.com/cloudera/cloudbreak-environment
    cloudbreak-freeipa: docker-private.infra.cloudera.com/cloudera/cloudbreak-freeipa
    cloudbreak-rds: docker-private.infra.cloudera.com/cloudera/cloudbreak-rds
-   hdc-web: docker-private.infra.cloudera.com/cloudera/hdc-web
-   periscope-mock: docker-private.infra.cloudera.com/cloudera/periscope-mock
-   cloudbreak-mock-caas: docker-private.infra.cloudera.com/cloudera/cloudbreak-mock-caas
-   

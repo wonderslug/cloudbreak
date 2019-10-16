@@ -1,0 +1,3 @@
+docker_images:
+   periscope-mock: docker-private.infra.cloudera.com/cloudera/periscope-mock
+   cloudbreak-mock-caas: docker-private.infra.cloudera.com/cloudera/cloudbreak-mock-caas 
