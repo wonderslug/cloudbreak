@@ -1,0 +1,11 @@
+docker_images:
+   docker-autoscale: docker-private.infra.cloudera.com/cloudera/cloudbreak-autoscale
+   cloudbreak: docker-private.infra.cloudera.com/cloudera/cloudbreak
+   cloudbreak-datalake: docker-private.infra.cloudera.com/cloudera/cloudbreak-datalake
+   docker_environment: docker-private.infra.cloudera.com/cloudera/cloudbreak-environment
+   cloudbreak-freeipa: docker-private.infra.cloudera.com/cloudera/cloudbreak-freeipa
+   cloudbreak-rds: docker-private.infra.cloudera.com/cloudera/cloudbreak-rds
+   hdc-web: docker-private.infra.cloudera.com/cloudera/hdc-web
+   periscope-mock: docker-private.infra.cloudera.com/cloudera/periscope-mock
+   cloudbreak-mock-caas: docker-private.infra.cloudera.com/cloudera/cloudbreak-mock-caas
+   
