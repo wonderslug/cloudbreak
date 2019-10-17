@@ -23,7 +23,7 @@ $INTEGCB_LOCATION/.deps/bin/docker-compose up -d caas-mock
 echo -e "\n\033[1;96m--- Start cloudbreak\033[0m\n"
 cd $INTEGCB_LOCATION
 ./cbd regenerate
-./cbd start-wait traefik dev-gateway core-gateway commondb vault cloudbreak environment periscope freeipa redbeams datalake
+./cbd start-wait traefik dev-gateway core-gateway commondb vault docker-private.infra.cloudera.com/cloudera/cloudbreak docker-private.infra.cloudera.com/cloudera/environment docker-private.infra.cloudera.com/cloudera/periscope docker-private.infra.cloudera.com/cloudera/freeipa docker-private.infra.cloudera.com/cloudera/redbeams docker-private.infra.cloudera.com/cloudera/datalake
 
 if [ $? -ne 0 ]; then
     echo ERROR: Failed to bring up all the necessary services! Process is about to terminate.
