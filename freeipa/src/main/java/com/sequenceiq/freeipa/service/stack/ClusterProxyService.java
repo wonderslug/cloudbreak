@@ -8,11 +8,9 @@ import com.sequenceiq.cloudbreak.clusterproxy.ConfigRegistrationRequest;
 import com.sequenceiq.cloudbreak.clusterproxy.ConfigRegistrationResponse;
 import com.sequenceiq.cloudbreak.orchestrator.model.GatewayConfig;
 import com.sequenceiq.cloudbreak.service.secret.model.SecretResponse;
-import com.sequenceiq.freeipa.entity.FreeIpa;
 import com.sequenceiq.freeipa.entity.Stack;
 import com.sequenceiq.freeipa.service.GatewayConfigService;
 import com.sequenceiq.freeipa.service.TlsSecurityService;
-import com.sequenceiq.freeipa.service.freeipa.FreeIpaService;
 import com.sequenceiq.freeipa.vault.FreeIpaCertVaultComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +26,7 @@ public class ClusterProxyService {
     private static final String SERVICE_NAME = "freeipa";
 
     @Inject
-    private FreeIpaService freeIpaService;
+    private StackService stackService;
 
     @Inject
     private GatewayConfigService gatewayConfigService;
@@ -42,33 +40,42 @@ public class ClusterProxyService {
     @Inject
     private TlsSecurityService tlsSecurityService;
 
-    public ConfigRegistrationResponse registerFreeIpa(Long stackId) {
-        LOGGER.debug("Registering cluster with cluster-proxy: StackId = [{}]", stackId);
-        return registerFreeIpa(freeIpaService.findByStackId(stackId));
+    public ConfigRegistrationResponse registerFreeIpa(String accountId, String environmentCrn) {
+        return registerFreeIpa(stackService.getByEnvironmentCrnAndAccountId(environmentCrn, accountId));
     }
 
-    public ConfigRegistrationResponse registerFreeIpa(FreeIpa freeIpa) {
-        Stack stack = freeIpa.getStack();
+    public ConfigRegistrationResponse registerFreeIpa(Long stackId) {
+        return registerFreeIpa(stackService.getStackById(stackId));
+    }
+
+    public ConfigRegistrationResponse registerFreeIpa(Stack stack) {
+        LOGGER.debug("Registering freeipa with cluster-proxy: Environment CRN = [{}], Stack CRN = [{}]", stack.getEnvironmentCrn(), stack.getResourceCrn());
 
         GatewayConfig primaryGatewayConfig = gatewayConfigService.getPrimaryGatewayConfig(stack);
         HttpClientConfig httpClientConfig = tlsSecurityService.buildTLSClientConfigForPrimaryGateway(
                 stack.getId(), primaryGatewayConfig.getGatewayUrl());
 
-        LOGGER.debug("Registering cluster with cluster-proxy: Environment CRN = [{}], Stack CRN = [{}]", stack.getEnvironmentCrn(), stack.getResourceCrn());
+        // TODO save entries in vault
+
         List<ClusterServiceConfig> serviceConfigs = List.of(createServiceConfig(stack, httpClientConfig));
         LOGGER.debug("Registering service configs [{}]", serviceConfigs);
         ConfigRegistrationRequest request = new ConfigRegistrationRequest(stack.getResourceCrn(), List.of(), serviceConfigs, null);
         return clusterProxyRegistrationClient.registerConfig(request);
     }
 
-    public void deregisterFreeIpa(Long stackId) {
-        LOGGER.debug("Deregistering cluster with cluster-proxy: StackId = [{}]", stackId);
-        deregisterFreeIpa(freeIpaService.findByStackId(stackId));
+    public void deregisterFreeIpa(String accountId, String environmentCrn) {
+        deregisterFreeIpa(stackService.getByEnvironmentCrnAndAccountId(environmentCrn, accountId));
     }
 
-    public void deregisterFreeIpa(FreeIpa freeIpa) {
-        Stack stack = freeIpa.getStack();
-        LOGGER.debug("Deregistering cluster with cluster-proxy: Environment CRN = [{}], Stack CRN = [{}]", stack.getEnvironmentCrn(), stack.getResourceCrn());
+    public void deregisterFreeIpa(Long stackId) {
+        deregisterFreeIpa(stackService.getStackById(stackId));
+    }
+
+    public void deregisterFreeIpa(Stack stack) {
+        LOGGER.debug("Deregistering freeipa with cluster-proxy: Environment CRN = [{}], Stack CRN = [{}]", stack.getEnvironmentCrn(), stack.getResourceCrn());
+
+        // TODO remove entries from vault
+        
         clusterProxyRegistrationClient.deregisterConfig(stack.getResourceCrn());
         LOGGER.debug("Cleaning up vault secrets for cluster-proxy");
         freeIpaCertVaultComponent.cleanupSecrets(stack);
