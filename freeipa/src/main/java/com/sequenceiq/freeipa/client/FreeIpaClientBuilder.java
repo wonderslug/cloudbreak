@@ -105,8 +105,7 @@ public class FreeIpaClientBuilder {
                 getIpaUrl(clientConfig.getApiAddress(), port, basePath, "/session/json"),
                 Map.of(
                     "Cookie", "ipa_session=" + sessionCookie,
-                    // TODO: This is temporary hack. Once we can register cluster proxy endpoint
-                    //       with mTLS (CDPAM-256), this should be removed.
+                    // Proxy-Ignore-Auth header is needed for cluster proxy connections
                     "Proxy-Ignore-Auth", "true"));
         if (sslContext != null) {
             jsonRpcHttpClient.setSslContext(sslContext);
@@ -186,6 +185,8 @@ public class FreeIpaClientBuilder {
         post.addHeader("Accept", ContentType.APPLICATION_XML.getMimeType());
         post.addHeader("Content-Type",
                 ContentType.APPLICATION_FORM_URLENCODED.getMimeType());
+        // Proxy-Ignore-Auth header is needed for cluster proxy connections
+        post.addHeader("Proxy-Ignore-Auth", "true");
         return post;
     }
 
