@@ -1,10 +1,17 @@
 package com.sequenceiq.freeipa.client;
 
-import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
-import com.sequenceiq.cloudbreak.client.HttpClientConfig;
-import com.sequenceiq.freeipa.client.auth.InvalidPasswordException;
-import com.sequenceiq.freeipa.client.auth.InvalidUserOrRealmException;
-import com.sequenceiq.freeipa.client.auth.PasswordExpiredException;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.security.Security;
+import java.util.List;
+import java.util.Map;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.client.CookieStore;
@@ -29,16 +36,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLContext;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.security.Security;
-import java.util.List;
-import java.util.Map;
+import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
+import com.sequenceiq.cloudbreak.client.HttpClientConfig;
+import com.sequenceiq.freeipa.client.auth.InvalidPasswordException;
+import com.sequenceiq.freeipa.client.auth.InvalidUserOrRealmException;
+import com.sequenceiq.freeipa.client.auth.PasswordExpiredException;
 
 public class FreeIpaClientBuilder {
 
@@ -64,11 +66,11 @@ public class FreeIpaClientBuilder {
 
     private final SSLContext sslContext;
 
-    private final String port;
+    private final int port;
 
     private final HttpClientConfig clientConfig;
 
-    public FreeIpaClientBuilder(String user, String pass, String realm, HttpClientConfig clientConfig, String port) throws Exception {
+    public FreeIpaClientBuilder(String user, String pass, String realm, HttpClientConfig clientConfig, int port) throws Exception {
         this.user = user;
         this.pass = pass;
         this.realm = realm;
@@ -93,7 +95,7 @@ public class FreeIpaClientBuilder {
     }
 
     public FreeIpaClientBuilder(String user, String pass, String realm,
-                                HttpClientConfig clientConfig, String port,
+                                HttpClientConfig clientConfig, int port,
                                 String basePath) throws Exception {
         this(user, pass, realm, clientConfig, port);
         this.basePath = basePath;
@@ -115,7 +117,7 @@ public class FreeIpaClientBuilder {
         return new FreeIpaClient(jsonRpcHttpClient);
     }
 
-    private String connect(String user, String pass, String apiAddress, String port)
+    private String connect(String user, String pass, String apiAddress, int port)
             throws IOException, URISyntaxException, FreeIpaClientException {
 
         URI target = getIpaUrl(apiAddress, port, basePath, "/session/login_password").toURI();
@@ -173,7 +175,7 @@ public class FreeIpaClientBuilder {
         return context;
     }
 
-    private URL getIpaUrl(String apiAddress, String port, String basePath, String context) throws MalformedURLException {
+    private URL getIpaUrl(String apiAddress, int port, String basePath, String context) throws MalformedURLException {
         String scheme = clientConfig.hasSSLConfigs() ? "https://" : "http://";
         String path = StringUtils.isBlank(basePath) ? "" : basePath;
         path += context;

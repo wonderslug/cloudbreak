@@ -4,14 +4,14 @@ import javax.inject.Inject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import com.sequenceiq.cloudbreak.clusterproxy.ClusterProxyConfiguration;
 import com.sequenceiq.cloudbreak.common.event.Selectable;
 import com.sequenceiq.flow.event.EventSelectorUtil;
 import com.sequenceiq.flow.reactor.api.handler.EventHandler;
-import com.sequenceiq.freeipa.flow.stack.termination.event.clusterproxy.ClusterProxyDeregistrationRequest;
 import com.sequenceiq.freeipa.flow.stack.termination.event.clusterproxy.ClusterProxyDeregistrationFinished;
+import com.sequenceiq.freeipa.flow.stack.termination.event.clusterproxy.ClusterProxyDeregistrationRequest;
 import com.sequenceiq.freeipa.service.stack.ClusterProxyService;
 
 import reactor.bus.Event;
@@ -22,8 +22,8 @@ public class ClusterProxyDeregistrationHandler implements EventHandler<ClusterPr
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ClusterProxyDeregistrationHandler.class);
 
-    @Value("${clusterProxy.enabled:false}")
-    private boolean clusterProxyIntegrationEnabled;
+    @Inject
+    private ClusterProxyConfiguration clusterProxyConfiguration;
 
     @Inject
     private EventBus eventBus;
@@ -35,7 +35,7 @@ public class ClusterProxyDeregistrationHandler implements EventHandler<ClusterPr
     public void accept(Event<ClusterProxyDeregistrationRequest> requestEvent) {
         ClusterProxyDeregistrationRequest request = requestEvent.getData();
         LOGGER.debug("De-registering freeipa stack {} from cluster proxy", request.getResourceId());
-        if (clusterProxyIntegrationEnabled) {
+        if (clusterProxyConfiguration.isClusterProxyIntegrationEnabled()) {
             try {
                 clusterProxyService.deregisterFreeIpa(request.getResourceId());
             } catch (Exception ex) {

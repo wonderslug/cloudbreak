@@ -40,6 +40,9 @@ public class ClusterProxyService {
     @Inject
     private TlsSecurityService tlsSecurityService;
 
+    @Inject
+    private StackUpdater stackUpdater;
+
     public ConfigRegistrationResponse registerFreeIpa(String accountId, String environmentCrn) {
         return registerFreeIpa(stackService.getByEnvironmentCrnAndAccountId(environmentCrn, accountId));
     }
@@ -57,10 +60,16 @@ public class ClusterProxyService {
 
         // TODO save entries in vault
 
+        // TODO check useCCM flag and create different registration request
+
         List<ClusterServiceConfig> serviceConfigs = List.of(createServiceConfig(stack, httpClientConfig));
         LOGGER.debug("Registering service configs [{}]", serviceConfigs);
         ConfigRegistrationRequest request = new ConfigRegistrationRequest(stack.getResourceCrn(), List.of(), serviceConfigs, null);
-        return clusterProxyRegistrationClient.registerConfig(request);
+        ConfigRegistrationResponse response = clusterProxyRegistrationClient.registerConfig(request);
+
+        stackUpdater.updateClusterProxyRegisteredFlag(stack, true);
+
+        return response;
     }
 
     public void deregisterFreeIpa(String accountId, String environmentCrn) {
@@ -74,8 +83,10 @@ public class ClusterProxyService {
     public void deregisterFreeIpa(Stack stack) {
         LOGGER.debug("Deregistering freeipa with cluster-proxy: Environment CRN = [{}], Stack CRN = [{}]", stack.getEnvironmentCrn(), stack.getResourceCrn());
 
+        stackUpdater.updateClusterProxyRegisteredFlag(stack, false);
+
         // TODO remove entries from vault
-        
+
         clusterProxyRegistrationClient.deregisterConfig(stack.getResourceCrn());
         LOGGER.debug("Cleaning up vault secrets for cluster-proxy");
         freeIpaCertVaultComponent.cleanupSecrets(stack);

@@ -4,9 +4,9 @@ import javax.inject.Inject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import com.sequenceiq.cloudbreak.clusterproxy.ClusterProxyConfiguration;
 import com.sequenceiq.cloudbreak.common.event.Selectable;
 import com.sequenceiq.flow.event.EventSelectorUtil;
 import com.sequenceiq.flow.reactor.api.handler.EventHandler;
@@ -23,8 +23,8 @@ public class ClusterProxyRegistrationHandler implements EventHandler<ClusterProx
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ClusterProxyRegistrationHandler.class);
 
-    @Value("${clusterProxy.enabled:false}")
-    private boolean clusterProxyIntegrationEnabled;
+    @Inject
+    private ClusterProxyConfiguration clusterProxyConfiguration;
 
     @Inject
     private EventBus eventBus;
@@ -42,7 +42,7 @@ public class ClusterProxyRegistrationHandler implements EventHandler<ClusterProx
         ClusterProxyRegistrationRequest request = event.getData();
         Selectable response;
         try {
-            if (clusterProxyIntegrationEnabled) {
+            if (clusterProxyConfiguration.isClusterProxyIntegrationEnabled()) {
                 LOGGER.debug("Cluster Proxy Integration enabled. Registering FreeIpa [{}]", request.getResourceId());
                 clusterProxyService.registerFreeIpa(request.getResourceId());
             } else {

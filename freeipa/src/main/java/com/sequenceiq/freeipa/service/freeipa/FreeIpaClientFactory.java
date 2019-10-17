@@ -1,6 +1,13 @@
 package com.sequenceiq.freeipa.service.freeipa;
 
+import javax.inject.Inject;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
 import com.sequenceiq.cloudbreak.client.HttpClientConfig;
+import com.sequenceiq.cloudbreak.clusterproxy.ClusterProxyConfiguration;
 import com.sequenceiq.cloudbreak.orchestrator.model.GatewayConfig;
 import com.sequenceiq.freeipa.client.FreeIpaClient;
 import com.sequenceiq.freeipa.client.FreeIpaClientBuilder;
@@ -10,12 +17,6 @@ import com.sequenceiq.freeipa.entity.Stack;
 import com.sequenceiq.freeipa.service.GatewayConfigService;
 import com.sequenceiq.freeipa.service.TlsSecurityService;
 import com.sequenceiq.freeipa.service.stack.StackService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
-import javax.inject.Inject;
 
 @Service
 public class FreeIpaClientFactory {
@@ -24,16 +25,8 @@ public class FreeIpaClientFactory {
 
     private static final String ADMIN_USER = "admin";
 
-    // TODO make this point to actual cluster proxy address
-    private static final String CLUSTER_PROXY_API_ADDRESS = "localhost";
-    private static final String CLUSTER_PROXY_PORT = "10080";
-
-    // TODO pull these out into ClusterProxyConfiguration object
-    @Value("${clusterProxy.enabled:false}")
-    private boolean clusterProxyIntegrationEnabled;
-
-    @Value("${clusterProxy.url:}")
-    private String clusterProxyUrl;
+    @Inject
+    private ClusterProxyConfiguration clusterProxyConfiguration;
 
     @Inject
     private GatewayConfigService gatewayConfigService;
@@ -64,23 +57,23 @@ public class FreeIpaClientFactory {
         LOGGER.debug("Creating FreeIpaClient for stack {}", stack.getResourceCrn());
 
         try {
-            if (clusterProxyIntegrationEnabled) {
-                HttpClientConfig httpClientConfig = new HttpClientConfig(CLUSTER_PROXY_API_ADDRESS);
+            if (clusterProxyConfiguration.isClusterProxyIntegrationEnabled() && stack.getClusterProxyRegistered()) {
+                HttpClientConfig httpClientConfig = new HttpClientConfig(clusterProxyConfiguration.getClusterProxyHost());
                 FreeIpa freeIpa = freeIpaService.findByStack(stack);
 
                 String freeIpaClusterCrn = stack.getResourceCrn();
                 String registeredServiceName = "freeipa-proxy";
                 String clusterProxyPath = String.format("/cluster-proxy/proxy/%s/%s/ipa", freeIpaClusterCrn, registeredServiceName);
 
-                return new FreeIpaClientBuilder(ADMIN_USER,freeIpa.getAdminPassword(), freeIpa.getDomain().toUpperCase(),
-                    httpClientConfig, CLUSTER_PROXY_PORT, clusterProxyPath).build();
+                return new FreeIpaClientBuilder(ADMIN_USER, freeIpa.getAdminPassword(), freeIpa.getDomain().toUpperCase(),
+                    httpClientConfig, clusterProxyConfiguration.getClusterProxyPort(), clusterProxyPath).build();
             } else {
                 GatewayConfig gatewayConfig = gatewayConfigService.getPrimaryGatewayConfig(stack);
                 HttpClientConfig httpClientConfig = tlsSecurityService.buildTLSClientConfigForPrimaryGateway(
                         stack.getId(), gatewayConfig.getPublicAddress());
                 FreeIpa freeIpa = freeIpaService.findByStack(stack);
                 return new FreeIpaClientBuilder(ADMIN_USER, freeIpa.getAdminPassword(), freeIpa.getDomain().toUpperCase(),
-                        httpClientConfig, stack.getGatewayport().toString()).build();
+                        httpClientConfig, stack.getGatewayport()).build();
             }
         } catch (Exception e) {
             throw new FreeIpaClientException("Couldn't build FreeIPA client. "
