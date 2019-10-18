@@ -5,7 +5,7 @@
 ALTER TABLE stack
     ADD COLUMN clusterproxyregistered BOOLEAN;
 
-UPDATE TABLE stack
+UPDATE stack
     SET clusterproxyregistered='false';
 
 -- //@UNDO

@@ -53,6 +53,10 @@ public class FreeIpaClientFactory {
         return getFreeIpaClientForStack(stack);
     }
 
+    private String toClusterProxyBasepath(String freeIpaClusterCrn) {
+        return String.format("/cluster-proxy/proxy/%s/%s/ipa", freeIpaClusterCrn, ClusterProxyConfiguration.FREEIPA_SERVICE_NAME);
+    }
+
     public FreeIpaClient getFreeIpaClientForStack(Stack stack) throws FreeIpaClientException {
         LOGGER.debug("Creating FreeIpaClient for stack {}", stack.getResourceCrn());
 
@@ -60,11 +64,7 @@ public class FreeIpaClientFactory {
             if (clusterProxyConfiguration.isClusterProxyIntegrationEnabled() && stack.getClusterProxyRegistered()) {
                 HttpClientConfig httpClientConfig = new HttpClientConfig(clusterProxyConfiguration.getClusterProxyHost());
                 FreeIpa freeIpa = freeIpaService.findByStack(stack);
-
-                String freeIpaClusterCrn = stack.getResourceCrn();
-                String registeredServiceName = "freeipa-proxy";
-                String clusterProxyPath = String.format("/cluster-proxy/proxy/%s/%s/ipa", freeIpaClusterCrn, registeredServiceName);
-
+                String clusterProxyPath = toClusterProxyBasepath(stack.getResourceCrn());
                 return new FreeIpaClientBuilder(ADMIN_USER, freeIpa.getAdminPassword(), freeIpa.getDomain().toUpperCase(),
                     httpClientConfig, clusterProxyConfiguration.getClusterProxyPort(), clusterProxyPath).build();
             } else {

@@ -2,6 +2,7 @@ package com.sequenceiq.freeipa.service.stack;
 
 import com.sequenceiq.cloudbreak.client.HttpClientConfig;
 import com.sequenceiq.cloudbreak.clusterproxy.ClientCertificate;
+import com.sequenceiq.cloudbreak.clusterproxy.ClusterProxyConfiguration;
 import com.sequenceiq.cloudbreak.clusterproxy.ClusterProxyRegistrationClient;
 import com.sequenceiq.cloudbreak.clusterproxy.ClusterServiceConfig;
 import com.sequenceiq.cloudbreak.clusterproxy.ConfigRegistrationRequest;
@@ -22,8 +23,6 @@ import java.util.List;
 @Service
 public class ClusterProxyService {
     private static final Logger LOGGER = LoggerFactory.getLogger(ClusterProxyService.class);
-
-    private static final String SERVICE_NAME = "freeipa";
 
     @Inject
     private StackService stackService;
@@ -58,8 +57,6 @@ public class ClusterProxyService {
         HttpClientConfig httpClientConfig = tlsSecurityService.buildTLSClientConfigForPrimaryGateway(
                 stack.getId(), primaryGatewayConfig.getGatewayUrl());
 
-        // TODO save entries in vault
-
         // TODO check useCCM flag and create different registration request
 
         List<ClusterServiceConfig> serviceConfigs = List.of(createServiceConfig(stack, httpClientConfig));
@@ -82,11 +79,7 @@ public class ClusterProxyService {
 
     public void deregisterFreeIpa(Stack stack) {
         LOGGER.debug("Deregistering freeipa with cluster-proxy: Environment CRN = [{}], Stack CRN = [{}]", stack.getEnvironmentCrn(), stack.getResourceCrn());
-
         stackUpdater.updateClusterProxyRegisteredFlag(stack, false);
-
-        // TODO remove entries from vault
-
         clusterProxyRegistrationClient.deregisterConfig(stack.getResourceCrn());
         LOGGER.debug("Cleaning up vault secrets for cluster-proxy");
         freeIpaCertVaultComponent.cleanupSecrets(stack);
@@ -94,11 +87,15 @@ public class ClusterProxyService {
 
     private ClusterServiceConfig createServiceConfig(Stack stack, HttpClientConfig httpClientConfig) {
         LOGGER.debug("Putting vault secret for cluster-proxy");
-        SecretResponse clientCertificateSercret =
+        SecretResponse clientCertificateSecret =
             freeIpaCertVaultComponent.putGatewayClientCertificate(stack, httpClientConfig.getClientCert());
         SecretResponse clientKeySecret =
             freeIpaCertVaultComponent.putGatewayClientKey(stack, httpClientConfig.getClientKey());
-        return new ClusterServiceConfig(SERVICE_NAME, List.of(httpClientConfig.getApiAddress()), List.of(),
-            new ClientCertificate(clientKeySecret.getSecretPath(), clientCertificateSercret.getSecretPath()));
+
+        String keyRef = clientKeySecret.getSecretPath() + ":secret";
+        String secretRef = clientCertificateSecret.getSecretPath() + ":secret";
+
+        return new ClusterServiceConfig(ClusterProxyConfiguration.FREEIPA_SERVICE_NAME, List.of(httpClientConfig.getApiAddress()), List.of(),
+            new ClientCertificate(keyRef, secretRef));
     }
 }

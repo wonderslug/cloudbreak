@@ -37,6 +37,8 @@ public class ClusterProxyConfiguration {
 
     private String removeConfigUrl;
 
+    public static final String FREEIPA_SERVICE_NAME = "freeipa";
+
     @PostConstruct
     private void init() throws IllegalArgumentException {
         try {
