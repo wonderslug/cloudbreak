@@ -25,11 +25,11 @@ public class ClusterProxyConfiguration {
     @Value("${clusterProxy.removeConfigPath:/rpc/removeConfig}")
     private String removeConfigPath;
 
-    private String clusterProxyHost;
+    private String clusterProxyHost = "localhost";
 
-    private int clusterProxyPort;
+    private int clusterProxyPort = 10080;
 
-    private String clusterProxyBasePath;
+    private String clusterProxyBasePath = "cluster-proxy";
 
     private String registerConfigUrl;
 
@@ -41,13 +41,15 @@ public class ClusterProxyConfiguration {
 
     @PostConstruct
     private void init() throws IllegalArgumentException {
-        try {
-            URL url = new URL(clusterProxyUrl);
-            clusterProxyHost = url.getHost();
-            clusterProxyPort = url.getPort();
-            clusterProxyBasePath = url.getPath();
-        } catch (MalformedURLException e) {
-            throw new IllegalArgumentException("Configuration `clusterProxy.url` is not a URL.", e);
+        if (clusterProxyIntegrationEnabled) {
+            try {
+                URL url = new URL(clusterProxyUrl);
+                clusterProxyHost = url.getHost();
+                clusterProxyPort = url.getPort();
+                clusterProxyBasePath = url.getPath();
+            } catch (MalformedURLException e) {
+                throw new IllegalArgumentException("Configuration `clusterProxy.url` is not a URL.", e);
+            }
         }
         registerConfigUrl = clusterProxyUrl + registerConfigPath;
         updateConfigUrl = clusterProxyUrl + updateConfigPath;
