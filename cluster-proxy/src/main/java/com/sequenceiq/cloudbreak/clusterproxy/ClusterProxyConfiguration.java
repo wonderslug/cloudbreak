@@ -31,12 +31,6 @@ public class ClusterProxyConfiguration {
 
     private String clusterProxyBasePath = "cluster-proxy";
 
-    private String registerConfigUrl;
-
-    private String updateConfigUrl;
-
-    private String removeConfigUrl;
-
     public static final String FREEIPA_SERVICE_NAME = "freeipa";
 
     @PostConstruct
@@ -51,9 +45,6 @@ public class ClusterProxyConfiguration {
                 throw new IllegalArgumentException("Configuration `clusterProxy.url` is not a URL.", e);
             }
         }
-        registerConfigUrl = clusterProxyUrl + registerConfigPath;
-        updateConfigUrl = clusterProxyUrl + updateConfigPath;
-        removeConfigUrl = clusterProxyUrl + removeConfigPath;
     }
 
     public boolean isClusterProxyIntegrationEnabled() {
@@ -109,14 +100,14 @@ public class ClusterProxyConfiguration {
     }
 
     public String getRegisterConfigUrl() {
-        return registerConfigUrl;
+        return clusterProxyUrl + registerConfigPath;
     }
 
     public String getUpdateConfigUrl() {
-        return updateConfigUrl;
+        return clusterProxyUrl + updateConfigPath;
     }
 
     public String getRemoveConfigUrl() {
-        return removeConfigUrl;
+        return clusterProxyUrl + removeConfigPath;
     }
 }

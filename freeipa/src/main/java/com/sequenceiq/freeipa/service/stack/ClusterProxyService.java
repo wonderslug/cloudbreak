@@ -42,6 +42,8 @@ public class ClusterProxyService {
     @Inject
     private StackUpdater stackUpdater;
 
+    private static final String VAULT_KEY_SUFFIX = ":secret";
+
     public ConfigRegistrationResponse registerFreeIpa(String accountId, String environmentCrn) {
         return registerFreeIpa(stackService.getByEnvironmentCrnAndAccountId(environmentCrn, accountId));
     }
@@ -92,8 +94,8 @@ public class ClusterProxyService {
         SecretResponse clientKeySecret =
             freeIpaCertVaultComponent.putGatewayClientKey(stack, httpClientConfig.getClientKey());
 
-        String keyRef = clientKeySecret.getSecretPath() + ":secret";
-        String secretRef = clientCertificateSecret.getSecretPath() + ":secret";
+        String keyRef = clientKeySecret.getSecretPath() + VAULT_KEY_SUFFIX;
+        String secretRef = clientCertificateSecret.getSecretPath() + VAULT_KEY_SUFFIX;
 
         return new ClusterServiceConfig(ClusterProxyConfiguration.FREEIPA_SERVICE_NAME, List.of(httpClientConfig.getApiAddress()), List.of(),
             new ClientCertificate(keyRef, secretRef));

@@ -18,6 +18,8 @@ import com.sequenceiq.freeipa.service.GatewayConfigService;
 import com.sequenceiq.freeipa.service.TlsSecurityService;
 import com.sequenceiq.freeipa.service.stack.StackService;
 
+import java.util.Map;
+
 @Service
 public class FreeIpaClientFactory {
 
@@ -65,8 +67,15 @@ public class FreeIpaClientFactory {
                 HttpClientConfig httpClientConfig = new HttpClientConfig(clusterProxyConfiguration.getClusterProxyHost());
                 FreeIpa freeIpa = freeIpaService.findByStack(stack);
                 String clusterProxyPath = toClusterProxyBasepath(stack.getResourceCrn());
-                return new FreeIpaClientBuilder(ADMIN_USER, freeIpa.getAdminPassword(), freeIpa.getDomain().toUpperCase(),
-                    httpClientConfig, clusterProxyConfiguration.getClusterProxyPort(), clusterProxyPath).build();
+                Map<String, String> additionalHeaders = Map.of("Proxy-Ignore-Auth", "true");
+
+                return new FreeIpaClientBuilder(ADMIN_USER,
+                    freeIpa.getAdminPassword(),
+                    freeIpa.getDomain().toUpperCase(),
+                    httpClientConfig,
+                    clusterProxyConfiguration.getClusterProxyPort(),
+                    clusterProxyPath,
+                    additionalHeaders).build();
             } else {
                 GatewayConfig gatewayConfig = gatewayConfigService.getPrimaryGatewayConfig(stack);
                 HttpClientConfig httpClientConfig = tlsSecurityService.buildTLSClientConfigForPrimaryGateway(

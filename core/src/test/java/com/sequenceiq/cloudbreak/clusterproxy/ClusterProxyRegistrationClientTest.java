@@ -2,6 +2,7 @@ package com.sequenceiq.cloudbreak.clusterproxy;
 
 import static java.util.Arrays.asList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.spy;
 import static org.springframework.test.web.client.ExpectedCount.once;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.content;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
@@ -54,10 +55,14 @@ public class ClusterProxyRegistrationClientTest {
         RestTemplate restTemplate = new RestTemplate();
         mockServer = MockRestServiceServer.createServer(restTemplate);
         service = new ClusterProxyRegistrationClient(restTemplate);
-        ReflectionTestUtils.setField(service, "clusterProxyUrl", CLUSTER_PROXY_URL);
-        ReflectionTestUtils.setField(service, "registerConfigPath", REGISTER_CONFIG_PATH);
-        ReflectionTestUtils.setField(service, "updateConfigPath", UPDATE_CONFIG_PATH);
-        ReflectionTestUtils.setField(service, "removeConfigPath", REMOVE_CONFIG_PATH);
+
+        ClusterProxyConfiguration proxyConfig = spy(ClusterProxyConfiguration.class);
+        ReflectionTestUtils.setField(proxyConfig, "clusterProxyUrl", CLUSTER_PROXY_URL);
+        ReflectionTestUtils.setField(proxyConfig, "registerConfigPath", REGISTER_CONFIG_PATH);
+        ReflectionTestUtils.setField(proxyConfig, "updateConfigPath", UPDATE_CONFIG_PATH);
+        ReflectionTestUtils.setField(proxyConfig, "removeConfigPath", REMOVE_CONFIG_PATH);
+
+        ReflectionTestUtils.setField(service, "clusterProxyConfiguration", proxyConfig);
     }
 
     @Test

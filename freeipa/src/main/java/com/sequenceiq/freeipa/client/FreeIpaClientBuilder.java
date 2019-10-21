@@ -12,6 +12,7 @@ import java.util.Map;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.client.CookieStore;
@@ -70,12 +71,15 @@ public class FreeIpaClientBuilder {
 
     private final HttpClientConfig clientConfig;
 
+    private Map<String, String> additionalHeaders;
+
     public FreeIpaClientBuilder(String user, String pass, String realm, HttpClientConfig clientConfig, int port) throws Exception {
         this.user = user;
         this.pass = pass;
         this.realm = realm;
         this.clientConfig = clientConfig;
         this.port = port;
+        additionalHeaders = Map.of();
 
         if (clientConfig.hasSSLConfigs()) {
             this.sslContext =
@@ -96,22 +100,27 @@ public class FreeIpaClientBuilder {
 
     public FreeIpaClientBuilder(String user, String pass, String realm,
                                 HttpClientConfig clientConfig, int port,
-                                String basePath) throws Exception {
+                                String basePath, Map<String, String> additionalHeaders) throws Exception {
         this(user, pass, realm, clientConfig, port);
         this.basePath = basePath;
+        this.additionalHeaders = ImmutableMap.copyOf(additionalHeaders);
     }
 
     public FreeIpaClient build() throws URISyntaxException, FreeIpaClientException, IOException {
         String sessionCookie = connect(user, pass, clientConfig.getApiAddress(), port);
+
+        Map<String, String> headers = ImmutableMap.<String, String>builder()
+            .put("Cookie", "ipa_session=" + sessionCookie)
+            .putAll(additionalHeaders)
+            .build();
+
         JsonRpcHttpClient jsonRpcHttpClient = new JsonRpcHttpClient(ObjectMapperBuilder.getObjectMapper(),
-                getIpaUrl(clientConfig.getApiAddress(), port, basePath, "/session/json"),
-                Map.of(
-                    "Cookie", "ipa_session=" + sessionCookie,
-                    // Proxy-Ignore-Auth header is needed for cluster proxy connections
-                    "Proxy-Ignore-Auth", "true"));
+                getIpaUrl(clientConfig.getApiAddress(), port, basePath, "/session/json"), headers);
+
         if (sslContext != null) {
             jsonRpcHttpClient.setSslContext(sslContext);
         }
+
         jsonRpcHttpClient.setHostNameVerifier(hostnameVerifier());
         jsonRpcHttpClient.setReadTimeoutMillis(READ_TIMEOUT_MILLIS);
         return new FreeIpaClient(jsonRpcHttpClient);
@@ -187,8 +196,7 @@ public class FreeIpaClientBuilder {
         post.addHeader("Accept", ContentType.APPLICATION_XML.getMimeType());
         post.addHeader("Content-Type",
                 ContentType.APPLICATION_FORM_URLENCODED.getMimeType());
-        // Proxy-Ignore-Auth header is needed for cluster proxy connections
-        post.addHeader("Proxy-Ignore-Auth", "true");
+        additionalHeaders.forEach(post::addHeader);
         return post;
     }
 
