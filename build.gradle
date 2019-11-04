@@ -43,6 +43,7 @@ allprojects {
   }
   apply plugin: 'idea'
   apply plugin: 'eclipse'
+  apply plugin: 'project-report'
   group = 'com.sequenceiq'
 
   configurations {

@@ -1,5 +1,6 @@
 server.servlet.context-path: "/cb"
 
+
 opentracing:
   jaeger:
     log-spans: false
@@ -32,6 +33,8 @@ info:
     capabilities: gov_cloud, mock_idbroker_mapping
 
 spring:
+  main:
+    lazy-initialization: true
   application:
     name: CloudbreakService
   freemarker:

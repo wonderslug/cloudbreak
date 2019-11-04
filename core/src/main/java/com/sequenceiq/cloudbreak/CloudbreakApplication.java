@@ -14,7 +14,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @EnableAsync
 @EnableSwagger2
-@ComponentScan(basePackages = "com.sequenceiq")
+@ComponentScan(basePackages = "com.sequenceiq", lazyInit = true)
 @EnableAspectJAutoProxy(proxyTargetClass = true)
 @EnableJpaRepositories(basePackages = "com.sequenceiq")
 @EnableAutoConfiguration(exclude = WebMvcMetricsAutoConfiguration.class)

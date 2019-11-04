@@ -132,7 +132,7 @@ dependencyManagement {
     dependency group: 'javax.mail',                         name: 'mail',                        version: '1.5.0-b01'
     dependency group: 'dnsjava',                            name: 'dnsjava',                     version: '2.1.7'
 
-    dependency group: 'org.springframework.kafka',          name: 'spring-kafka',                version: '2.2.4.RELEASE'
+    dependency group: 'org.springframework.kafka',          name: 'spring-kafka',                version: '2.3.1.RELEASE'
     dependency group: 'org.springframework.retry',          name: 'spring-retry',                version: '1.2.0.RELEASE'
     dependency group: 'org.springframework',                name: 'spring-context-support',      version: springFrameworkVersion
 
@@ -157,7 +157,7 @@ dependencies {
   compile group: 'com.squareup.okhttp3',               name: 'okhttp',                     version: okhttpVersion
   compile group: 'com.google.code.gson',               name: 'gson'
   compile group: 'org.codehaus.groovy',                name: 'groovy-all'
-  compile group: 'com.fasterxml.jackson.core',    name: 'jackson-databind'
+  compile group: 'com.fasterxml.jackson.core',         name: 'jackson-databind'
 
   compile group: 'org.springframework.boot',           name: 'spring-boot-starter'
   compile group: 'org.springframework.boot',           name: 'spring-boot-starter-web'
@@ -168,6 +168,7 @@ dependencies {
   compile group: 'org.springframework.boot',           name: 'spring-boot-starter-freemarker'
   compile group: 'org.springframework.boot',           name: 'spring-boot-starter-security'
   compile group: 'org.springframework.boot',           name: 'spring-boot-starter-jersey'
+  compile group: 'org.springframework.boot',           name: 'spring-boot-starter-undertow'
 
   compile group: 'org.springframework.kafka',          name: 'spring-kafka'
   compile group: 'org.springframework.retry',          name: 'spring-retry'
