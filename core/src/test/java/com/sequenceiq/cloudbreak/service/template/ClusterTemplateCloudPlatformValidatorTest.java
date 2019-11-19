@@ -44,6 +44,11 @@ class ClusterTemplateCloudPlatformValidatorTest {
 
     private static final String ENABLED_PLATFORMS_AWS_GCP_S = "Enabled platforms {AWS, GCP} & ";
 
+<<<<<<< HEAD
+=======
+    private static final String ENABLED_PLATFORMS_IS_EMPTY = "Enabled platforms is empty";
+
+>>>>>>> origin/rc-2.15
     @Mock
     private EntitlementService entitlementService;
 
@@ -78,6 +83,7 @@ class ClusterTemplateCloudPlatformValidatorTest {
 
                 { ENABLED_PLATFORMS_AWS_GCP_S + AZURE + AZURE_DISABLED,     ENABLED_PLATFORMS_AWS_GCP,      AZURE,          false,          false },
                 { ENABLED_PLATFORMS_AWS_GCP_S + AZURE + AZURE_ENABLED,      ENABLED_PLATFORMS_AWS_GCP,      AZURE,          true,           false },
+                { ENABLED_PLATFORMS_IS_EMPTY,                               Set.of(),                       AZURE,          true,           true },
         };
     }
     // CHECKSTYLE:ON
