@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -17,7 +16,6 @@ import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotFoundException;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -129,22 +127,22 @@ public class EnvironmentServiceIntegrationTest {
                 .build()
                 .withCrn(TEST_CRN);
 
-        credential = new Credential();
-        credential.setName("credential_test");
-        credential.setResourceCrn("credential_resourcecrn");
-        credential.setAccountId(TEST_ACCOUNT_ID);
-        credential.setCloudPlatform("AWS");
-        credential.setCreator(TEST_CRN);
-        credential.setDescription("description");
-        credential.setGovCloud(false);
-        credential.setArchived(false);
-        credentialRequest = new CredentialRequest();
-
-        doNothing().when(umsAuthorizationService).checkRightOfUserForResource(any(), any(), any(), any());
-        when(entitlementService.azureEnabled(any(), any())).thenReturn(true);
+//        credential = new Credential();
+//        credential.setName("credential_test");
+//        credential.setResourceCrn("credential_resourcecrn");
+//        credential.setAccountId(TEST_ACCOUNT_ID);
+//        credential.setCloudPlatform("AWS");
+//        credential.setCreator(TEST_CRN);
+//        credential.setDescription("description");
+//        credential.setGovCloud(false);
+//        credential.setArchived(false);
+//        credentialRequest = new CredentialRequest();
+//
+//        doNothing().when(umsAuthorizationService).checkRightOfUserForResource(any(), any(), any(), any());
+//        when(entitlementService.azureEnabled(any(), any())).thenReturn(true);
     }
 
-    @AfterEach
+    //@AfterEach
     public void clienUpDb() {
         proxyConfigRepository.deleteAll();
         credentialRepository.deleteAll();
@@ -154,7 +152,8 @@ public class EnvironmentServiceIntegrationTest {
     public void testCredentialCreateAws() throws InterruptedException {
         credentialRequest.setAws(getAwsKeyBasedCredentialParameters(false, "yyy", "zzzz"));
         credentialRequest.setCloudPlatform("AWS");
-        credentialRequest.setName("testcredential");
+        String name = "alma" + Double.valueOf(Math.floor(Math.random() * 10000)).intValue();
+        credentialRequest.setName(name);
 
         when(requestProvider.getResourceDefinitionRequest(any(), any())).thenReturn(resourceDefinitionRequest);
         when(requestProvider.getCredentialVerificationRequest(any(), any())).thenAnswer(
@@ -311,7 +310,9 @@ public class EnvironmentServiceIntegrationTest {
     @Test
     public void testProxyCreate() throws Exception {
         ProxyRequest request = getProxyRequest();
+        String name = "proxy" + Double.valueOf(Math.floor(Math.random() * 10000)).intValue();
         request.setPort(8080);
+        request.setName(name);
         ProxyResponse result = client.proxyV1Endpoint().post(request);
         assertEquals(request.getName(), result.getName());
         Optional<ProxyConfig> saved = proxyConfigRepository.findByNameInAccount(request.getName(), TEST_ACCOUNT_ID);

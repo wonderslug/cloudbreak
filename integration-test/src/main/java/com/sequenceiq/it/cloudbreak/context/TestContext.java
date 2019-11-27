@@ -150,7 +150,7 @@ public abstract class TestContext implements ApplicationContextAware {
             key = action.getClass().getSimpleName();
         }
 
-        if (!exceptionMap.isEmpty() && runningParameter.isSkipOnFail()) {
+        if (!getExceptionMap().isEmpty() && runningParameter.isSkipOnFail()) {
             LOGGER.info("Should be skipped beacause of previous error. when [{}]", key);
             return entity;
         }
@@ -159,14 +159,18 @@ public abstract class TestContext implements ApplicationContextAware {
 
         LOGGER.info("when {} action on {}, name: {}", key, entity, entity.getName());
         try {
-            return action.action(this, entity, getMicroserviceClient(clientClass, who));
+            return doAction(entity, clientClass, action, who);
         } catch (Exception e) {
             if (runningParameter.isLogError()) {
                 LOGGER.error("when [{}] action is failed: {}, name: {}", key, ResponseUtil.getErrorMessage(e), entity.getName(), e);
             }
-            exceptionMap.put(key, e);
+            getExceptionMap().put(key, e);
         }
         return entity;
+    }
+
+    protected  <T extends CloudbreakTestDto, U extends MicroserviceClient> T doAction(T entity, Class<? extends MicroserviceClient> clientClass, Action<T, U> action, String who) throws Exception {
+        return action.action(this, entity, getMicroserviceClient(clientClass, who));
     }
 
     public <T extends CloudbreakTestDto> T then(Class<T> entityClass, Class<? extends MicroserviceClient> clientClass,
@@ -189,7 +193,7 @@ public abstract class TestContext implements ApplicationContextAware {
         checkShutdown();
         String key = getKey(assertion.getClass(), runningParameter);
 
-        if (!exceptionMap.isEmpty() && runningParameter.isSkipOnFail()) {
+        if (!getExceptionMap().isEmpty() && runningParameter.isSkipOnFail()) {
             LOGGER.info("Should be skipped beacause of previous error. when [{}]", key);
             return entity;
         }
@@ -208,7 +212,7 @@ public abstract class TestContext implements ApplicationContextAware {
             if (runningParameter.isLogError()) {
                 LOGGER.error("then [{}] assertion is failed: {}, name: {}", key, ResponseUtil.getErrorMessage(e), entity.getName(), e);
             }
-            exceptionMap.put(key, e);
+            getExceptionMap().put(key, e);
         }
         return entity;
     }

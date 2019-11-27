@@ -81,7 +81,7 @@ public class DistroXClusterCreationTest extends AbstractClouderaManagerTest {
         createCmBlueprint(testContext);
     }
 
-    @Test(dataProvider = TEST_CONTEXT_WITH_MOCK)
+    @Test(dataProvider = TEST_CONTEXT_WITH_MOCK, invocationCount = 6, threadPoolSize = 3)
     @Description(
             given = "there is a running cloudbreak",
             when = "a DistroX with Cloudera Manager is created",
