@@ -16,6 +16,8 @@ public class AltusMachineUserService {
 
     private static final String FLUENT_DATABUS_MACHINE_USER_NAME_PATTERN = "%s-fluent-databus-uploader-%s";
 
+    private static final String NIFI_MACHINE_USER_NAME_PATTERN = "nifi-%s";
+
     private final AltusIAMService altusIAMService;
 
     public AltusMachineUserService(AltusIAMService altusIAMService) {
@@ -34,14 +36,11 @@ public class AltusMachineUserService {
     }
 
     /**
-     * Generate machine user for fluentd - databus communication
+     * Generate machine user
      */
-    public Optional<String> generateDatabusMachineUserForFluent(Stack stack) {
-        return altusIAMService.generateMachineUser(getMachineUserName(stack), stack.getCreator().getUserCrn());
-    }
-
-    private String getMachineUserName(Stack stack) {
-        return "";
+    public Optional<String> generateNifiMachineUser(Stack stack) {
+        String machineUserName = getNifiMachineUserName(stack);
+        return altusIAMService.generateMachineUser(machineUserName, stack.getCreator().getUserCrn());
     }
 
     /**
@@ -53,6 +52,16 @@ public class AltusMachineUserService {
             String userCrn = stack.getCreator().getUserCrn();
             altusIAMService.clearMachineUser(machineUserName, userCrn);
         }
+    }
+
+    public void clearNifiMachineUser(Stack stack) {
+        String machineUserName = getNifiMachineUserName(stack);
+        String userCrn = stack.getCreator().getUserCrn();
+        altusIAMService.clearMachineUser(machineUserName, userCrn);
+    }
+
+    public String getNifiMachineUserName(Stack stack) {
+        return String.format(NIFI_MACHINE_USER_NAME_PATTERN, stack.getName());
     }
 
     // for datalake metering is not supported/required right now

@@ -84,6 +84,7 @@ import com.sequenceiq.cloudbreak.converter.util.GatewayConvertUtil;
 import com.sequenceiq.cloudbreak.core.CloudbreakImageCatalogException;
 import com.sequenceiq.cloudbreak.core.CloudbreakImageNotFoundException;
 import com.sequenceiq.cloudbreak.core.bootstrap.service.OrchestratorTypeResolver;
+import com.sequenceiq.cloudbreak.core.cluster.ClusterMachineUserService;
 import com.sequenceiq.cloudbreak.core.flow2.service.ReactorFlowManager;
 import com.sequenceiq.cloudbreak.domain.Blueprint;
 import com.sequenceiq.cloudbreak.domain.RDSConfig;
@@ -109,7 +110,6 @@ import com.sequenceiq.cloudbreak.service.CloudbreakException;
 import com.sequenceiq.cloudbreak.service.ComponentConfigProviderService;
 import com.sequenceiq.cloudbreak.service.DuplicateKeyValueException;
 import com.sequenceiq.cloudbreak.service.StackUpdater;
-import com.sequenceiq.cloudbreak.service.altus.AltusMachineUserService;
 import com.sequenceiq.cloudbreak.service.blueprint.BlueprintService;
 import com.sequenceiq.cloudbreak.service.blueprint.BlueprintValidatorFactory;
 import com.sequenceiq.cloudbreak.service.cluster.flow.ClusterTerminationService;
@@ -222,7 +222,7 @@ public class ClusterService {
     private ClusterApiConnectors clusterApiConnectors;
 
     @Inject
-    private AltusMachineUserService altusMachineUserService;
+    private ClusterMachineUserService clusterMachineUserService;
 
     @Inject
     private UsageLoggingUtil usageLoggingUtil;
@@ -602,8 +602,7 @@ public class ClusterService {
                     Telemetry telemetry = componentConfigProviderService.getTelemetry(stackId);
                     try {
                         clusterApiConnectors.getConnector(stack).clusterModificationService().cleanupCluster(telemetry);
-                        altusMachineUserService.clearFluentMachineUser(stack, telemetry);
-                        altusMachineUserService.clearNifiMachineUser(stack, telemetry);
+                        clusterMachineUserService.delete(stack, telemetry);
                     } catch (CloudbreakException e) {
                         LOGGER.error("Cluster specific cleanup failed.", e);
                     }

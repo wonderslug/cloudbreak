@@ -12,9 +12,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import com.sequenceiq.cloudbreak.auth.altus.Crn;
 import com.sequenceiq.cloudbreak.grpc.ManagedChannelWrapper;
 import com.sequenceiq.cloudbreak.idbmms.config.IdbmmsConfig;
 import com.sequenceiq.cloudbreak.idbmms.exception.IdbmmsOperationException;
+import com.sequenceiq.cloudbreak.idbmms.model.Mappings;
 import com.sequenceiq.cloudbreak.idbmms.model.MappingsConfig;
 
 import io.grpc.ManagedChannel;
@@ -32,7 +34,7 @@ public class GrpcIdbmmsClient {
     private IdbmmsConfig idbmmsConfig;
 
     /**
-     * Retrieves IDBroker mappings from IDBMMS for a particular environment.
+     * Retrieves IDBroker mappings config from IDBMMS for a particular environment.
      *
      * @param actorCrn the actor CRN; must not be {@code null}
      * @param environmentCrn the environment CRN to get mappings for; must not be {@code null}
@@ -48,10 +50,64 @@ public class GrpcIdbmmsClient {
         try (ManagedChannelWrapper channelWrapper = makeWrapper()) {
             IdbmmsClient client = makeClient(channelWrapper.getChannel(), actorCrn);
             String effectiveRequestId = requestId.orElse(UUID.randomUUID().toString());
-            LOGGER.debug("Fetching IDBroker mappings for environment {} using request ID {}", environmentCrn, effectiveRequestId);
+            LOGGER.debug("Fetching IDBroker mappings config for environment {} using request ID {}", environmentCrn, effectiveRequestId);
             MappingsConfig mappingsConfig = client.getMappingsConfig(effectiveRequestId, environmentCrn);
-            LOGGER.debug("Retrieved IDBroker mappings of version {} for environment {}", mappingsConfig.getMappingsVersion(), environmentCrn);
+            LOGGER.debug("Retrieved IDBroker mappings config of version {} for environment {}", mappingsConfig.getMappingsVersion(), environmentCrn);
             return mappingsConfig;
+        } catch (RuntimeException e) {
+            throw new IdbmmsOperationException(String.format("Error during IDBMMS operation: %s", e.getMessage()), e);
+        }
+    }
+
+    /**
+     * Retrieves IDBroker mappings from IDBMMS for a particular environment.
+     *
+     * @param actorCrn the actor CRN; must not be {@code null}
+     * @param environmentCrn the environment CRN to get mappings for; must not be {@code null}
+     * @param requestId an optional request ID; must not be {@code null}
+     * @return the mappings associated with environment {@code environmentCrn}; never {@code null}
+     * @throws NullPointerException if either argument is {@code null}
+     * @throws IdbmmsOperationException if any problem is encountered during the IDBMMS call processing
+     */
+    public Mappings getMappings(String actorCrn, String environmentCrn, Optional<String> requestId) {
+        checkNotNull(actorCrn);
+        checkNotNull(environmentCrn);
+        checkNotNull(requestId);
+        try (ManagedChannelWrapper channelWrapper = makeWrapper()) {
+            IdbmmsClient client = makeClient(channelWrapper.getChannel(), actorCrn);
+            String effectiveRequestId = requestId.orElse(UUID.randomUUID().toString());
+            LOGGER.debug("Fetching IDBroker mappings for environment {} using request ID {}", environmentCrn, effectiveRequestId);
+            Mappings mappings = client.getMappings(effectiveRequestId, environmentCrn);
+            LOGGER.debug("Retrieved IDBroker mappings of version {} for environment {}", mappings.getMappingsVersion(), environmentCrn);
+            return mappings;
+        } catch (RuntimeException e) {
+            throw new IdbmmsOperationException(String.format("Error during IDBMMS operation: %s", e.getMessage()), e);
+        }
+    }
+
+    /**
+     * Set IDBroker mappings at IDBMMS for a particular environment.
+     *
+     * @param actorCrn the actor CRN; must not be {@code null}
+     * @param environmentCrn the environment CRN to get mappings for; must not be {@code null}
+     * @param desiredMappings a mappings that must be set for the environment; must not be {@code null}
+     * @param requestId an optional request ID; must not be {@code null}
+     * @return the mappings associated with environment {@code environmentCrn}; never {@code null}
+     * @throws NullPointerException if either argument is {@code null}
+     * @throws IdbmmsOperationException if any problem is encountered during the IDBMMS call processing
+     */
+    public Mappings setMappings(String actorCrn, String environmentCrn, Mappings desiredMappings, Optional<String> requestId) {
+        checkNotNull(actorCrn);
+        checkNotNull(environmentCrn);
+        checkNotNull(requestId);
+        try (ManagedChannelWrapper channelWrapper = makeWrapper()) {
+            IdbmmsClient client = makeClient(channelWrapper.getChannel(), actorCrn);
+            String effectiveRequestId = requestId.orElse(UUID.randomUUID().toString());
+            LOGGER.debug("Setting IDBroker mappings for environment {} using request ID {}", environmentCrn, effectiveRequestId);
+            String accountId = Crn.fromString(actorCrn).getAccountId();
+            Mappings mappings = client.setMappings(effectiveRequestId, accountId, environmentCrn, desiredMappings);
+            LOGGER.debug("Retrieved IDBroker mappings of version {} for environment {}", mappings.getMappingsVersion(), environmentCrn);
+            return mappings;
         } catch (RuntimeException e) {
             throw new IdbmmsOperationException(String.format("Error during IDBMMS operation: %s", e.getMessage()), e);
         }

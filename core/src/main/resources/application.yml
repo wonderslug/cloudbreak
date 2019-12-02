@@ -775,3 +775,9 @@ gateway:
       intervall: 10
     base.domain.name: cloudera.com
 
+altus:
+  idbmms:
+    host: localhost
+  ums:
+    host: localhost
+

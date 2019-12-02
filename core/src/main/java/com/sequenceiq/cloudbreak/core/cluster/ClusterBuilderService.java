@@ -111,6 +111,9 @@ public class ClusterBuilderService {
     @Inject
     private ResourceService resourceService;
 
+    @Inject
+    private ClusterMachineUserService clusterMachineUserService;
+
     public void startCluster(Long stackId) throws CloudbreakException, ClusterClientInitException {
         Stack stack = stackService.getByIdWithTransaction(stackId);
         ClusterApi connector = clusterApiConnectors.getConnector(stack);
@@ -124,6 +127,7 @@ public class ClusterBuilderService {
         stack.setResources(new HashSet<>(resourceService.getAllByStackId(stackId)));
         ClusterApi connector = clusterApiConnectors.getConnector(stack);
         Set<HostGroup> hostGroups = hostGroupService.getByClusterWithRecipes(stack.getCluster().getId());
+        clusterMachineUserService.create(stack);
         Cluster cluster = stack.getCluster();
         clusterService.updateCreationDateOnCluster(cluster);
         TemplatePreparationObject templatePreparationObject = conversionService.convert(stack, TemplatePreparationObject.class);

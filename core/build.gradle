@@ -236,6 +236,8 @@ dependencies {
   compile project(':cluster-dns-connector')
   compile project(':cluster-proxy')
 
+  implementation     project(":idbmms-connector")
+
   runtime project(':orchestrator-salt')
   runtime project(':orchestrator-yarn')
   runtime project(':cloud-reactor')
