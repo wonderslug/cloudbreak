@@ -133,6 +133,24 @@ class IdbmmsClient {
     }
 
     /**
+     * Wraps a call to {@code SyncMappings}.
+     *
+     * @param accountId the request ID for the request; must not be {@code null}
+     * @param environmentCrn the environment CRN; must not be {@code null}
+     * @throws NullPointerException if either argument is {@code null}
+     */
+    void syncMappings(String accountId, String environmentCrn) {
+        checkNotNull(accountId);
+        checkNotNull(environmentCrn);
+        newStub(accountId).syncMappings(
+                IdBrokerMappingManagementProto.SyncMappingsRequest.newBuilder()
+                        .setAccountId(accountId)
+                        .setEnvironmentNameOrCrn(environmentCrn)
+                        .build()
+        );
+    }
+
+    /**
      * Creates a new stub with the appropriate metadata injecting interceptors.
      *
      * @param requestId the request ID

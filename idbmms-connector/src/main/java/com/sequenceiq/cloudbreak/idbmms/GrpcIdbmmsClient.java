@@ -137,6 +137,26 @@ public class GrpcIdbmmsClient {
         }
     }
 
+    /**
+     * Syncs the IDBroker mappings in IDBMMS for the particular environment.
+     *
+     * @param actorCrn the CRN of the cluster's owner; must not be {@code null}
+     * @param environmentCrn the environment CRN of the environment; must not be {@code null}
+     */
+    public void syncMappings(String actorCrn, String environmentCrn) {
+        checkNotNull(actorCrn);
+        checkNotNull(environmentCrn);
+        try (ManagedChannelWrapper channelWrapper = makeWrapper()) {
+            IdbmmsClient client = makeClient(channelWrapper.getChannel(), actorCrn);
+            LOGGER.debug("Trigger sync on IDBroker mappings for environment {}", environmentCrn);
+            String accountId = Crn.fromString(actorCrn).getAccountId();
+            client.syncMappings(accountId, environmentCrn);
+            LOGGER.debug("Sync has been triggered on IDBroker mappings for environment {}", environmentCrn);
+        } catch (RuntimeException e) {
+            throw new IdbmmsOperationException(String.format("Error during IDBMMS sync mappings: %s", e.getMessage()), e);
+        }
+    }
+
     private ManagedChannelWrapper makeWrapper() {
         return new ManagedChannelWrapper(
                 ManagedChannelBuilder.forAddress(idbmmsConfig.getEndpoint(), idbmmsConfig.getPort())

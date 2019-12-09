@@ -77,7 +77,8 @@ public class ClusterMachineUserService {
         String environmentCrn = stack.getEnvironmentCrn();
         Mappings actualMappings = getMappingsOfEnvironment(actorCrn, environmentCrn);
         updateMappingsOfMachineUserOnEnvironment(machineUserCrn, actorCrn, environmentCrn, actualMappings, updateOperation);
-        //TODO IDBMMS synch mappings needs to be implemented and called
+        //TODO polling of IDBMMS role syncs should be implemented
+        grpcIdbmmsClient.syncMappings(actorCrn, environmentCrn);
     }
 
     private Mappings getMappingsOfEnvironment(String actorCrn, String environmentCrn) {
