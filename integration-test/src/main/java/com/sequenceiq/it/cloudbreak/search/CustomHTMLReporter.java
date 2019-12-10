@@ -23,6 +23,9 @@ import org.testng.xml.XmlSuite;
 import org.uncommons.reportng.HTMLReporter;
 import org.uncommons.reportng.ReportNGException;
 
+import com.sequenceiq.it.cloudbreak.performance.KeyPerformanceIndicator;
+import com.sequenceiq.it.cloudbreak.performance.Util;
+
 public class CustomHTMLReporter extends HTMLReporter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CustomHTMLReporter.class);
@@ -96,6 +99,10 @@ public class CustomHTMLReporter extends HTMLReporter {
                 context.put(FAILED_TESTS_KEY, sortByTestClass(result.getTestContext().getFailedTests()));
                 context.put(SKIPPED_TESTS_KEY, sortByTestClass(result.getTestContext().getSkippedTests()));
                 context.put(PASSED_TESTS_KEY, sortByTestClass(result.getTestContext().getPassedTests()));
+                KeyPerformanceIndicator keyIndicators = Util.getKeyPerformance(result.getTestContext());
+                if (keyIndicators != null) {
+                    context.put(Util.KEY_PERFORMANCE_INDICATOR, keyIndicators);
+                }
                 String fileName = String.format("suite%d_test%d_%s", suiteIndex, testIndex, RESULTS_FILE);
                 File file = new File(outputDirectory, fileName);
                 FileUtils.deleteQuietly(file);
