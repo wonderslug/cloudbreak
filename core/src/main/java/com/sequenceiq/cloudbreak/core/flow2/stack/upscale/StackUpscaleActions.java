@@ -125,7 +125,9 @@ public class StackUpscaleActions {
                         getInstanceCountToCreate(context.getStack(), context.getInstanceGroupName(), context.getAdjustment()));
                 Stack updatedStack = instanceMetaDataService.saveInstanceAndGetUpdatedStack(context.getStack(), newInstances, false);
                 CloudStack cloudStack = cloudStackConverter.convert(updatedStack);
-                return new UpscaleStackValidationRequest<UpscaleStackValidationResult>(context.getCloudContext(), context.getCloudCredential(), cloudStack);
+                String instanceType = updatedStack.getInstanceGroupByInstanceGroupName(context.getInstanceGroupName()).getTemplate().getInstanceType();
+                return new UpscaleStackValidationRequest<UpscaleStackValidationResult>(context.getCloudContext(), context.getCloudCredential(), cloudStack,
+                        newInstances.size(), instanceType);
             }
         };
     }

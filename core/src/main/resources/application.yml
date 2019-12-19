@@ -136,6 +136,26 @@ cb:
     ssl: false
 
   aws:
+    instancetypequotacodes:
+      codes:
+        -
+          regex: "(^a.*\\.*$)|(^c.*\\.*$)|(^d.*\\.*$)|(^h.*\\.*$)|(^i.*\\.*$)|(^m.*\\.*$)|(^r.*\\.*$)|(^t.*\\.*$)|(^z.*\\.*$)"
+          code: "L-1216C47A"
+        -
+          regex: "(^f.*\\.*$)"
+          code: "L-74FC7D96"
+        -
+          regex: "(^g.*\\.*$)"
+          code: "L-DB2E81BA"
+        -
+          regex: "(^inf.*\\.*$)"
+          code: "L-1945791B"
+        -
+          regex: "(^p.*\\.*$)"
+          code: "L-417A185B"
+        -
+          regex: "(^x.*\\.*$)"
+          code: "L-7295265B"
     spotinstances.enabled: true
     disabled.instance.types:
     distrox:

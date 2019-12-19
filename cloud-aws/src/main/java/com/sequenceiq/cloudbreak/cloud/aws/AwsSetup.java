@@ -3,6 +3,9 @@ package com.sequenceiq.cloudbreak.cloud.aws;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -21,18 +24,23 @@ import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult;
 import com.amazonaws.services.autoscaling.model.Instance;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2Client;
+import com.amazonaws.services.ec2.model.DescribeInstanceTypesRequest;
+import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
 import com.amazonaws.services.ec2.model.DescribeInternetGatewaysRequest;
 import com.amazonaws.services.ec2.model.DescribeInternetGatewaysResult;
 import com.amazonaws.services.ec2.model.DescribeKeyPairsRequest;
 import com.amazonaws.services.ec2.model.DescribeKeyPairsResult;
 import com.amazonaws.services.ec2.model.DescribeSubnetsRequest;
 import com.amazonaws.services.ec2.model.DescribeSubnetsResult;
+import com.amazonaws.services.ec2.model.InstanceTypeInfo;
 import com.amazonaws.services.ec2.model.InternetGateway;
 import com.amazonaws.services.ec2.model.InternetGatewayAttachment;
 import com.amazonaws.services.ec2.model.Subnet;
+import com.amazonaws.services.servicequotas.model.GetServiceQuotaRequest;
 import com.sequenceiq.cloudbreak.cloud.Setup;
 import com.sequenceiq.cloudbreak.cloud.aws.client.AmazonAutoScalingRetryClient;
 import com.sequenceiq.cloudbreak.cloud.aws.client.AmazonCloudFormationRetryClient;
+import com.sequenceiq.cloudbreak.cloud.aws.client.AmazonServiceQuotaRetryClient;
 import com.sequenceiq.cloudbreak.cloud.aws.view.AwsCredentialView;
 import com.sequenceiq.cloudbreak.cloud.aws.view.AwsInstanceView;
 import com.sequenceiq.cloudbreak.cloud.aws.view.AwsNetworkView;
@@ -91,6 +99,9 @@ public class AwsSetup implements Setup {
 
     @Inject
     private AwsInstanceConnector instanceConnector;
+
+    @Inject
+    private AwsInstanceTypeQuotaCodesConfig instanceTypeQuotaCodesConfig;
 
     @Override
     public ImageStatusResult checkImageStatus(AuthenticatedContext authenticatedContext, CloudStack stack, Image image) {
@@ -217,6 +228,7 @@ public class AwsSetup implements Setup {
         if (!upscale) {
             return;
         }
+
         AmazonCloudFormationRetryClient cloudFormationClient = awsClient.createCloudFormationRetryClient(new AwsCredentialView(ac.getCloudCredential()),
                 ac.getCloudContext().getLocation().getRegion().value());
         AmazonAutoScalingRetryClient amazonASClient = awsClient.createAutoScalingRetryClient(new AwsCredentialView(ac.getCloudCredential()),
@@ -255,5 +267,78 @@ public class AwsSetup implements Setup {
                 throw new CloudConnectorException(errorMessage);
             }
         }
+    }
+
+    @Override
+    public void checkQuotas(AuthenticatedContext authenticatedContext, int instancesToCreate, String targetInstanceType) {
+        AmazonEC2Client amazonEC2Client = getEC2Client(authenticatedContext);
+        AmazonServiceQuotaRetryClient amazonServiceQuotaRetryClient = getServiceQuotasClient(authenticatedContext);
+        checkVCPUQuota(instancesToCreate, targetInstanceType, amazonEC2Client, amazonServiceQuotaRetryClient);
+    }
+
+    private void checkVCPUQuota(int instancesToCreate, String targetInstanceType, AmazonEC2Client amazonEC2Client, AmazonServiceQuotaRetryClient amazonServiceQuotaRetryClient) {
+        Optional<AwsQuotaCodeModel> quotaCodeModel = instanceTypeQuotaCodesConfig.getCodes().stream()
+                .filter(awsQuotaCodeModel -> targetInstanceType.matches(awsQuotaCodeModel.getRegex()))
+                .findFirst();
+        ConcurrentHashMap<String, AtomicInteger> instanceCountMap = collectCountOfRelatedInstances(amazonEC2Client, quotaCodeModel.get().getRegex());
+        List<InstanceTypeInfo> instanceTypeInfos = getInstanceTypeInfos(amazonEC2Client, instanceCountMap);
+        AtomicInteger currentVCPUUsage = calculateCurrentVCPUUsage(instanceCountMap, instanceTypeInfos);
+        Optional<InstanceTypeInfo> targetInstanceTypeInfo = instanceTypeInfos.stream()
+                .filter(instanceTypeInfo -> instanceTypeInfo.getInstanceType().contentEquals(targetInstanceType))
+                .findFirst();
+        if (targetInstanceTypeInfo.isPresent()) {
+            int requiredAdditionalVCPU = instancesToCreate * targetInstanceTypeInfo.get().getVCpuInfo().getDefaultVCpus();
+            Double limit = getQuota(amazonServiceQuotaRetryClient, quotaCodeModel.get().getCode());
+            if (limit < currentVCPUUsage.get() + requiredAdditionalVCPU) {
+                throw new CloudConnectorException("Your request would hit the vCPU limit for " + targetInstanceType + " instance type, aborting upscale.");
+            }
+        } else {
+            throw new CloudConnectorException("Not found information about vCPU quota of target instance type " + targetInstanceType + ", aborting upscale.");
+        }
+    }
+
+    private AtomicInteger calculateCurrentVCPUUsage(ConcurrentHashMap<String, AtomicInteger> instanceCountMap, List<InstanceTypeInfo> instanceTypes) {
+        AtomicInteger currentVCPUUsage = new AtomicInteger();
+        instanceTypes.stream()
+            .forEach(instanceTypeInfo -> {
+                currentVCPUUsage.addAndGet(instanceCountMap.get(instanceTypeInfo.getInstanceType()).get() * instanceTypeInfo.getVCpuInfo().getDefaultVCpus());
+            });
+        return currentVCPUUsage;
+    }
+
+    private List<InstanceTypeInfo> getInstanceTypeInfos(AmazonEC2Client amazonEC2Client, ConcurrentHashMap<String, AtomicInteger> instanceCountMap) {
+        DescribeInstanceTypesRequest describeInstanceTypesRequest = new DescribeInstanceTypesRequest();
+        describeInstanceTypesRequest.setInstanceTypes(instanceCountMap.keySet());
+        return amazonEC2Client.describeInstanceTypes(describeInstanceTypesRequest).getInstanceTypes();
+    }
+
+    private ConcurrentHashMap<String, AtomicInteger> collectCountOfRelatedInstances(AmazonEC2Client amazonEC2Client, String regex) {
+        ConcurrentHashMap<String, AtomicInteger> instanceCountMap = new ConcurrentHashMap<String, AtomicInteger>();
+        amazonEC2Client.describeInstances(new DescribeInstancesRequest()).getReservations().stream()
+                .map(rs -> rs.getInstances())
+                .flatMap(List::stream)
+                .filter(instance -> instance.getInstanceType().matches(regex))
+                .forEach(instance -> {
+                    instanceCountMap.putIfAbsent(instance.getInstanceType(), new AtomicInteger());
+                    instanceCountMap.get(instance.getInstanceType()).incrementAndGet();
+                });
+        return instanceCountMap;
+    }
+
+    private Double getQuota(AmazonServiceQuotaRetryClient amazonServiceQuotaRetryClient, String quotaCode) {
+        GetServiceQuotaRequest getServiceQuotaRequest = new GetServiceQuotaRequest();
+        getServiceQuotaRequest.setServiceCode("ec2");
+        getServiceQuotaRequest.setQuotaCode(quotaCode);
+        return amazonServiceQuotaRetryClient.getServiceQuotaResult(getServiceQuotaRequest).getQuota().getValue();
+    }
+
+    private AmazonEC2Client getEC2Client(AuthenticatedContext ac) {
+        return awsClient.createAccess(new AwsCredentialView(ac.getCloudCredential()),
+                ac.getCloudContext().getLocation().getRegion().value());
+    }
+
+    private AmazonServiceQuotaRetryClient getServiceQuotasClient(AuthenticatedContext ac) {
+        return awsClient.createServiceQuotasRetryClient(new AwsCredentialView(ac.getCloudCredential()),
+                ac.getCloudContext().getLocation().getRegion().value());
     }
 }
