@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.sequenceiq.cloudbreak.orchestrator.exception.CloudbreakOrchestratorFailedException;
+import com.sequenceiq.cloudbreak.orchestrator.exception.CloudbreakOrchestratorTimeoutException;
 import com.sequenceiq.cloudbreak.orchestrator.model.GatewayConfig;
 import com.sequenceiq.cloudbreak.orchestrator.model.Node;
 import com.sequenceiq.cloudbreak.orchestrator.model.RecipeModel;
@@ -16,14 +17,15 @@ public interface HostRecipeExecutor {
             throws CloudbreakOrchestratorFailedException;
 
     void preAmbariStartRecipes(GatewayConfig gatewayConfig, Set<Node> allNodes, ExitCriteriaModel exitCriteriaModel)
-        throws CloudbreakOrchestratorFailedException;
+            throws CloudbreakOrchestratorFailedException, CloudbreakOrchestratorTimeoutException;
 
     void postAmbariStartRecipes(GatewayConfig gatewayConfig, Set<Node> allNodes, ExitCriteriaModel exitCriteriaModel)
-        throws CloudbreakOrchestratorFailedException;
+            throws CloudbreakOrchestratorFailedException, CloudbreakOrchestratorTimeoutException;
 
     void preTerminationRecipes(GatewayConfig gatewayConfig, Set<Node> allNodes, ExitCriteriaModel exitCriteriaModel, boolean forced)
-            throws CloudbreakOrchestratorFailedException;
+            throws CloudbreakOrchestratorFailedException, CloudbreakOrchestratorTimeoutException;
 
-    void postInstallRecipes(GatewayConfig gatewayConfig, Set<Node> allNodes, ExitCriteriaModel exitCriteriaModel) throws CloudbreakOrchestratorFailedException;
+    void postInstallRecipes(GatewayConfig gatewayConfig, Set<Node> allNodes, ExitCriteriaModel exitCriteriaModel)
+            throws CloudbreakOrchestratorFailedException, CloudbreakOrchestratorTimeoutException;
 
 }
