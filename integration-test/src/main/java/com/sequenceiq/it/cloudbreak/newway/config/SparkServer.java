@@ -179,7 +179,7 @@ public class SparkServer {
         if (sparkService != null) {
             sparkService.stop();
             customAwait(sparkService);
-            LOGGER.info("spark server has stopped.");
+            LOGGER.info("spark server has stopped.", new RuntimeException());
         }
     }
 }
