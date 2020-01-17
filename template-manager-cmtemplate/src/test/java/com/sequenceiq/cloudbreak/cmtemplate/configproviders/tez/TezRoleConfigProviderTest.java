@@ -1,12 +1,15 @@
 package com.sequenceiq.cloudbreak.cmtemplate.configproviders.tez;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.sequenceiq.cloudbreak.cloud.model.ClouderaManagerProduct;
+import com.sequenceiq.cloudbreak.cloud.model.ClouderaManagerRepo;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -30,8 +33,12 @@ public class TezRoleConfigProviderTest {
 
     @Test
     public void testGetTezClientRoleConfigs() {
-        validateClientConfig("s3a://hive/warehouse/external", "s3a://hive/warehouse/external/sys.db");
-        validateClientConfig("s3a://hive/warehouse/external/", "s3a://hive/warehouse/external/sys.db");
+        validateClientConfig("s3a://hive/warehouse/external",
+                "s3a://hive/warehouse/external/sys.db",
+                "s3a://hive/user/tez/7.0.2-1.cdh7.0.2.p2.1711788/tez.tar.gz");
+        validateClientConfig("s3a://hive/warehouse/external/",
+                "s3a://hive/warehouse/external/sys.db",
+                "s3a://hive/user/tez/7.0.2-1.cdh7.0.2.p2.1711788/tez.tar.gz");
     }
 
     @Test
@@ -45,7 +52,7 @@ public class TezRoleConfigProviderTest {
         assertEquals(0, tezConfigs.size());
     }
 
-    protected void validateClientConfig(String hmsExternalDirLocation, String protoDirLocation) {
+    protected void validateClientConfig(String hmsExternalDirLocation, String protoDirLocation, String tezLibUri) {
         TemplatePreparationObject preparationObject = getTemplatePreparationObject(hmsExternalDirLocation);
         String inputJson = getBlueprintText("input/clouderamanager-ds.bp");
         CmTemplateProcessor cmTemplateProcessor = new CmTemplateProcessor(inputJson);
@@ -55,8 +62,10 @@ public class TezRoleConfigProviderTest {
 
         assertEquals(1, tezConfigs.size());
         assertEquals("tez-conf/tez-site.xml_client_config_safety_valve", tezConfigs.get(0).getName());
-        assertEquals("<property><name>tez.history.logging.proto-base-dir</name><value>"
-                + protoDirLocation + "</value></property>", tezConfigs.get(0).getValue());
+        assertTrue(tezConfigs.get(0).getValue().contains("<property><name>tez.history.logging.proto-base-dir</name><value>"
+                + protoDirLocation + "</value></property>"));
+        assertTrue(tezConfigs.get(0).getValue().contains("<property><name>tez.lib.uris</name><value>"
+                + tezLibUri + "</value></property>"));
     }
 
     private TemplatePreparationObject getTemplatePreparationObject(String... locations) {
@@ -73,7 +82,14 @@ public class TezRoleConfigProviderTest {
         S3FileSystemConfigurationsView fileSystemConfigurationsView =
                 new S3FileSystemConfigurationsView(new S3FileSystem(), storageLocations, false);
 
+        ArrayList<ClouderaManagerProduct> products = new ArrayList<>();
+        ClouderaManagerProduct cdh = new ClouderaManagerProduct();
+        cdh.setName("cdh");
+        cdh.setVersion("7.0.2-1.cdh7.0.2.p2.1711788");
+        products.add(cdh);
+
         return Builder.builder().withFileSystemConfigurationView(fileSystemConfigurationsView)
+                .withProductDetails(new ClouderaManagerRepo(), products)
                 .withHostgroupViews(Set.of(master, worker)).build();
     }
 
