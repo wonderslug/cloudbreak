@@ -7,6 +7,10 @@
     "domainName": "cloudera.site",
     "hostgroupNameAsHostname": true
   },
+  "image": {
+    "os": "centos7",
+    "id" : "436113f6-0063-4091-4729-10f2aa521d38"
+  },
   "instanceGroups": [
     {
       "name": "idbroker",

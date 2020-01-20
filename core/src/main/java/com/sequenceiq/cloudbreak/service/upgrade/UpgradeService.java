@@ -153,7 +153,8 @@ public class UpgradeService {
                         NOT_BASE_IMAGE,
                         NOT_BASE_IMAGE,
                         user,
-                        getImageFilter(image, stack));
+                        null);
+                        //getImageFilter(image, stack));
     }
 
     private ImageSettingsV4Request toImageSettingsRequest(Image image) {
