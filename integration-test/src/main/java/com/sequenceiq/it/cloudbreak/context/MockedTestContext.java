@@ -17,7 +17,7 @@ import com.sequenceiq.it.cloudbreak.spark.SparkServer;
 import com.sequenceiq.it.cloudbreak.spark.SparkServerFactory;
 
 @Prototype
-public class MockedTestContext extends TestContext implements AutoCloseable, MockTestContext {
+public class MockedTestContext extends TestContext implements MockTestContext {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MockedTestContext.class);
 
@@ -75,7 +75,6 @@ public class MockedTestContext extends TestContext implements AutoCloseable, Moc
         setShutdown(true);
     }
 
-    @Override
     public void close() {
         LOGGER.info("MockedTestContext closed. {}", sparkServer);
         sparkServerFactory.release(sparkServer);

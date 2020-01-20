@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.Nonnull;
@@ -60,6 +61,7 @@ public class SparkServerFactory {
 
     public void release(@Nonnull SparkServer sparkServer) {
         long start = System.currentTimeMillis();
+        LOGGER.info("Spark stopped somehow: {}", Arrays.asList(Thread.currentThread().getStackTrace()));
         sparkServer.stop();
         sparkServer.awaitStop();
         LOGGER.info("spark server has been cleared in {}ms.", System.currentTimeMillis() - start);
