@@ -62,8 +62,8 @@ public class SparkServerFactory {
     public void release(@Nonnull SparkServer sparkServer) {
         long start = System.currentTimeMillis();
         LOGGER.info("Spark stopped somehow: {}", Arrays.asList(Thread.currentThread().getStackTrace()));
-        sparkServer.stop();
-        sparkServer.awaitStop();
+//        sparkServer.stop();
+//        sparkServer.awaitStop();
         LOGGER.info("spark server has been cleared in {}ms.", System.currentTimeMillis() - start);
         LOGGER.info("spark server has been cleared on: https://{}", mockServerAddress + ':' + sparkServer.getPort());
         sparkServerPool.put(sparkServer);
