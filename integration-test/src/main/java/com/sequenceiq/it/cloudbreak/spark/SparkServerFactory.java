@@ -50,6 +50,8 @@ public class SparkServerFactory {
 
         LOGGER.info("Try to setup with endpoint: {}", endpoint);
         SparkServer sparkServer = sparkServerPool.pop();
+        sparkServer.stop();
+        sparkServer.awaitStop();
         sparkServer.reset(endpoint, keystoreTempFile, port, printRequestBody);
         sparkServer.init();
         sparkServer.awaitInitialization();
