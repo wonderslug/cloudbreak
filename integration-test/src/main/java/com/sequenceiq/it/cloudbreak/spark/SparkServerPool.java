@@ -3,7 +3,6 @@ package com.sequenceiq.it.cloudbreak.spark;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Optional;
 
 import javax.annotation.PreDestroy;
 
@@ -20,20 +19,9 @@ public class SparkServerPool {
 
     public SparkServer pop() {
         synchronized (servers) {
-            LOGGER.info("Spark server popped. Pool size: {}", servers.entrySet().stream().filter(Entry::getValue).count());
-            if (servers.entrySet().stream().noneMatch(Entry::getValue)) {
-                LOGGER.info("Spark server pool is empty - creating spark server. Pool size: {}", servers.entrySet().stream().filter(Entry::getValue).count());
-                SparkServer server = new SparkServer();
-                servers.put(server, Boolean.FALSE);
-                return server;
-            }
-            Optional<Entry<SparkServer, Boolean>> found = servers.entrySet().stream().filter(Entry::getValue).findFirst();
-            Entry<SparkServer, Boolean> entry = found.orElseThrow();
-            LOGGER.info("POP chosen one: {}", entry.getKey());
-            LOGGER.info("POP state: {}", entry.getKey().getEndpoint());
-            logServers();
-            entry.setValue(Boolean.FALSE);
-            return entry.getKey();
+            SparkServer sparkServer = new SparkServer();
+            servers.put(sparkServer, Boolean.FALSE);
+            return sparkServer;
         }
     }
 
