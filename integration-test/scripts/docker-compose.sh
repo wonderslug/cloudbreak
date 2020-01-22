@@ -108,6 +108,14 @@ if [[ "$CIRCLECI" ]]; then
     echo -e "\n\033[1;96m--- Test finished\033[0m\n"
 fi
 
+echo -e "\n\033[1;96m--- Collect docker stats:\033[0m\n"
+if [[ "$INTEGRATIONTEST_CLOUDPROVIDER" == "MOCK" ]]; then
+  mkdir ./integcb/docker_stats
+  docker stats --no-stream --format "{{ .NetIO }}" cbreak_commondb_1 > ./integcb/docker_stats/pg_stat_network_io.out;
+  docker stats --no-stream --format "table {{ .Name }}\t{{ .Container }}\t{{ .MemUsage }}\t{{ .MemPerc }}\t{{ .CPUPerc }}\t{{ .NetIO }}\t{{ .BlockIO }}" > ./integcb/docker_stats/all_stat.out;
+  docker exec -it cbreak_commondb_1 psql -U postgres --pset=pager=off -d cbdb -c "select * from pg_stat_statements;" --html > ./integcb/docker_stats/pg_stat_statements.html
+fi
+
 date
 echo -e "\n\033[1;96m--- Swagger check\033[0m\n"
 $INTEGCB_LOCATION/.deps/bin/docker-compose up swagger-diff
