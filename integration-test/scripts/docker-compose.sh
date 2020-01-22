@@ -3,7 +3,7 @@
 set -x
 
 : ${INTEGRATIONTEST_SUITEFILES:=${INTEGRATIONTEST_SUITE_FILES}${ADDITIONAL_SUITEFILES+,$ADDITIONAL_SUITEFILES}}
-: ${INTEGRATIONTEST_TESTSUITE_POLLINGINTERVAL:=1000}
+: ${INTEGRATIONTEST_TESTSUITE_POLLINGINTERVAL:=2000}
 : ${INTEGCB_LOCATION?"integcb location"}
 
 date
@@ -87,8 +87,8 @@ if [[ "$CIRCLECI" ]]; then
         export INTEGRATIONTEST_THREADCOUNT=4
         export INTEGRATIONTEST_CLOUDPROVIDER="AWS"
     else
-        export INTEGRATIONTEST_PARALLEL=classes
-        export INTEGRATIONTEST_THREADCOUNT=20
+        export INTEGRATIONTEST_PARALLEL=methods
+        export INTEGRATIONTEST_THREADCOUNT=10
         export INTEGRATIONTEST_CLOUDPROVIDER="MOCK"
     fi
 
@@ -104,7 +104,7 @@ if [[ "$CIRCLECI" ]]; then
     echo -e "\n\033[1;96m--- Start testing... (it may take few minutes to finish.)\033[0m\n"
     rm -rf test-output
 
-    $INTEGCB_LOCATION/.deps/bin/docker-compose up test > test.out
+    $INTEGCB_LOCATION/.deps/bin/docker-compose up test | tee test.out
     echo -e "\n\033[1;96m--- Test finished\033[0m\n"
 fi
 

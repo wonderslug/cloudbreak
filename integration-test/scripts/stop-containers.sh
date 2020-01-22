@@ -15,3 +15,5 @@ echo -e "\n\033[1;96m--- Save SDX log to datalake.log file"
 docker logs cbreak_datalake_1 &> ../datalake.log;
 echo -e "\n\033[1;96m--- Save Redbeams log to redbeams.log file"
 docker logs cbreak_redbeams_1 &> ../redbeams.log;
+
+cp -R logs ../test-container-logs
