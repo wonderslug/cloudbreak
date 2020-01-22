@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.sequenceiq.cloudbreak.cmtemplate.configproviders.ConfigUtils.config;
-import static com.sequenceiq.cloudbreak.cmtemplate.configproviders.ConfigUtils.getBasePathFromStorageLocation;
+import static com.sequenceiq.cloudbreak.cmtemplate.configproviders.core.CoreConfigProvider.CORE_DEFAULTFS;
 import static com.sequenceiq.cloudbreak.cmtemplate.configproviders.hive.HiveMetastoreCloudStorageServiceConfigProvider.HMS_METASTORE_EXTERNAL_DIR;
 
 @Component
@@ -32,38 +32,13 @@ public class TezRoleConfigProvider extends AbstractRoleConfigProvider {
 
     private static final String TEZ_TAR_GZ = "tez.tar.gz";
 
-    @Override
-    protected List<ApiClusterTemplateConfig> getRoleConfigs(String roleType, TemplatePreparationObject source) {
-        switch (roleType) {
-            case TezRoles.GATEWAY:
-                Optional<StorageLocationView> storageLocationForServiceProperty =
-                        ConfigUtils.getStorageLocationForServiceProperty(source, HMS_METASTORE_EXTERNAL_DIR);
-
-                String tezLoggingUrisSafetyValueProperty  = storageLocationForServiceProperty
-                        .map(location -> location.getValue().replaceAll("/?$", "") + TEZ_LOGGING_PROTO_BASE_DIR_SUFFIX)
-                        .map(logDir -> ConfigUtils.getSafetyValveProperty(TEZ_LOGGING_PROTO_BASE_DIR_PARAM, logDir))
-                        .orElse("");
-
-                String tezLibUrisSafetyValueProperty = storageLocationForServiceProperty
-                        .map(location -> getBasePathFromStorageLocation(location.getValue()))
-                        .map(basePath -> ConfigUtils.getSafetyValveProperty(TEZ_LIB_URIS, getTezLibUri(basePath, source)))
-                        .orElse("");
-
-                String value = tezLoggingUrisSafetyValueProperty + tezLibUrisSafetyValueProperty;
-
-                return "".equals(value) ? List.of() : List.of(config(TEZ_CONF_CLIENT_SAFETY_VALVE, value));
-            default:
-                return List.of();
-        }
-    }
-
     @VisibleForTesting
-    static String getTezLibUri(String basePath, TemplatePreparationObject source) {
-        basePath = basePath.replaceAll("/?$", "");
-        basePath += USER_TEZ_DIR;
-        basePath += getCdhVersion(source);
-        basePath += TEZ_TAR_GZ;
-        return basePath;
+    static String getTezLibUri(String path, TemplatePreparationObject source) {
+        path = path.replaceAll("/?$", "");
+        path += USER_TEZ_DIR;
+        path += getCdhVersion(source);
+        path += TEZ_TAR_GZ;
+        return path;
     }
 
     @VisibleForTesting
@@ -79,6 +54,28 @@ public class TezRoleConfigProvider extends AbstractRoleConfigProvider {
             return cdh.get().getVersion() + "/";
         }
         return "";
+    }
+
+    @Override
+    protected List<ApiClusterTemplateConfig> getRoleConfigs(String roleType, TemplatePreparationObject source) {
+        switch (roleType) {
+            case TezRoles.GATEWAY:
+                String tezLoggingUrisSafetyValueProperty  = ConfigUtils.getStorageLocationForServiceProperty(source, HMS_METASTORE_EXTERNAL_DIR)
+                        .map(location -> location.getValue().replaceAll("/?$", "") + TEZ_LOGGING_PROTO_BASE_DIR_SUFFIX)
+                        .map(logDir -> ConfigUtils.getSafetyValveProperty(TEZ_LOGGING_PROTO_BASE_DIR_PARAM, logDir))
+                        .orElse("");
+
+                String tezLibUrisSafetyValueProperty = ConfigUtils.getStorageLocationForServiceProperty(source, CORE_DEFAULTFS)
+                        .map(StorageLocationView::getValue)
+                        .map(fs -> ConfigUtils.getSafetyValveProperty(TEZ_LIB_URIS, getTezLibUri(fs, source)))
+                        .orElse("");
+
+                String value = tezLoggingUrisSafetyValueProperty + tezLibUrisSafetyValueProperty;
+
+                return "".equals(value) ? List.of() : List.of(config(TEZ_CONF_CLIENT_SAFETY_VALVE, value));
+            default:
+                return List.of();
+        }
     }
 
     @Override

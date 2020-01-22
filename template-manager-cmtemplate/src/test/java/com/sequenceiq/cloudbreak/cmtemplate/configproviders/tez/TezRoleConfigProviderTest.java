@@ -1,5 +1,6 @@
 package com.sequenceiq.cloudbreak.cmtemplate.configproviders.tez;
 
+import static com.sequenceiq.cloudbreak.cmtemplate.configproviders.core.CoreConfigProvider.CORE_DEFAULTFS;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -34,11 +35,11 @@ public class TezRoleConfigProviderTest {
     @Test
     public void testGetTezClientRoleConfigs() {
         validateClientConfig("s3a://hive/warehouse/external",
-                "s3a://hive/warehouse/external/sys.db",
-                "s3a://hive/user/tez/7.0.2-1.cdh7.0.2.p2.1711788/tez.tar.gz");
+                "s3a://datahubName", "s3a://hive/warehouse/external/sys.db",
+                "s3a://datahubName/user/tez/7.0.2-1.cdh7.0.2.p2.1711788/tez.tar.gz");
         validateClientConfig("s3a://hive/warehouse/external/",
-                "s3a://hive/warehouse/external/sys.db",
-                "s3a://hive/user/tez/7.0.2-1.cdh7.0.2.p2.1711788/tez.tar.gz");
+                "s3a://datahubName/", "s3a://hive/warehouse/external/sys.db",
+                "s3a://datahubName/user/tez/7.0.2-1.cdh7.0.2.p2.1711788/tez.tar.gz");
     }
 
     @Test
@@ -52,8 +53,8 @@ public class TezRoleConfigProviderTest {
         assertEquals(0, tezConfigs.size());
     }
 
-    protected void validateClientConfig(String hmsExternalDirLocation, String protoDirLocation, String tezLibUri) {
-        TemplatePreparationObject preparationObject = getTemplatePreparationObject(hmsExternalDirLocation);
+    protected void validateClientConfig(String hmsExternalDirLocation, String datahubDirLocation, String protoDirLocation, String tezLibUri) {
+        TemplatePreparationObject preparationObject = getTemplatePreparationObject(hmsExternalDirLocation, datahubDirLocation);
         String inputJson = getBlueprintText("input/clouderamanager-ds.bp");
         CmTemplateProcessor cmTemplateProcessor = new CmTemplateProcessor(inputJson);
 
@@ -78,6 +79,11 @@ public class TezRoleConfigProviderTest {
             hmsExternalWarehouseDir.setProperty("hive.metastore.warehouse.external.dir");
             hmsExternalWarehouseDir.setValue(locations[0]);
             storageLocations.add(new StorageLocationView(hmsExternalWarehouseDir));
+
+            StorageLocation datahubDirLocation = new StorageLocation();
+            datahubDirLocation.setProperty(CORE_DEFAULTFS);
+            datahubDirLocation.setValue(locations[1]);
+            storageLocations.add(new StorageLocationView(datahubDirLocation));
         }
         S3FileSystemConfigurationsView fileSystemConfigurationsView =
                 new S3FileSystemConfigurationsView(new S3FileSystem(), storageLocations, false);
