@@ -22,6 +22,9 @@ import java.util.function.Function;
 
 import javax.inject.Inject;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import com.sequenceiq.cloudbreak.api.endpoint.v4.autoscales.request.InstanceGroupAdjustmentV4Request;
@@ -72,6 +75,7 @@ import reactor.rx.Promise;
  */
 @Service
 public class ReactorFlowManager {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ReactorFlowManager.class);
 
     private static final long WAIT_FOR_ACCEPT = 10L;
 
@@ -241,12 +245,21 @@ public class ReactorFlowManager {
         notifyWithoutCheck(stackId, selector, new StackEvent(selector, stackId));
     }
 
+    @Async
     public void triggerClusterTermination(Stack stack, boolean forced) {
+        LOGGER.debug("Async termination flow trigger for stack: '{}', forced: '{}'", stack.getName(), forced);
+        long startedAt = System.currentTimeMillis();
         Long stackId = stack.getId();
-        boolean secure = kerberosConfigService.isKerberosConfigExistsForEnvironment(stack.getEnvironmentCrn(), stack.getName());
+        boolean secure = false;
+        try {
+            secure = kerberosConfigService.isKerberosConfigExistsForEnvironment(stack.getEnvironmentCrn(), stack.getName());
+        } catch (Exception ex) {
+            LOGGER.warn("Failed to get Kerberos config from FreeIPA service.", ex);
+        }
         String selector = secure ? FlowChainTriggers.PROPER_TERMINATION_TRIGGER_EVENT : FlowChainTriggers.TERMINATION_TRIGGER_EVENT;
         notify(stackId, selector, new TerminationEvent(selector, stackId, forced));
         cancelRunningFlows(stackId);
+        LOGGER.debug("Async termination flow trigger for stack: '{}' took '{}' ms", stack.getName(), System.currentTimeMillis() - startedAt);
     }
 
     public void triggerManualRepairFlow(Long stackId) {

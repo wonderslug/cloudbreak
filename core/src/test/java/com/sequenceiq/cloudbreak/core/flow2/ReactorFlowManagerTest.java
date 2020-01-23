@@ -30,6 +30,7 @@ import com.sequenceiq.cloudbreak.api.endpoint.v4.common.Status;
 import com.sequenceiq.cloudbreak.api.endpoint.v4.stacks.request.HostGroupAdjustmentV4Request;
 import com.sequenceiq.cloudbreak.auth.security.authentication.AuthenticatedUserService;
 import com.sequenceiq.cloudbreak.common.event.Acceptable;
+import com.sequenceiq.cloudbreak.common.exception.CloudbreakServiceException;
 import com.sequenceiq.cloudbreak.core.flow2.chain.FlowChainTriggers;
 import com.sequenceiq.cloudbreak.core.flow2.service.ReactorFlowManager;
 import com.sequenceiq.cloudbreak.domain.stack.Stack;
@@ -177,6 +178,20 @@ public class ReactorFlowManagerTest {
         underTest.triggerClusterTermination(stack, false);
 
         verify(reactor).notify(eq(FlowChainTriggers.PROPER_TERMINATION_TRIGGER_EVENT), any(Event.class));
+    }
+
+    @Test
+    public void testClusterTerminationShouldTriggerStackTerminationWhenKerberosConfigCouldNotBeGot() {
+        Stack stack = TestUtil.stack();
+        stack.setCluster(TestUtil.cluster());
+        stack.setEnvironmentCrn("env");
+        when(stackService.getByIdWithTransaction(anyLong())).thenReturn(stack);
+        when(kerberosConfigService.isKerberosConfigExistsForEnvironment("env", stack.getName()))
+                .thenThrow(new CloudbreakServiceException("FreeIPA Internal server error...."));
+
+        underTest.triggerClusterTermination(stack, false);
+
+        verify(reactor).notify(eq(FlowChainTriggers.TERMINATION_TRIGGER_EVENT), any(Event.class));
     }
 
     @Test
