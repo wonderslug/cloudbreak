@@ -110,9 +110,10 @@ fi
 
 echo -e "\n\033[1;96m--- Collect docker stats:\033[0m\n"
 if [[ "$INTEGRATIONTEST_CLOUDPROVIDER" == "MOCK" ]]; then
-  docker stats --no-stream --format "{{ .NetIO }}" cbreak_commondb_1 > ./integcb/pg_stat_network_io.result;
-  docker stats --no-stream --format "table {{ .Name }}\t{{ .Container }}\t{{ .MemUsage }}\t{{ .MemPerc }}\t{{ .CPUPerc }}\t{{ .NetIO }}\t{{ .BlockIO }}" > ./integcb/all_docker_stat.result;
-  docker exec cbreak_commondb_1 psql -U postgres --pset=pager=off -d cbdb -c "select * from pg_stat_statements;" --html > ./integcb/pg_stat_statements.html.result
+  mkdir test-output/docker_stats
+  docker stats --no-stream --format "{{ .NetIO }}" cbreak_commondb_1 > ./test-output/docker_stats/pg_stat_network_io.result;
+  docker stats --no-stream --format "table {{ .Name }}\t{{ .Container }}\t{{ .MemUsage }}\t{{ .MemPerc }}\t{{ .CPUPerc }}\t{{ .NetIO }}\t{{ .BlockIO }}" > ./test-output/docker_stats/all_docker_stat.result;
+  docker exec cbreak_commondb_1 psql -U postgres --pset=pager=off -d cbdb -c "select * from pg_stat_statements;" --html > ./test-output/docker_stats/pg_stat_statements.html.result
 fi
 
 date

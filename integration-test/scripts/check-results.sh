@@ -33,12 +33,12 @@ if [[ "$CIRCLECI" ]]; then
     if [[ "$INTEGRATIONTEST_CLOUDPROVIDER" == "MOCK" ]]; then
       docker run --rm \
        -v $(PWD)/scripts/analyse_postges_stat.jsh:/opt/analyse_postgres_stat.jsh \
-       -v $(PWD)/integcb/pg_stat_network_io.result:/tmp/pg_stat_network_io.result \
+       -v $(PWD)/test-output/docker_stats/pg_stat_network_io.result:/tmp/pg_stat_network_io.result \
        --env INTEGRATION_TEST_MAX_POSTGRES_OUTPUT=${max_pg_network_output} \
        openjdk:11-jdk \
-       jshell /opt/analyse_postgres_stat.jsh |  grep "POSTGRES" > ./integcb/pg_stat_network_io_analysed.result;
+       jshell /opt/analyse_postgres_stat.jsh |  grep "POSTGRES" > ./test-output/docker_stats/pg_stat_network_io_analysed.result;
 
-      pg_res=$(cat ./integcb/pg_stat_network_io_analysed.result);
+      pg_res=$(cat ./test-output/docker_stats/pg_stat_network_io_analysed.result);
       if [[ "$pg_res" == "POSTGRES>> OK" ]]; then
         echo -e "\n\033[0;92m+++ Postgres traffic is below ${max_pg_network_output} limit.";
       else
