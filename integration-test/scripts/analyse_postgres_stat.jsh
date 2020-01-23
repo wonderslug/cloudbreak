@@ -50,7 +50,7 @@ class Traffic {
 }
 
 try {
-    List<String> pgStat = Files.readAllLines(Paths.get("/tmp/pg_stat.out"));
+    List<String> pgStat = Files.readAllLines(Paths.get("/tmp/pg_stat_network_io.result"));
 
     if (pgStat.size() != 1) {
         throw new IllegalArgumentException("Expected one line for postgres network statistics. Got:" + pgStat);
