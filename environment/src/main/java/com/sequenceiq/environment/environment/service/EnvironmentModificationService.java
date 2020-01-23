@@ -1,6 +1,5 @@
 package com.sequenceiq.environment.environment.service;
 
-import java.util.Map;
 import java.util.Optional;
 
 import javax.ws.rs.BadRequestException;
@@ -10,7 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import com.sequenceiq.cloudbreak.cloud.model.CloudSubnet;
 import com.sequenceiq.cloudbreak.common.exception.NotFoundException;
 import com.sequenceiq.cloudbreak.validation.ValidationResult;
 import com.sequenceiq.environment.api.v1.environment.model.base.IdBrokerMappingSource;
@@ -30,7 +28,6 @@ import com.sequenceiq.environment.environment.validation.EnvironmentFlowValidato
 import com.sequenceiq.environment.environment.validation.EnvironmentValidatorService;
 import com.sequenceiq.environment.network.NetworkService;
 import com.sequenceiq.environment.network.dao.domain.BaseNetwork;
-import com.sequenceiq.environment.network.dto.NetworkDto;
 import com.sequenceiq.environment.parameters.dao.domain.AwsParameters;
 import com.sequenceiq.environment.parameters.dao.domain.BaseParameters;
 import com.sequenceiq.environment.parameters.dto.ParametersDto;
@@ -122,29 +119,17 @@ public class EnvironmentModificationService {
 
     private void editNetworkIfChanged(Environment environment, EnvironmentEditDto editDto) {
         if (networkChanged(editDto)) {
-            Optional<BaseNetwork> original = networkService.findByEnvironment(environment.getId());
-            original.ifPresent(baseNetwork -> editDto.getNetworkDto().setId(baseNetwork.getId()));
-            try {
-                BaseNetwork network = createAndSetNetwork(environment, editDto.getNetworkDto(), editDto.getAccountId());
-                if (network != null) {
-                    environment.setNetwork(network);
-                }
-            } catch (Exception e) {
-                environment.setStatus(EnvironmentStatus.UPDATE_FAILED);
-                environment.setStatusReason(e.getMessage());
-                environmentService.save(environment);
-                throw e;
+            BaseNetwork network = networkService.mergeNetworkDtoWithNetwork(environment.getNetwork(), editDto, environment);
+            if (network != null) {
+                environment.setNetwork(network);
             }
+            environment.setStatus(EnvironmentStatus.AVAILABLE);
+            environment.setStatusReason("");
         }
     }
 
     private boolean networkChanged(EnvironmentEditDto editDto) {
         return editDto.getNetworkDto() != null;
-    }
-
-    private BaseNetwork createAndSetNetwork(Environment environment, NetworkDto networkCreationDto, String accountId) {
-        Map<String, CloudSubnet> subnetMetas = networkService.retrieveSubnetMetadata(environment, networkCreationDto);
-        return networkService.saveNetwork(environment, networkCreationDto, accountId, subnetMetas);
     }
 
     private void editDescriptionIfChanged(Environment environment, EnvironmentEditDto editDto) {

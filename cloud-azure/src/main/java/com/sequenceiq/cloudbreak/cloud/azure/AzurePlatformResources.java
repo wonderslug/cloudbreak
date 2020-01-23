@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -92,27 +93,41 @@ public class AzurePlatformResources implements PlatformResources {
     public CloudNetworks networks(CloudCredential cloudCredential, Region region, Map<String, String> filters) {
         AzureClient client = azureClientService.getClient(cloudCredential);
         Map<String, Set<CloudNetwork>> result = new HashMap<>();
-
-        for (Network network : client.getNetworks()) {
+        String networkId = filters.get("networkId");
+        String resourceGroupName = filters.get("resourceGroupName");
+        if (!StringUtils.isEmpty(networkId) && !StringUtils.isEmpty(resourceGroupName)) {
+            Network network = client.getNetworkByResourceGroup(resourceGroupName, networkId);
             String actualRegion = network.region().label();
             if (regionMatch(actualRegion, region)) {
-                Set<CloudSubnet> subnets = new HashSet<>();
-                for (Entry<String, Subnet> subnet : network.subnets().entrySet()) {
-                    subnets.add(new CloudSubnet(subnet.getKey(), subnet.getKey(), null, subnet.getValue().addressPrefix()));
+                CloudNetwork cloudNetwork = convertToCloudNetwork(network);
+                result.put(actualRegion, Set.of(cloudNetwork));
+            }
+        } else {
+            for (Network network : client.getNetworks()) {
+                String actualRegion = network.region().label();
+                if (regionMatch(actualRegion, region)) {
+                    CloudNetwork cloudNetwork = convertToCloudNetwork(network);
+                    result.computeIfAbsent(actualRegion, s -> new HashSet<>()).add(cloudNetwork);
                 }
-                Map<String, Object> properties = new HashMap<>();
-                properties.put("addressSpaces", network.addressSpaces());
-                properties.put("dnsServerIPs", network.dnsServerIPs());
-                properties.put("resourceGroupName", network.resourceGroupName());
-
-                CloudNetwork cloudNetwork = new CloudNetwork(network.name(), network.id(), subnets, properties);
-                result.computeIfAbsent(actualRegion, s -> new HashSet<>()).add(cloudNetwork);
             }
         }
         if (result.isEmpty() && Objects.nonNull(region)) {
             result.put(region.value(), new HashSet<>());
         }
         return new CloudNetworks(result);
+    }
+
+    private CloudNetwork convertToCloudNetwork(Network network) {
+        Set<CloudSubnet> subnets = new HashSet<>();
+        for (Entry<String, Subnet> subnet : network.subnets().entrySet()) {
+            subnets.add(new CloudSubnet(subnet.getKey(), subnet.getKey(), null, subnet.getValue().addressPrefix()));
+        }
+        Map<String, Object> properties = new HashMap<>();
+        properties.put("addressSpaces", network.addressSpaces());
+        properties.put("dnsServerIPs", network.dnsServerIPs());
+        properties.put("resourceGroupName", network.resourceGroupName());
+
+        return new CloudNetwork(network.name(), network.id(), subnets, properties);
     }
 
     @Override
